@@ -38,22 +38,31 @@ export const typesForRole = (role: string | undefined): NotificationType[] =>
 const str = (v: unknown) => (typeof v === "string" && v ? v : null);
 
 /* Where a notification leads, when the person can open that page; null opens the detail drawer.
-   Portal pages for families come from the portal module; until then they read it here. */
+   Staff go to the finance record, else the student's profile. Families' portal pages come from the
+   portal module; until those routes exist, families read the notification in the drawer. */
 export function notificationTarget(n: Notification, can: (key: string) => boolean): string | null {
   const studentId = str(n.data.studentId);
+  const invoiceId = str(n.data.invoiceId);
+  const paymentId = str(n.data.paymentId);
+  const refundId = str(n.data.refundId);
+  const studentFees = studentId && can("users.students.read") && can("finance.invoices.read") ? `/users/students/${studentId}?tab=fees` : null;
   switch (n.type) {
     case "IMPORT_COMPLETED": {
       const importId = str(n.data.importId);
       return importId && can("administration.imports.read") ? `/administration/imports/${importId}` : null;
     }
+    case "ATTENDANCE_MISSED":
+      return can("academics.attendance.readMissingRegisters") ? "/academics/attendance/missing-registers" : null;
     case "INVOICE_ISSUED":
-    case "PAYMENT_RECEIVED":
     case "FEE_REMINDER":
+      return invoiceId && can("finance.invoices.read") ? `/finance/invoices/${invoiceId}` : studentFees;
+    case "PAYMENT_RECEIVED":
+      return paymentId && can("finance.payments.read") ? `/finance/payments/${paymentId}` : studentFees;
     case "REFUND_PROCESSED":
     case "REFUND_REQUESTED":
     case "REFUND_APPROVED":
     case "REFUND_REJECTED":
-      return studentId && can("users.students.read") && can("finance.invoices.read") ? `/users/students/${studentId}?tab=fees` : null;
+      return refundId && can("finance.payments.read") ? `/finance/refunds/${refundId}` : studentFees;
     case "ATTENDANCE_ABSENT":
       return studentId && can("users.students.read") && can("academics.attendance.read") ? `/users/students/${studentId}?tab=attendance` : null;
     default:
