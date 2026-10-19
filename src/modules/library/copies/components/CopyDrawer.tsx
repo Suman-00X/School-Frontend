@@ -1,4 +1,5 @@
 import { useEffect, type FormEvent } from "react";
+import { isApiError } from "@/common/api";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/common/auth";
 import { useApiGet, useForm } from "@/common/hooks";
@@ -90,7 +91,13 @@ export function CopyDrawer({ copyId, onClose, showBook = true }: { copyId: strin
           toast.success(res.message);
           onClose();
         },
-        onError: err => form.setServerErrors(err)
+        onError: err => {
+          /* 409 "Barcode … is already used by copy …" belongs to the barcode field */
+          if (isApiError(err) && err.status === 409 && /barcode/i.test(err.message)) {
+            form.setErrors({ barcode: err.message });
+            form.setFormError(null);
+          } else form.setServerErrors(err);
+        }
       }
     );
   };

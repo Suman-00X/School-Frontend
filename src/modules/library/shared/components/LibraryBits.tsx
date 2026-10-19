@@ -18,15 +18,11 @@ import "../library.css";
    description and the page's actions, no title. Always the height of a button. */
 export function LibraryIntro({ children, actions }: { children?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="row-between" style={{ minHeight: 34, flexWrap: "nowrap", gap: 12 }}>
-      <p
-        className="muted"
-        style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-        title={typeof children === "string" ? children : undefined}
-      >
+    <div className="lib-intro">
+      <p className="muted" title={typeof children === "string" ? children : undefined}>
         {children}
       </p>
-      {actions && <div className="row" style={{ flexShrink: 0 }}>{actions}</div>}
+      {actions && <div className="row lib-intro-actions">{actions}</div>}
     </div>
   );
 }

@@ -48,7 +48,7 @@ export function AddCopiesDialog({ open, book, onClose }: { open: boolean; book: 
       {
         onSuccess: res => {
           toast.success(res.message);
-          setAdded(res.data.copies);
+          setAdded(res.data);
         },
         onError: err => form.setServerErrors(err)
       }

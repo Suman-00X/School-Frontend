@@ -52,7 +52,9 @@ export function IssueDesk({ onLog }: { onLog: (e: Omit<LogEntry, "id" | "at">) =
   const pendingCopy = useRef(params.get("copy"));
 
   const a = account.data;
-  const blocked = !!a && !a.canBorrow;
+  /* Blocked per the account, or (without access to accounts) per the server's refusal */
+  const [refused, setRefused] = useState(false);
+  const blocked = (!!a && !a.canBorrow) || refused;
   const borrowerName = a?.borrower.name;
 
   const setBorrower = (id: string) => {
@@ -67,6 +69,7 @@ export function IssueDesk({ onLog }: { onLog: (e: Omit<LogEntry, "id" | "at">) =
       { replace: true }
     );
     setOptions(NO_OPTIONS);
+    setRefused(false);
     setTimeout(() => scanRef.current?.focus(), 0);
   };
 
@@ -101,7 +104,10 @@ export function IssueDesk({ onLog }: { onLog: (e: Omit<LogEntry, "id" | "at">) =
       },
       onError: err => {
         const message = isApiError(err) ? err.message : "Something went wrong. Please try again.";
-        if (/may override this with a reason/i.test(message)) setOptionsOpen({ focusOverride: true });
+        if (/may override this with a reason/i.test(message)) {
+          setRefused(true);
+          setOptionsOpen({ focusOverride: true });
+        }
         const shown = /No circulation rule covers/i.test(message) ? (
           <span>
             {message}.{" "}

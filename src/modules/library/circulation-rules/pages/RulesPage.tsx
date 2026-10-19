@@ -28,7 +28,7 @@ export default function RulesPage() {
   );
 
   const columns: Column<CirculationRule>[] = [
-    { key: "appliesTo", header: "Applies to", render: r => <span style={{ textTransform: "capitalize" }}>{r.appliesTo}</span> },
+    { key: "appliesTo", header: "Applies to", render: r => r.appliesTo.charAt(0).toUpperCase() + r.appliesTo.slice(1) },
     { key: "loanDays", header: "Loan days", align: "right", render: r => <span className="num">{r.loanDays}</span> },
     { key: "maxLoans", header: "Max loans", align: "right", render: r => <span className="num">{r.maxLoans}</span> },
     { key: "maxRenewals", header: "Renewals", align: "right", render: r => <span className="num">{r.maxRenewals}</span> },

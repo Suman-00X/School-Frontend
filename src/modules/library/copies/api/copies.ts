@@ -1,6 +1,6 @@
 import { api } from "@/common/api";
 import { useApiMutation } from "@/common/hooks";
-import type { Book, Copy, CopyStatus, ItemType } from "../../shared/api/types";
+import type { Copy, CopyStatus, ItemType } from "../../shared/api/types";
 import { codeQuery } from "../../shared/utils/labels";
 
 export const COPIES_PATH = "/library/copies";
@@ -28,8 +28,9 @@ export type CopyChanges = {
 /* Copy writes change the book's counts and the catalogue too */
 const invalidate = [COPIES_PATH, "/library/books", "/library/catalogue", "/library/holds"];
 
+/* Returns the new copies (an array; FRONTEND_PAGES.md says { book, copies }, the code returns the list) */
 export const useAddCopies = () =>
-  useApiMutation(({ bookId, ...body }: AddCopiesInput) => api.post<{ book: Book; copies: Copy[] }>(`/library/books/${bookId}/copies`, body), { invalidate });
+  useApiMutation(({ bookId, ...body }: AddCopiesInput) => api.post<Copy[]>(`/library/books/${bookId}/copies`, body), { invalidate });
 
 export const useUpdateCopy = () =>
   useApiMutation(({ id, ...body }: CopyChanges & { id: string }) => api.patch<Copy>(`${COPIES_PATH}/${id}`, body), { invalidate });

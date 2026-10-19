@@ -319,3 +319,37 @@
   padding: 12px 14px 0;
   border-bottom: 1px solid var(--border);
 }
+
+/* A page's one-line description and its actions; on phones the actions go under the line */
+.lib-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+.lib-intro > p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-intro-actions {
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .lib-intro {
+    flex-wrap: wrap;
+  }
+  .lib-intro > p {
+    flex-basis: 100%;
+  }
+  .lib-intro-actions {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+  }
+  .desk-keys {
+    display: none;
+  }
+}

@@ -179,11 +179,11 @@ function Report({ id, about }: { id: ReportId; about: string }) {
   const data = q.data as never;
   return (
     <div className="stack">
-      <div className="row-between" style={{ minHeight: 34, flexWrap: "nowrap", gap: 12 }}>
-        <p className="muted" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <div className="lib-intro">
+        <p className="muted" title={about}>
           {about}
         </p>
-        <div className="row" style={{ flexShrink: 0 }}>
+        <div className="row lib-intro-actions">
           <Button icon={<FileDown />} onClick={() => void download("csv")} loading={exporting === "csv"} disabled={!valid}>
             Export CSV
           </Button>
