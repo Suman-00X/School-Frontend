@@ -175,7 +175,16 @@ function fileNameOf(res: Response, fallback: string) {
   const star = /filename\*=UTF-8''([^;]+)/i.exec(cd);
   if (star) return decodeURIComponent(star[1]);
   const plain = /filename="?([^";]+)"?/i.exec(cd);
-  return plain ? plain[1] : fallback;
+  return plain ? decodeSafely(plain[1]) : fallback;
+}
+
+/* Some exports send a percent-encoded plain filename ("Results%20Term%201.xlsx") */
+function decodeSafely(name: string) {
+  try {
+    return decodeURIComponent(name);
+  } catch {
+    return name;
+  }
 }
 
 export function saveBlob(blob: Blob, fileName: string) {
