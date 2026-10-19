@@ -75,3 +75,151 @@
   gap: 10px;
   min-height: 30px;
 }
+
+/* Grading: the 0–100% coverage bar of a grade scale */
+.band-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.band-bar {
+  position: relative;
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.band-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--success-soft);
+  color: var(--success-text);
+  border-right: 1px solid var(--surface);
+  font-size: 11.5px;
+  font-weight: 650;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.band-seg.is-failing {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.band-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.band-mark.is-gap {
+  background: repeating-linear-gradient(135deg, transparent, transparent 3px, var(--danger) 3px, var(--danger) 5px);
+  opacity: 0.6;
+}
+.band-mark.is-overlap {
+  background: var(--warning);
+  opacity: 0.55;
+}
+.band-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.band-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Band rows, subject rules and exam weights: small grids of inputs */
+.bands,
+.rules,
+.weights {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bands-head,
+.bands-row {
+  display: grid;
+  grid-template-columns: 70px 80px 80px 70px minmax(0, 1fr) 56px 34px;
+  gap: 6px;
+  align-items: center;
+}
+.rules-head,
+.rules-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 70px 90px 80px 34px;
+  gap: 6px;
+  align-items: center;
+}
+.bands-head,
+.rules-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.bands-row .check,
+.rules-row .check {
+  justify-content: center;
+}
+.weights-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 34px;
+  gap: 6px;
+  align-items: center;
+}
+.weights-weight .input {
+  padding-right: 26px;
+}
+.weights-pct {
+  position: absolute;
+  right: 10px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.weights-total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .bands-head,
+  .rules-head {
+    display: none;
+  }
+  .bands-row {
+    grid-template-columns: 60px 1fr 1fr 34px;
+  }
+  .bands-row > :nth-child(4),
+  .bands-row > :nth-child(5) {
+    grid-column: span 2;
+  }
+  .rules-row {
+    grid-template-columns: 1fr 1fr 34px;
+  }
+}
+
+/* "Which rules apply?": filters without the bar's border, one reserved answer line */
+.filter-bar.filter-bar-plain {
+  padding: 0;
+  border-bottom: 0;
+}
+.resolution-line {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.field-narrow {
+  max-width: 320px;
+}
