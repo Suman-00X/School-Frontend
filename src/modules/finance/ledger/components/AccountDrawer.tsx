@@ -149,7 +149,7 @@ export function AccountDrawer({ open, account, canEdit, onClose }: { open: boole
         <TextInput label="Name" required autoFocus maxLength={120} placeholder="Electricity" {...form.text("name")} />
         {!account && (
           <Switch
-            label="Contra account (carries the opposite balance of its type, like a discount against income)"
+            label="Contra account: carries the opposite balance of its type"
             checked={values.isContra}
             onChange={v => form.set("isContra", v)}
           />

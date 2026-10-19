@@ -35,7 +35,8 @@ import { RefundDrawer } from "../../payments/components/RefundDrawer";
 import { CREDIT_ENTRY_LABELS, useStudentCredit } from "../api/credits";
 import { ApplyCreditDialog } from "../components/ApplyCreditDialog";
 import { PayBackCreditDialog } from "../components/PayBackCreditDialog";
-import { ChangePlanDialog, GrantConcessionDialog } from "../components/AccountSetupDialogs";
+import { AssignPlanDialog } from "../../installment-plans";
+import { GrantDialog } from "../../concessions";
 import "../../shared/operations.css";
 
 type StudentRecord = StudentBrief & { userId: string };
@@ -57,9 +58,9 @@ export default function StudentAccountPage() {
 
   const tabs: TabItem[] = [
     { id: "summary", label: "Summary" },
-    { id: "invoices", label: "Invoices", count: s?.invoices.length },
-    { id: "payments", label: "Payments", count: s?.payments.length },
-    { id: "refunds", label: "Refunds", count: s?.refunds.length },
+    { id: "invoices", label: "Invoices" },
+    { id: "payments", label: "Payments" },
+    { id: "refunds", label: "Refunds" },
     { id: "credit", label: "Credit", hidden: !can("finance.credits.read") }
   ];
   const [tab, setTab] = useTabParam(tabs);
@@ -173,7 +174,9 @@ function SummaryTab({ statement: s, studentId, name, yearId, yearName }: { state
   const [changingPlan, setChangingPlan] = useState(false);
   const [granting, setGranting] = useState(false);
   const revoke = useApiMutation((grantId: string) => api.delete(`/finance/concession-grants/${grantId}`), { invalidate: ["/finance/"] });
-  const canAssign = can("finance.installmentPlans.assign");
+  const { selected: headerYear, readOnly } = useAcademicYear();
+  /* Plan changes act on the header's year (FI-02's dialog), so they are offered for that year only */
+  const canAssign = can("finance.installmentPlans.assign") && headerYear?.id === yearId && !readOnly;
   const canConcede = can("finance.concessions.manage");
 
   const askRevoke = async (c: Statement["concessions"][number]) => {
@@ -259,24 +262,9 @@ function SummaryTab({ statement: s, studentId, name, yearId, yearName }: { state
           </div>
         </Card>
       </div>
-      <ChangePlanDialog
-        open={changingPlan}
-        onClose={() => setChangingPlan(false)}
-        studentId={studentId}
-        studentName={name}
-        academicYearId={yearId}
-        yearName={yearName}
-        currentPlanId={s.installmentPlan?.id ?? null}
-      />
-      <GrantConcessionDialog
-        open={granting}
-        onClose={() => setGranting(false)}
-        studentId={studentId}
-        studentName={name}
-        academicYearId={yearId}
-        yearName={yearName}
-        granted={s.concessions.map(c => c.concessionId)}
-      />
+      {/* The setup pages' dialogs (FI-02, FI-05), prefilled with this student */}
+      <AssignPlanDialog open={changingPlan} onClose={() => setChangingPlan(false)} preset={{ studentId, planId: s.installmentPlan?.id ?? null }} />
+      <GrantDialog open={granting} onClose={() => setGranting(false)} preset={{ studentId }} />
     </div>
   );
 }

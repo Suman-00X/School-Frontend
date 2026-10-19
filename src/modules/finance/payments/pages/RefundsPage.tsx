@@ -100,7 +100,7 @@ export default function RefundsPage() {
         value={view}
         onChange={id => setParams({ view: id, status: "" })}
         tabs={[
-          { id: "waiting", label: "Waiting for approval", count: waiting.meta?.total },
+          { id: "waiting", label: "Waiting for approval", count: waiting.meta?.total ?? 0 },
           { id: "all", label: "All" },
           { id: "credit", label: "Credit refunds" },
           { id: "review", label: "Needs review" }

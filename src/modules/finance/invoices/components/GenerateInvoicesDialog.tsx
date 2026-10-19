@@ -17,14 +17,14 @@ const STEPS = ["Fee structure", "Who", "Dates", "Confirm"];
 
 /* FI-07 generation wizard: structure → scope → dates → confirm → result. Running it again is
    safe: invoices already issued for an installment are skipped. */
-export function GenerateInvoicesDialog({ onClose }: { onClose: () => void }) {
+export function GenerateInvoicesDialog({ onClose, structureId: preset }: { onClose: () => void; structureId?: string }) {
   const toast = useToast();
   const navigate = useNavigate();
   const structures = useStructureOptions();
   const classes = useClassOptions();
   const sections = useSectionOptions();
-  const [step, setStep] = useState(0);
-  const [structureId, setStructureId] = useState("");
+  const [step, setStep] = useState(preset ? 1 : 0);
+  const [structureId, setStructureId] = useState(preset ?? "");
   const [scope, setScope] = useState<Scope>("CLASS");
   const [sectionId, setSectionId] = useState("");
   const [studentIds, setStudentIds] = useState<Set<string>>(new Set());
@@ -235,7 +235,9 @@ export function GenerateInvoicesDialog({ onClose }: { onClose: () => void }) {
                         ))}
                     {!roster.isLoading && !rosterRows.length && <span className="muted">No active students in this section.</span>}
                   </div>
-                  {fieldErrors.studentIds && <div className="small field-error">{fieldErrors.studentIds}</div>}
+                  <div className="field-message field-error" role={fieldErrors.studentIds ? "alert" : undefined}>
+                    {fieldErrors.studentIds}
+                  </div>
                 </div>
               )}
             </>

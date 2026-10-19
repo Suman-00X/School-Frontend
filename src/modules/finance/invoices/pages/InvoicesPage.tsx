@@ -1,6 +1,6 @@
 /* FI-07 · Invoices: the year's invoices with filters; generate invoices from a fee structure */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FilePlus2, ReceiptText } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
@@ -13,7 +13,8 @@ import { PageIntro } from "../../shared/components/PageIntro";
 import { Amount, InvoiceStatus, StudentCell } from "../../shared/components/FinanceStatus";
 import { OPS_PATHS } from "../../shared/utils/opsPaths";
 import { useInvoices, type Invoice } from "../api/invoices";
-import { usePlanOptions, useStructureOptions } from "../api/pickers";
+import { useStructureOptions } from "../api/pickers";
+import { usePlanOptions } from "../../installment-plans";
 import { GenerateInvoicesDialog } from "../components/GenerateInvoicesDialog";
 
 const STATUS_OPTIONS = [
@@ -32,9 +33,24 @@ export default function InvoicesPage() {
   const list = useInvoices(params);
   const structures = useStructureOptions();
   const plans = usePlanOptions();
+  const [search, setSearch] = useSearchParams();
+  /* ?generate=<feeStructureId> (from a fee structure's page) opens the wizard with it picked */
+  const generateFor = search.get("generate");
   const [generating, setGenerating] = useState(false);
 
   const canIssue = can("finance.invoices.issue") && !readOnly;
+  const closeWizard = () => {
+    setGenerating(false);
+    if (generateFor)
+      setSearch(
+        prev => {
+          const next = new URLSearchParams(prev);
+          next.delete("generate");
+          return next;
+        },
+        { replace: true }
+      );
+  };
   const filtered = !!(params.status || params.feeStructureId || params.installmentPlanId || params.overdue || params.studentId);
 
   const columns: Column<Invoice>[] = [
@@ -128,7 +144,7 @@ export default function InvoicesPage() {
           }
         />
       </Card>
-      {generating && <GenerateInvoicesDialog onClose={() => setGenerating(false)} />}
+      {canIssue && (generating || !!generateFor) && <GenerateInvoicesDialog structureId={generateFor ?? undefined} onClose={closeWizard} />}
     </Page>
   );
 }
