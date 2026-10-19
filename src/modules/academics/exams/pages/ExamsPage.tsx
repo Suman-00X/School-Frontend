@@ -1,6 +1,6 @@
 /* AC-13 · Exams and papers: the exams of the header's academic year */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClipboardList, ListPlus, Plus } from "lucide-react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useAuth } from "@/common/auth";
@@ -28,6 +28,22 @@ export default function ExamsPage() {
   const [planning, setPlanning] = useState(false);
 
   const canCreate = can("academics.exams.create") && !readOnly;
+
+  /* ?new=1 (the quick-add shortcut) opens the empty drawer */
+  const [search, setSearch] = useSearchParams();
+  const wantsNew = canCreate && search.get("new") === "1";
+  const closeCreate = () => {
+    setCreating(false);
+    if (search.has("new"))
+      setSearch(
+        prev => {
+          const next = new URLSearchParams(prev);
+          next.delete("new");
+          return next;
+        },
+        { replace: true }
+      );
+  };
   const yearName = year?.yearName ?? "this year";
 
   const columns: Column<Exam>[] = [
@@ -99,7 +115,7 @@ export default function ExamsPage() {
           }
         />
       </Card>
-      <ExamDrawer open={creating} exam={null} onClose={() => setCreating(false)} />
+      <ExamDrawer open={creating || wantsNew} exam={null} onClose={closeCreate} />
       {planning && <BulkExamsDialog open onClose={() => setPlanning(false)} yearName={yearName} existing={all.exams.map(e => e.examName)} />}
     </div>
   );

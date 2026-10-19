@@ -35,7 +35,14 @@ const fieldLabel = (field: string) => {
   const [a, b] = field.split(".");
   return b ? `${a} ${FIELD_LABELS[b] ?? b}` : (FIELD_LABELS[a!] ?? a!);
 };
-const VALUE_LABELS: Record<string, string> = { ...RESULT_LABELS, NOT_RECORDED: "not entered", PRESENT: "present", GRADED: "graded", ABSENT: "absent", EXEMPT: "exempt" };
+const VALUE_LABELS: Record<string, string> = {
+  ...RESULT_LABELS,
+  NOT_RECORDED: "not entered",
+  PRESENT: "present",
+  GRADED: "graded",
+  ABSENT: "absent",
+  EXEMPT: "exempt"
+};
 const show = (v: unknown) =>
   v === null || v === undefined ? "—" : typeof v === "boolean" ? (v ? "yes" : "no") : typeof v === "string" ? (VALUE_LABELS[v] ?? v) : String(v);
 
