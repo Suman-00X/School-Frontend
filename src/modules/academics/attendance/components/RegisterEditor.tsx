@@ -123,8 +123,9 @@ export function RegisterEditor({
     };
     if (kind === "PERIOD") {
       body.periodNumber = periodNumber;
-      /* Only a subject other than the timetable's (or with nothing timetabled) is sent */
-      if (subjectId && subjectId !== defaultSubjectId) body.subjectId = subjectId;
+      /* Always sent when known: a retake keeps a substitute's own subject */
+      if (subjectId) body.subjectId = subjectId;
+      else if (!defaultSubjectId) return setError("Pick the subject taught.");
     }
     if (note.trim()) body.remarks = note.trim();
     if (locked) body.overrideReason = overrideReason.trim();

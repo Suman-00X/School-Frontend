@@ -174,7 +174,7 @@ function SectionPeriods({ sectionId, period, onPeriod, onBack }: { sectionId: st
           title={`${open.name} · ${c.section.label} · ${formatDate(c.date)}`}
           canRecord={can("academics.attendance.record") && !readOnly}
           subjects={c.subjects}
-          defaultSubjectId={open.timetabled?.subject.id ?? null}
+          defaultSubjectId={(open.subjectTaught ?? open.timetabled?.subject)?.id ?? null}
           onSaved={() => void q.refetch()}
         />
       </div>

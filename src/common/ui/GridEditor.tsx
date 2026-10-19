@@ -126,9 +126,7 @@ export function GridEditor({
           if (el) cells.current.set(`${r}:${c}`, el);
           else cells.current.delete(`${r}:${c}`);
         }}
-        role="gridcell"
         tabIndex={isActive ? 0 : -1}
-        aria-readonly={!canEdit || undefined}
         aria-label={typeof col.label === "string" ? `${col.label}: ${chosen?.label ?? "not marked"}` : chosen?.label ?? "Not marked"}
         className={`ge-cell ge-${layout}${canEdit ? "" : " is-readonly"}`}
         onFocus={() => setActive({ r, c })}
