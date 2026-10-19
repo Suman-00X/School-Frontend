@@ -1,14 +1,15 @@
 import { useState, type ReactNode } from "react";
-import { NavLink } from "react-router-dom";
+import { matchPath, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
 /* A left list of sections inside the content area (for areas with more sections than fit
    in the header), grouped and collapsible:
    <SideNavLayout groups={[{ label: "Customization", items: [{ label: "Cases status", to: "…" }] }]}>…</SideNavLayout>
-   A group without a label is a plain list. Items can also be buttons (onClick + active). */
+   A group without a label is a plain list. Items can also be buttons (onClick + active).
+   A group with collapsed starts closed, unless it holds the page being shown. */
 
 export type SideNavItem = { label: string; to?: string; onClick?: () => void; active?: boolean; hidden?: boolean; end?: boolean };
-export type SideNavGroup = { label?: string; items: SideNavItem[] };
+export type SideNavGroup = { label?: string; collapsed?: boolean; items: SideNavItem[] };
 
 export function SideNavLayout({ groups, children }: { groups: SideNavGroup[]; children: ReactNode }) {
   return (
@@ -31,7 +32,11 @@ export function SideNav({ groups }: { groups: SideNavGroup[] }) {
 }
 
 function Group({ group }: { group: SideNavGroup }) {
-  const [open, setOpen] = useState(true);
+  const { pathname } = useLocation();
+  const holdsPage = group.items.some(i => (i.to ? !!matchPath({ path: i.to, end: !!i.end }, pathname) : i.active));
+  /* undefined: the default (closed if collapsed, but open while one of its items is the page) */
+  const [toggled, setToggled] = useState<boolean | undefined>(undefined);
+  const open = toggled ?? (!group.collapsed || holdsPage);
   const items = group.items.map(item =>
     item.to ? (
       <NavLink key={item.label} to={item.to} end={item.end} className={({ isActive }) => `sidenav-item${isActive ? " active" : ""}`}>
@@ -46,11 +51,12 @@ function Group({ group }: { group: SideNavGroup }) {
   if (!group.label) return <div className="sidenav-group">{items}</div>;
   return (
     <div className="sidenav-group">
-      <button type="button" className="sidenav-group-label" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+      <button type="button" className="sidenav-group-label" aria-expanded={open} onClick={() => setToggled(!open)}>
         <ChevronDown className={open ? "" : "collapsed"} />
         {group.label}
       </button>
-      {open && <div className="sidenav-group-items">{items}</div>}
+      {/* Kept in the DOM: on narrow screens the groups become one row and are never closed */}
+      <div className={`sidenav-group-items${open ? "" : " is-closed"}`}>{items}</div>
     </div>
   );
 }

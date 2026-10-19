@@ -361,6 +361,9 @@
   gap: 2px;
   padding-left: 14px;
 }
+.sidenav-group-items.is-closed {
+  display: none;
+}
 .sidenav-item {
   display: block;
   width: 100%;
@@ -455,7 +458,9 @@ html[data-text-size="large"] .dialog {
     overflow-x: auto;
   }
   .sidenav-group,
-  .sidenav-group-items {
+  .sidenav-group-items,
+  .sidenav-group-items.is-closed {
+    display: flex;
     flex-direction: row;
   }
   .sidenav-group-label {

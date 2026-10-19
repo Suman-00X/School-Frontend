@@ -14,6 +14,7 @@ export function UserManagementLayout() {
           { items: [{ label: "All users", to: "/users", end: true, hidden: !can("users.accounts.read") }] },
           {
             label: "Users",
+            collapsed: true,
             items: [
               { label: "Students", to: "/users/students", hidden: !can("users.students.read") },
               { label: "Parents", to: "/users/parents", hidden: !can("users.parents.read") },
@@ -23,6 +24,7 @@ export function UserManagementLayout() {
           },
           {
             label: "Tools",
+            collapsed: true,
             items: [
               { label: "Import", to: "/administration/imports", hidden: !can("administration.imports.read") },
               { label: "Activity", to: "/users/activity", hidden: !can("users.activity.read") }
