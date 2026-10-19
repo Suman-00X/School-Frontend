@@ -12,3 +12,6 @@ export const listRoutes: RouteObject[] = [...accountLists, ...studentLists, ...p
 export const routes: RouteObject[] = [...studentRoutes, ...parentRoutes, ...teacherRoutes, ...staffRoutes, ...accountRoutes];
 
 export { UserManagementLayout } from "./shared/components/UserManagementLayout";
+
+/* For other modules: pick and name a student */
+export { StudentSelect, useStudentOptions, studentName, type StudentRef } from "./shared/components/StudentSelect";
