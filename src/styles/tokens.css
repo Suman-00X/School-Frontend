@@ -1,0 +1,97 @@
+/* Design tokens. Components use these only; dark mode redefines them. */
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-hover: #f3f4f6;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #111827;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --text-inverse: #ffffff;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eef2ff;
+  --primary-text: #3730a3;
+
+  --success: #059669;
+  --success-soft: #ecfdf5;
+  --success-text: #065f46;
+  --warning: #d97706;
+  --warning-soft: #fffbeb;
+  --warning-text: #92400e;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-text: #991b1b;
+  --info-soft: #eff6ff;
+  --info-text: #1e40af;
+  --neutral-soft: #f3f4f6;
+  --neutral-text: #374151;
+
+  --sidebar-bg: #111827;
+  --sidebar-text: #d1d5db;
+  --sidebar-text-muted: #9ca3af;
+  --sidebar-hover: #1f2937;
+  --sidebar-active: #312e81;
+  --sidebar-active-text: #ffffff;
+
+  --focus-ring: 0 0 0 3px rgb(79 70 229 / 0.25);
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-md: 0 4px 12px rgb(16 24 40 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(16 24 40 / 0.16);
+  --overlay: rgb(17 24 39 / 0.45);
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --sidebar-width: 248px;
+  --header-height: 56px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f17;
+    --surface: #111722;
+    --surface-2: #151c28;
+    --surface-hover: #1a2231;
+    --border: #243042;
+    --border-strong: #334155;
+    --text: #e5e7eb;
+    --text-2: #b6bfcc;
+    --text-3: #8b96a7;
+
+    --primary: #818cf8;
+    --primary-hover: #a5b4fc;
+    --primary-soft: #1e1b4b;
+    --primary-text: #c7d2fe;
+
+    --success-soft: #052e22;
+    --success-text: #6ee7b7;
+    --warning-soft: #2d1d05;
+    --warning-text: #fcd34d;
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --danger-soft: #2c0b0b;
+    --danger-text: #fca5a5;
+    --info-soft: #0c1a3a;
+    --info-text: #93c5fd;
+    --neutral-soft: #1f2937;
+    --neutral-text: #d1d5db;
+
+    --sidebar-bg: #0a0e15;
+    --sidebar-hover: #151c28;
+    --sidebar-active: #272463;
+
+    --overlay: rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
