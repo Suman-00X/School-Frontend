@@ -38,14 +38,19 @@ export const typesForRole = (role: string | undefined): NotificationType[] =>
 const str = (v: unknown) => (typeof v === "string" && v ? v : null);
 
 /* Where a notification leads, when the person can open that page; null opens the detail drawer.
-   Staff go to the finance record, else the student's profile. Families' portal pages come from the
-   portal module; until those routes exist, families read the notification in the drawer. */
+   Staff go to the finance record, else the student's profile. Families go to the child's portal page
+   (/me/school/… opens the child last viewed when the notification names none). */
 export function notificationTarget(n: Notification, can: (key: string) => boolean): string | null {
   const studentId = str(n.data.studentId);
   const invoiceId = str(n.data.invoiceId);
   const paymentId = str(n.data.paymentId);
   const refundId = str(n.data.refundId);
-  const studentFees = studentId && can("users.students.read") && can("finance.invoices.read") ? `/users/students/${studentId}?tab=fees` : null;
+  const portal = (page: string, permission = "portal.learning.students") =>
+    can(permission) ? (studentId ? `/me/students/${studentId}/${page}` : `/me/school/${page}`) : null;
+  const familyFees =
+    invoiceId && studentId && can("portal.fees.read") ? `/me/students/${studentId}/fees/invoices/${invoiceId}` : portal("fees", "portal.fees.read");
+  const studentFees =
+    studentId && can("users.students.read") && can("finance.invoices.read") ? `/users/students/${studentId}?tab=fees` : familyFees;
   switch (n.type) {
     case "IMPORT_COMPLETED": {
       const importId = str(n.data.importId);
@@ -64,7 +69,11 @@ export function notificationTarget(n: Notification, can: (key: string) => boolea
     case "REFUND_REJECTED":
       return refundId && can("finance.payments.read") ? `/finance/refunds/${refundId}` : studentFees;
     case "ATTENDANCE_ABSENT":
-      return studentId && can("users.students.read") && can("academics.attendance.read") ? `/users/students/${studentId}?tab=attendance` : null;
+      return studentId && can("users.students.read") && can("academics.attendance.read")
+        ? `/users/students/${studentId}?tab=attendance`
+        : portal("attendance");
+    case "RESULTS_PUBLISHED":
+      return portal("results");
     default:
       return null;
   }
