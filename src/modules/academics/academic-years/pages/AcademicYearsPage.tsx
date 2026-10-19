@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from "react";
 import { Archive, ArchiveRestore, CalendarCheck, MoreHorizontal, Pencil, Plus } from "lucide-react";
+import type { AcademicYear } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useApiList, useListParams } from "@/common/hooks";
-import { Badge, Button, Card, DataTable, EmptyState, Menu, MenuItem, Page, useConfirm, useToast } from "@/common/ui";
+import { Badge, Button, Card, DataTable, EmptyState, Menu, MenuItem, Page, PageHeader, useConfirm, useToast } from "@/common/ui";
 import { formatDate } from "@/common/utils/format";
 import {
   ACADEMIC_YEARS_PATH,
@@ -13,8 +14,8 @@ import {
   useAcademicYearMutation,
   type AcademicYearRecord
 } from "../api/academicYears";
-import { PageIntro } from "../../shared/components/PageIntro";
 import { AcademicYearDrawer } from "../components/AcademicYearDrawer";
+import { YearEndCard } from "../components/YearEndCard";
 
 const MONTH_MS = 30 * 86_400_000;
 
@@ -25,7 +26,7 @@ const teacherAccessUntil = (y: AcademicYearRecord) => {
   return until > Date.now() ? new Date(until).toISOString() : null;
 };
 
-/* AC-01 */
+/* AC-01 · Academic years (Academics › Setup) */
 export default function AcademicYearsPage() {
   const { can } = useAuth();
   const toast = useToast();
@@ -45,7 +46,7 @@ export default function AcademicYearsPage() {
 
   const current = list.rows?.find(y => y.isCurrent);
 
-  const askMakeCurrent = async (y: AcademicYearRecord) => {
+  const askMakeCurrent = async (y: AcademicYear) => {
     const ok = await confirm({
       title: `Make ${y.yearName} the current year?`,
       message: current
@@ -57,7 +58,7 @@ export default function AcademicYearsPage() {
     if (ok) makeCurrent.mutate({ id: y.id, isCurrent: true }, handlers);
   };
 
-  const askArchive = async (y: AcademicYearRecord) => {
+  const askArchive = async (y: AcademicYear) => {
     const ok = await confirm({
       title: `Archive ${y.yearName}?`,
       message: `Attendance, marks, enrollments and the rest of ${y.yearName}'s academic records become read-only. Fees stay payable. You can unarchive it later.`,
@@ -76,41 +77,49 @@ export default function AcademicYearsPage() {
     if (ok) restore.mutate(y.id, handlers);
   };
 
+  /* Edit sits on the row as a pen; the rarer actions stay in the menu */
   const rowActions = (y: AcademicYearRecord) => {
+    const canEdit = canUpdate && !y.archivedAt;
     const items = [
-      canUpdate && !y.archivedAt && { label: "Edit", icon: <Pencil />, run: () => setDrawer({ year: y }) },
       canUpdate && !y.isCurrent && !y.archivedAt && { label: "Make current", icon: <CalendarCheck />, run: () => void askMakeCurrent(y) },
       canArchive && !y.archivedAt && !y.isCurrent && { label: "Archive", icon: <Archive />, run: () => void askArchive(y), danger: true },
       canArchive && y.archivedAt && { label: "Unarchive", icon: <ArchiveRestore />, run: () => void askRestore(y) }
     ].filter(Boolean) as { label: string; icon: ReactNode; run: () => void; danger?: boolean }[];
-    if (!items.length) return null;
+    if (!canEdit && !items.length) return null;
     return (
-      <div onClick={e => e.stopPropagation()}>
-        <Menu trigger={toggle => <Button size="sm" variant="ghost" icon={<MoreHorizontal />} onClick={toggle} aria-label={`Actions for ${y.yearName}`} />}>
-          {close =>
-            items.map(i => (
-              <MenuItem
-                key={i.label}
-                icon={i.icon}
-                danger={i.danger}
-                onClick={() => {
-                  close();
-                  i.run();
-                }}
-              >
-                {i.label}
-              </MenuItem>
-            ))
-          }
-        </Menu>
+      <div className="row-actions" onClick={e => e.stopPropagation()}>
+        {canEdit && (
+          <Button size="sm" variant="ghost" icon={<Pencil />} onClick={() => setDrawer({ year: y })} aria-label={`Edit ${y.yearName}`} title="Edit" />
+        )}
+        {items.length > 0 && (
+          <Menu trigger={toggle => <Button size="sm" variant="ghost" icon={<MoreHorizontal />} onClick={toggle} aria-label={`More actions for ${y.yearName}`} title="More" />}>
+            {close =>
+              items.map(i => (
+                <MenuItem
+                  key={i.label}
+                  icon={i.icon}
+                  danger={i.danger}
+                  onClick={() => {
+                    close();
+                    i.run();
+                  }}
+                >
+                  {i.label}
+                </MenuItem>
+              ))
+            }
+          </Menu>
+        )}
       </div>
     );
   };
 
   return (
     <Page>
-      {/* The header tab already says "Academic years": no title */}
-      <PageIntro
+      {/* A section of Academics › Setup: the side list sits on the left */}
+      <PageHeader
+        title="Academic years"
+        subtitle="The school year's dates and weekly off days. Names come from the dates (2026-27). The current year is the default everywhere."
         actions={
           canCreate && (
             <Button variant="primary" icon={<Plus />} onClick={() => setDrawer({ year: null })}>
@@ -118,9 +127,7 @@ export default function AcademicYearsPage() {
             </Button>
           )
         }
-      >
-        The school year's dates and weekly off days. Names come from the dates (2026-27). The current year is the default everywhere.
-      </PageIntro>
+      />
       <Card flush>
         <DataTable
           rows={list.rows}
@@ -171,10 +178,16 @@ export default function AcademicYearsPage() {
             },
             { key: "weeklyOffDays", header: "Weekly off", render: y => offDaysLabel(y.weeklyOffDays, y.offSaturdays) },
             { key: "description", header: "Description", render: y => <span className="muted">{y.description || "—"}</span> },
-            { key: "actions", header: "", align: "right", width: 48, render: rowActions }
+            { key: "actions", header: "", align: "right", width: 84, render: rowActions }
           ]}
         />
       </Card>
+      {/* Below the table, so it never pushes the list down */}
+      <YearEndCard
+        onNewYear={canCreate ? () => setDrawer({ year: null }) : undefined}
+        onMakeCurrent={y => void askMakeCurrent(y)}
+        onArchive={y => void askArchive(y)}
+      />
       <AcademicYearDrawer open={!!drawer} year={drawer?.year ?? null} canEdit={canUpdate} onClose={() => setDrawer(null)} />
     </Page>
   );

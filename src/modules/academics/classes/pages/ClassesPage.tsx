@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ListPlus, Plus } from "lucide-react";
+import { ListPlus } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiList } from "@/common/hooks";
-import { Badge, Button, Card, EmptyState, ErrorState, Page, Skeleton, SkeletonBlock } from "@/common/ui";
-import { PageIntro } from "../../shared/components/PageIntro";
+import { Badge, Button, Card, EmptyState, ErrorState, Page, PageHeader, Skeleton, SkeletonBlock } from "@/common/ui";
 import { byClassOrder, CLASSES_PATH, useClassLevels, type SchoolClass } from "../api/classes";
 import { BulkClassesDialog } from "../components/BulkClassesDialog";
+import { RollNumberRuleCard } from "../components/RollNumberRuleCard";
+import { RollNumbersDialog } from "../components/RollNumbersDialog";
 import { ClassDrawer } from "../components/ClassDrawer";
 import { SectionsPanel } from "../components/SectionsPanel";
 import "../components/classes.css";
@@ -23,8 +24,11 @@ export default function ClassesPage() {
   const canCreate = can("academics.classes.create");
   const canUpdate = can("academics.classes.update");
   const levels = useClassLevels();
-  const [drawer, setDrawer] = useState<{ klass: SchoolClass | null } | null>(null);
+  const [editing, setEditing] = useState<SchoolClass | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [rollAll, setRollAll] = useState(false);
+  /* The roll-number rule sits under the class list, in loading and loaded states alike */
+  const ruleCard = can("academics.enrollments.readPolicy") && <RollNumberRuleCard onAssignAll={() => setRollAll(true)} />;
 
   const classes = [...(list.rows ?? [])].sort(byClassOrder);
   const selected = classes.find(c => c.id === search.get("class")) ?? classes[0] ?? null;
@@ -41,15 +45,11 @@ export default function ClassesPage() {
   const allCreated = !!levels.data && levels.data.every(l => l.created);
   const createTitle = allCreated ? "Every level already has a class" : undefined;
 
+  /* One way in: tick one level or several */
   const actions = canCreate && (
-    <>
-      <Button icon={<ListPlus />} onClick={() => setBulkOpen(true)} disabled={allCreated} title={createTitle}>
-        Add classes
-      </Button>
-      <Button variant="primary" icon={<Plus />} onClick={() => setDrawer({ klass: null })} disabled={allCreated} title={createTitle}>
-        New class
-      </Button>
-    </>
+    <Button variant="primary" icon={<ListPlus />} onClick={() => setBulkOpen(true)} disabled={allCreated} title={createTitle}>
+      Add classes
+    </Button>
   );
 
   let body;
@@ -57,15 +57,18 @@ export default function ClassesPage() {
   else if (list.isLoading)
     body = (
       <div className="master-detail" aria-busy="true">
-        <Card flush title="Classes">
-          <ul className="class-list">
-            {Array.from({ length: 6 }, (_, i) => (
-              <li key={i} className="class-item is-placeholder">
-                <Skeleton width="60%" />
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <div className="stack">
+          <Card flush title="Classes">
+            <ul className="class-list">
+              {Array.from({ length: 6 }, (_, i) => (
+                <li key={i} className="class-item is-placeholder">
+                  <Skeleton width="60%" />
+                </li>
+              ))}
+            </ul>
+          </Card>
+          {ruleCard}
+        </div>
         <Card title="Sections" subtitle={<Skeleton width={220} height={12} />}>
           <SkeletonBlock lines={5} />
         </Card>
@@ -90,46 +93,48 @@ export default function ClassesPage() {
   else
     body = (
       <div className="master-detail">
-        <Card flush title={`Classes (${classes.length})`}>
-          <ul className="class-list" aria-label="Classes">
-            {classes.map(c => (
-              <li key={c.id}>
-                <button
-                  type="button"
-                  className={`class-item${c.id === selected.id ? " active" : ""}`}
-                  aria-current={c.id === selected.id || undefined}
-                  onClick={() => select(c.id)}
-                >
-                  <span className="class-name">{c.className}</span>
-                  {!c.level && <Badge tone="warning">Set level</Badge>}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <div className="stack">
+          <Card flush title={`Classes (${classes.length})`}>
+            <ul className="class-list" aria-label="Classes">
+              {classes.map(c => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className={`class-item${c.id === selected.id ? " active" : ""}`}
+                    aria-current={c.id === selected.id || undefined}
+                    onClick={() => select(c.id)}
+                  >
+                    <span className="class-name">{c.className}</span>
+                    {!c.level && <Badge tone="warning">Set level</Badge>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+          {ruleCard}
+        </div>
         <SectionsPanel
           key={selected.id}
           klass={selected}
           classes={classes}
-          onEditClass={canUpdate ? () => setDrawer({ klass: selected }) : undefined}
+          onSetLevel={canUpdate ? () => setEditing(selected) : undefined}
         />
       </div>
     );
 
   return (
     <Page>
-      {/* The header tab already says "Classes & sections": no title */}
-      <PageIntro actions={actions}>
-        Classes are school-wide levels, Nursery to Class 12. Sections belong to {year?.yearName ?? "the year chosen in the header"}.
-      </PageIntro>
-      {body}
-      <ClassDrawer
-        open={!!drawer}
-        klass={drawer?.klass ?? null}
-        levels={levels.data}
-        onClose={() => setDrawer(null)}
-        onSaved={c => select(c.id)}
+      {/* A section of Academics › Setup: the side list sits on the left */}
+      <PageHeader
+        title="Classes & sections"
+        subtitle={`Classes are school-wide levels, Nursery to Class 12. Sections belong to ${year?.yearName ?? "the year chosen in the header"}.`}
+        actions={actions}
       />
+      {body}
+      {editing && <ClassDrawer open klass={editing} levels={levels.data} onClose={() => setEditing(null)} onSaved={c => select(c.id)} />}
+      {rollAll && (
+        <RollNumbersDialog target={{ all: true }} label={`all of ${year?.yearName ?? "the year"}`} onClose={() => setRollAll(false)} />
+      )}
       {bulkOpen && <BulkClassesDialog open onClose={() => setBulkOpen(false)} levels={levels.data} />}
     </Page>
   );
