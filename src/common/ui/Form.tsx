@@ -28,7 +28,10 @@ export function Field({
         </label>
       )}
       {children}
-      {error ? <div className="field-error">{error}</div> : hint ? <div className="field-hint">{hint}</div> : null}
+      {/* Always rendered: an error appearing replaces the hint in the same reserved line */}
+      <div className={`field-message${error ? " field-error" : " field-hint"}`} role={error ? "alert" : undefined} title={typeof (error ?? hint) === "string" ? (error ?? hint) as string : undefined}>
+        {error ?? hint}
+      </div>
     </div>
   );
 }
@@ -37,10 +40,12 @@ type Common = { label?: ReactNode; hint?: ReactNode; error?: string | null; fiel
 
 export type TextInputProps = InputHTMLAttributes<HTMLInputElement> & Common;
 
-export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-  { label, hint, error, fieldClassName, id, className, required, ...rest },
-  ref
-) {
+/* Wrapped in a Field (label + reserved message line) when it has a label or hint, or when an
+   `error` prop is passed at all, even undefined: the markup then stays the same when an error arrives */
+const wantsField = (props: object & Common) => props.label !== undefined || props.hint !== undefined || "error" in props;
+
+export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(props, ref) {
+  const { label, hint, error, fieldClassName, id, className, required, ...rest } = props;
   const auto = useId();
   const inputId = id ?? auto;
   const input = (
@@ -53,7 +58,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
       {...rest}
     />
   );
-  if (!label && !hint && !error) return input;
+  if (!wantsField(props)) return input;
   return (
     <Field label={label} hint={hint} error={error} required={required} htmlFor={inputId} className={fieldClassName}>
       {input}
@@ -104,10 +109,8 @@ export type Option = { value: string; label: string; disabled?: boolean };
 export type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "children"> &
   Common & { options: Option[]; placeholder?: string };
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { label, hint, error, fieldClassName, id, className, options, placeholder, required, ...rest },
-  ref
-) {
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(props, ref) {
+  const { label, hint, error, fieldClassName, id, className, options, placeholder, required, ...rest } = props;
   const auto = useId();
   const selectId = id ?? auto;
   const select = (
@@ -127,7 +130,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       ))}
     </select>
   );
-  if (!label && !hint && !error) return select;
+  if (!wantsField(props)) return select;
   return (
     <Field label={label} hint={hint} error={error} required={required} htmlFor={selectId} className={fieldClassName}>
       {select}

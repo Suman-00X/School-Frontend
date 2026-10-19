@@ -72,10 +72,13 @@ export function DataTable<T>({
   };
 
   return (
-    <div>
+    <div className="table-shell">
       {selection && selection.selected.size > 0 && (
-        <div className="bulk-bar">
-          <span>{selection.selected.size} selected</span>
+        <div className="bulk-bar" role="toolbar" aria-label="Selected rows">
+          <span className="row" style={{ gap: 10 }}>
+            <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Select all rows" />
+            {selection.selected.size} selected
+          </span>
           <div className="row">
             {bulkActions}
             <Button size="sm" variant="ghost" onClick={() => selection.onChange(new Set())}>

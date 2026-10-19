@@ -33,13 +33,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       type={type}
-      className={cls(variant, size, !children && !!icon, block, className)}
+      className={cls(variant, size, !children && !!icon, block, [loading && "is-loading", className].filter(Boolean).join(" "))}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}
     >
-      {loading ? <Spinner /> : icon}
+      {/* The content keeps its place while loading, so the button never changes size */}
+      {icon}
       {children}
+      {loading && (
+        <span className="btn-spinner">
+          <Spinner />
+        </span>
+      )}
     </button>
   );
 });

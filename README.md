@@ -55,3 +55,24 @@ Each submodule has `pages/`, `components/`, `api/` and an `index.tsx` that expor
 - **Destructive actions** use `useConfirm()` with a message that names the record.
 - **Generated files** (exports, templates, PDFs) use `api.download(path, query)`, which sends the token. **Uploaded files** use the signed `…/download-url` link.
 - Styling uses the existing classes and tokens. Inline styles only for one-off spacing.
+
+## Navigation
+
+- **Left rail:** one icon per module (`MODULES` in `src/app/navigation.ts`).
+- **Header:** the active module's submodules as tabs. The header is always the same height.
+- **Drill-in header:** a page about one record (student, account, import, role) or an area with its own sections renders `<DrillHeader back title tabs value onChange />` (`@/common/layout/ShellHeader`). It replaces the module tabs with a back arrow, a title and the page's own tabs. Do not render a second row of tabs inside such a page.
+- **Many sections:** an area with more sections than fit in the header uses `<SideNavLayout groups>` (`@/common/layout/SideNav`), a grouped list on the left of the content.
+- **Right panel:** shortcuts (quick add, my account, text size, day/night). Its actions also live in the account menu, because the panel is hidden on phones.
+
+## Layout stability
+
+Nothing that appears after an action may push existing content around. Concretely:
+
+- **Form fields** always reserve their message line: `Field` renders it empty, and an error replaces the hint in the same line. Pass `error` to `TextInput`/`Select` (even `undefined`, as `form.text()` does) so they keep the same markup when an error arrives.
+- **Form-level errors** go in the footer: `Drawer`/`Dialog` `footerStatus`, or `<FormActions error>` under a page form. Never insert an `Alert` above or inside a form on submit.
+- **Selection:** the table's "N selected" bar covers the header row (`DataTable` handles it). Don't add bars above tables.
+- **Filters:** the filter bar has one height. Filters show no hints or errors (they're hidden by CSS). Say "nothing matches" in the table's empty state, not under a filter. Applied filters are fields in the bar, not an extra row of chips.
+- **Conditional notes and banners:** a note that depends on a choice (e.g. a status filter) goes in the empty state or a reserved slot of fixed height. A banner that a page may need (archived year, read-only) is either always present or lives in the header.
+- **Buttons** keep their size while loading (`Button loading`). Toggles that change a view swap one region for another of the same place; they never insert above existing content.
+- **Async content:** cards that load keep their size with skeletons. Lists keep the previous page while the next loads (`useApiList` does this).
+- **Messages after actions** are toasts, which float over the page.

@@ -8,7 +8,8 @@ export function Menu({
 }: {
   trigger: (toggle: () => void, open: boolean) => ReactNode;
   children: (close: () => void) => ReactNode;
-  align?: "left" | "right";
+  /* right: below, right edges aligned; left: below, left edges aligned; side: to the left of the trigger */
+  align?: "left" | "right" | "side";
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ export function Menu({
     <div className="menu-wrap" ref={ref}>
       {trigger(() => setOpen(o => !o), open)}
       {open && (
-        <div className={`menu${align === "left" ? " menu-left" : ""}`} role="menu">
+        <div className={`menu${align === "left" ? " menu-left" : align === "side" ? " menu-side" : ""}`} role="menu">
           {children(() => setOpen(false))}
         </div>
       )}

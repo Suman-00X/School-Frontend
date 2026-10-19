@@ -1,58 +1,94 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Building2,
-  CalendarRange,
-  ClipboardList,
-  FileUp,
-  GraduationCap,
-  Home,
-  KeyRound,
-  Layers,
-  ScrollText,
-  Settings,
-  ShieldCheck,
-  UserCog,
-  Users,
-  UsersRound,
-  Briefcase
-} from "lucide-react";
+import { BriefcaseBusiness, FileUp, GraduationCap, House, KeyRound, School, ShieldCheck, UserPlus, Users } from "lucide-react";
 
-/* The sidebar. An item shows when the person holds any of its permissions;
-   an empty group is hidden. Other modules add their groups here as they are built. */
+/* Navigation: a module is an icon in the left rail; its submodules are the tabs in the header.
+   A tab shows when the person holds any of its permissions; a module shows when any tab does.
+   Other modules add an entry here as they are built. */
 
-export type NavItem = { label: string; to: string; icon: LucideIcon; permissions?: string[]; end?: boolean };
-export type NavGroup = { label?: string; items: NavItem[] };
+export type NavTab = {
+  label: string;
+  to: string;
+  permissions?: string[];
+  /* Active only on this exact path (for a tab whose path prefixes its siblings', e.g. /users) */
+  end?: boolean;
+  /* Extra path prefixes that belong to this tab */
+  match?: string[];
+};
 
-export const NAVIGATION: NavGroup[] = [
-  { items: [{ label: "Home", to: "/", icon: Home, end: true }] },
+export type NavModule = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  tabs: NavTab[];
+};
+
+export const MODULES: NavModule[] = [
+  { id: "home", label: "Home", icon: House, tabs: [{ label: "Dashboard", to: "/", end: true, match: ["/me"] }] },
   {
+    id: "people",
     label: "People",
-    items: [
-      { label: "Students", to: "/users/students", icon: GraduationCap, permissions: ["users.students.read"] },
-      { label: "Parents", to: "/users/parents", icon: UsersRound, permissions: ["users.parents.read"] },
-      { label: "Teachers", to: "/users/teachers", icon: Briefcase, permissions: ["users.teachers.read"] },
-      { label: "Staff", to: "/users/staff", icon: UserCog, permissions: ["users.staff.read"] },
-      { label: "User accounts", to: "/users", icon: Users, permissions: ["users.accounts.read"], end: true }
+    icon: Users,
+    tabs: [
+      { label: "Students", to: "/users/students", permissions: ["users.students.read"] },
+      { label: "Parents", to: "/users/parents", permissions: ["users.parents.read"] },
+      { label: "Teachers", to: "/users/teachers", permissions: ["users.teachers.read"] },
+      { label: "Staff", to: "/users/staff", permissions: ["users.staff.read"] },
+      { label: "Accounts", to: "/users", permissions: ["users.accounts.read"] },
+      { label: "Activity", to: "/users/activity", permissions: ["users.activity.read"] }
     ]
   },
   {
-    label: "Academics setup",
-    items: [
-      { label: "Academic years", to: "/academics/academic-years", icon: CalendarRange, permissions: ["academics.academicYears.read"] },
-      { label: "Classes & sections", to: "/academics/classes", icon: Layers, permissions: ["academics.classes.read"] }
+    id: "academics",
+    label: "Academics",
+    icon: GraduationCap,
+    tabs: [
+      { label: "Academic years", to: "/academics/academic-years", permissions: ["academics.academicYears.read"] },
+      { label: "Classes & sections", to: "/academics/classes", permissions: ["academics.classes.read"] }
     ]
   },
   {
-    label: "Administration",
-    items: [
-      { label: "School settings", to: "/administration/settings", icon: Settings, permissions: ["administration.settings.read"] },
-      { label: "Imports", to: "/administration/imports", icon: FileUp, permissions: ["administration.imports.read"] },
-      { label: "Operator roles", to: "/administration/access/operator-roles", icon: KeyRound, permissions: ["administration.access.read"] },
-      { label: "Access assignments", to: "/administration/access/assignments", icon: ShieldCheck, permissions: ["administration.access.read"] },
-      { label: "Audit log", to: "/administration/audit-logs", icon: ScrollText, permissions: ["administration.auditLogs.read"] }
+    id: "administration",
+    label: "Admin",
+    icon: ShieldCheck,
+    tabs: [
+      { label: "School settings", to: "/administration/settings", permissions: ["administration.settings.read"] },
+      { label: "Imports", to: "/administration/imports", permissions: ["administration.imports.read"] },
+      { label: "Access control", to: "/administration/access", permissions: ["administration.access.read"] },
+      { label: "Audit log", to: "/administration/audit-logs", permissions: ["administration.auditLogs.read"] }
     ]
   }
 ];
 
-export const BRAND_ICON = Building2;
-export const PLACEHOLDER_ICON = ClipboardList;
+/* "Quick add" in the right panel: the create actions the person may use */
+export type QuickAction = { label: string; to: string; icon: LucideIcon; permissions: string[] };
+
+export const QUICK_ACTIONS: QuickAction[] = [
+  { label: "Admit a student", to: "/users/students/new", icon: UserPlus, permissions: ["users.students.admit"] },
+  { label: "New parent", to: "/users/parents/new", icon: Users, permissions: ["users.parents.create"] },
+  { label: "New teacher", to: "/users/teachers/new", icon: GraduationCap, permissions: ["users.teachers.create"] },
+  { label: "New staff member", to: "/users/staff/new", icon: BriefcaseBusiness, permissions: ["users.staff.create"] },
+  { label: "Import students", to: "/administration/imports", icon: FileUp, permissions: ["administration.imports.create"] },
+  { label: "New operator role", to: "/administration/access/operator-roles/new", icon: KeyRound, permissions: ["administration.access.manage"] }
+];
+
+export const BRAND_ICON = School;
+
+/* How well a path matches a tab (length of the matching prefix, -1 for none); the longest wins */
+export function tabMatches(tab: NavTab, pathname: string): number {
+  let best = -1;
+  for (const p of [tab.to, ...(tab.match ?? [])]) {
+    const nested = p !== tab.to || !tab.end;
+    if (pathname === p || (nested && p !== "/" && pathname.startsWith(p + "/"))) best = Math.max(best, p.length);
+  }
+  return best;
+}
+
+export function activeLocation(pathname: string, visible: NavModule[]) {
+  let found: { module: NavModule; tab: NavTab; score: number } | null = null;
+  for (const module of visible)
+    for (const tab of module.tabs) {
+      const score = tabMatches(tab, pathname);
+      if (score >= 0 && (!found || score > found.score)) found = { module, tab, score };
+    }
+  return found;
+}

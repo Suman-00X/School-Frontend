@@ -1,162 +1,238 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ChevronDown, LogOut, Menu as MenuIcon, UserRound } from "lucide-react";
+import { CaseSensitive, LogOut, Menu as MenuIcon, Moon, Plus, Sun, UserRound } from "lucide-react";
 import { api } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
-import { Avatar, Button, Menu, MenuItem, roleLabel } from "@/common/ui";
+import { useTextSize, useTheme } from "@/common/theme/preferences";
+import { Avatar, Badge, Button, Menu, MenuItem, roleLabel } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
-import { BRAND_ICON, NAVIGATION } from "@/app/navigation";
+import { activeLocation, BRAND_ICON, MODULES, QUICK_ACTIONS, type NavModule } from "@/app/navigation";
+import { ShellHeaderContext, useShellHeaderSlot } from "./ShellHeader";
+
+/* Left: one icon per module. Top: the module's submodule tabs (or a page's drill-in header).
+   Right: a thin panel of shortcuts. Every region has a fixed size, so nothing moves the content. */
 
 export function AppShell() {
-  const [navOpen, setNavOpen] = useState(false);
+  const { canAny } = useAuth();
   const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
   useEffect(() => setNavOpen(false), [location.pathname]);
+  const { slot, setNode, drilled } = useShellHeaderSlot();
+
+  const modules = MODULES.map(m => ({ ...m, tabs: m.tabs.filter(t => !t.permissions || canAny(...t.permissions)) })).filter(
+    m => m.tabs.length > 0
+  );
+  const active = activeLocation(location.pathname, modules);
 
   return (
-    <div className={`shell${navOpen ? " nav-open" : ""}`}>
-      <Sidebar />
-      <div className="sidebar-backdrop" onClick={() => setNavOpen(false)} />
-      <div className="main">
-        <Topbar onMenu={() => setNavOpen(o => !o)} />
-        <YearBanner />
-        <main>
+    <ShellHeaderContext.Provider value={slot}>
+      <div className={`shell${navOpen ? " nav-open" : ""}`}>
+        <Rail modules={modules} activeId={active?.module.id} />
+        <div className="rail-backdrop" onClick={() => setNavOpen(false)} />
+        <header className="header">
+          <Button variant="ghost" icon={<MenuIcon />} className="header-menu" onClick={() => setNavOpen(o => !o)} aria-label="Open menu" />
+          <div className="header-main" ref={setNode}>
+            {!drilled && active && <ModuleTabs module={active.module} />}
+          </div>
+          <div className="header-end">
+            <YearSwitcher />
+            <UserMenu />
+          </div>
+        </header>
+        <main className="content">
           <Outlet />
         </main>
+        <ShortcutPanel />
       </div>
-    </div>
+    </ShellHeaderContext.Provider>
   );
 }
 
-function useSchoolLogo() {
-  const { can } = useAuth();
+function useSchoolBrand() {
+  const { can, session } = useAuth();
   /* Settings are readable by staff roles only; everyone else gets the name from sign-in */
-  return useQuery({
+  const settings = useQuery({
     queryKey: ["/administration/settings"],
     enabled: can("administration.settings.read"),
     staleTime: 30 * 60_000,
     queryFn: async () => (await api.get<{ name: string; logoUrl: string | null }>("/administration/settings")).data
   });
+  return { name: settings.data?.name ?? session?.school.name ?? "", code: session?.school.code ?? "", logoUrl: settings.data?.logoUrl ?? null };
 }
 
-function Sidebar() {
-  const { session, canAny } = useAuth();
-  const settings = useSchoolLogo();
+function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }) {
+  const brand = useSchoolBrand();
   const Brand = BRAND_ICON;
-  const groups = NAVIGATION.map(g => ({
-    ...g,
-    items: g.items.filter(i => !i.permissions || canAny(...i.permissions))
-  })).filter(g => g.items.length > 0);
-
   return (
-    <nav className="sidebar" aria-label="Main">
-      <NavLink to="/" className="sidebar-brand">
-        <span className="brand-mark">{settings.data?.logoUrl ? <img src={settings.data.logoUrl} alt="" /> : <Brand size={18} />}</span>
-        <span style={{ minWidth: 0 }}>
-          <div className="brand-name">{settings.data?.name ?? session?.school.name}</div>
-          <div className="brand-code">{session?.school.code}</div>
-        </span>
+    <nav className="rail" aria-label="Modules">
+      <NavLink to="/" className="rail-brand" title={`${brand.name} (${brand.code})`}>
+        {brand.logoUrl ? <img src={brand.logoUrl} alt="" /> : <Brand size={20} />}
       </NavLink>
-      {groups.map((g, i) => (
-        <div className="nav-group" key={g.label ?? i}>
-          {g.label && <div className="nav-group-label">{g.label}</div>}
-          {g.items.map(item => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
-              <item.icon />
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+      <div className="rail-items">
+        {modules.map(m => (
+          <NavLink key={m.id} to={m.tabs[0]!.to} className={() => `rail-item${m.id === activeId ? " active" : ""}`} aria-current={m.id === activeId ? "page" : undefined}>
+            <span className="rail-icon">
+              <m.icon />
+            </span>
+            <span className="rail-label">{m.label}</span>
+          </NavLink>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function ModuleTabs({ module }: { module: NavModule }) {
+  const location = useLocation();
+  const active = activeLocation(location.pathname, [module]);
+  return (
+    <nav className="header-tabs" aria-label={module.label}>
+      {module.tabs.map(t => (
+        <NavLink key={t.to} to={t.to} className={() => `header-tab${active?.tab.to === t.to ? " active" : ""}`}>
+          {t.label}
+        </NavLink>
       ))}
     </nav>
   );
 }
 
-function Topbar({ onMenu }: { onMenu: () => void }) {
-  const { me, session, signOut } = useAuth();
-  const navigate = useNavigate();
-  const name = fullName(me?.account ?? session?.user) || "Account";
-  const role = me?.role ?? session?.user.role;
-
-  return (
-    <header className="topbar">
-      <Button variant="ghost" icon={<MenuIcon />} className="menu-toggle" onClick={onMenu} aria-label="Open menu" />
-      <div className="topbar-spacer" />
-      <YearSwitcher />
-      <Menu
-        trigger={(toggle, open) => (
-          <button className="user-button" onClick={toggle} aria-expanded={open} aria-haspopup="menu">
-            <Avatar name={name} />
-            <span className="user-text">
-              <div className="user-name">{name}</div>
-              <div className="user-role">{roleLabel(role)}</div>
-            </span>
-            <ChevronDown size={15} className="muted" />
-          </button>
-        )}
-      >
-        {close => (
-          <>
-            <div className="menu-header">{me?.account.email ?? session?.user.email}</div>
-            <MenuItem
-              icon={<UserRound />}
-              onClick={() => {
-                close();
-                navigate("/me/account");
-              }}
-            >
-              My account
-            </MenuItem>
-            <div className="menu-sep" />
-            <MenuItem
-              icon={<LogOut />}
-              danger
-              onClick={() => {
-                close();
-                void signOut();
-              }}
-            >
-              Sign out
-            </MenuItem>
-          </>
-        )}
-      </Menu>
-    </header>
-  );
-}
-
 function YearSwitcher() {
-  const { canSwitch, years, selected, select } = useAcademicYear();
+  const { canSwitch, years, selected, select, readOnly } = useAcademicYear();
   if (!canSwitch || years.length === 0) return null;
   return (
-    <select
-      className="select select-sm"
-      style={{ width: "auto", minWidth: 150 }}
-      aria-label="Academic year"
-      value={selected?.id ?? ""}
-      onChange={e => {
-        const y = years.find(x => x.id === e.target.value);
-        select(y && !y.isCurrent ? y.id : null);
-      }}
-    >
-      {years.map(y => (
-        <option key={y.id} value={y.id}>
-          {y.yearName}
-          {y.isCurrent ? " (current)" : y.archivedAt ? " (archived)" : ""}
-        </option>
-      ))}
-    </select>
+    <div className="year-switch">
+      <select
+        className="select select-sm"
+        aria-label="Academic year"
+        value={selected?.id ?? ""}
+        onChange={e => {
+          const y = years.find(x => x.id === e.target.value);
+          select(y && !y.isCurrent ? y.id : null);
+        }}
+      >
+        {years.map(y => (
+          <option key={y.id} value={y.id}>
+            {y.yearName}
+            {y.isCurrent ? " (current)" : y.archivedAt ? " (archived)" : ""}
+          </option>
+        ))}
+      </select>
+      {/* Always rendered so switching years never moves the header */}
+      <span className="year-flag" aria-live="polite">
+        {readOnly && <Badge tone="warning">Read-only</Badge>}
+      </span>
+    </div>
   );
 }
 
-function YearBanner() {
-  const { selected, readOnly, canSwitch } = useAcademicYear();
-  if (!canSwitch || !readOnly || !selected) return null;
+function UserMenu() {
+  const { me, session, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { theme, toggle } = useTheme();
+  const name = fullName(me?.account ?? session?.user) || "Account";
   return (
-    <div className="year-banner" role="status">
-      <AlertTriangle />
-      {selected.yearName} is archived and read-only.
-    </div>
+    <Menu
+      trigger={(toggleMenu, open) => (
+        <button className="avatar-button" onClick={toggleMenu} aria-expanded={open} aria-haspopup="menu" aria-label="Account menu" title={name}>
+          <Avatar name={name} />
+        </button>
+      )}
+    >
+      {close => (
+        <>
+          <div className="menu-header">
+            <div style={{ color: "var(--text)", fontWeight: 600 }}>{name}</div>
+            <div>{roleLabel(me?.role ?? session?.user.role)}</div>
+            <div>{me?.account.email ?? session?.user.email}</div>
+          </div>
+          <div className="menu-sep" />
+          <MenuItem
+            icon={<UserRound />}
+            onClick={() => {
+              close();
+              navigate("/me/account");
+            }}
+          >
+            My account
+          </MenuItem>
+          {/* The shortcut panel is hidden on phones; its theme switch lives here too */}
+          <MenuItem icon={theme === "dark" ? <Sun /> : <Moon />} onClick={toggle}>
+            {theme === "dark" ? "Day mode" : "Night mode"}
+          </MenuItem>
+          <div className="menu-sep" />
+          <MenuItem
+            icon={<LogOut />}
+            danger
+            onClick={() => {
+              close();
+              void signOut();
+            }}
+          >
+            Sign out
+          </MenuItem>
+        </>
+      )}
+    </Menu>
+  );
+}
+
+function ShortcutPanel() {
+  const { canAny } = useAuth();
+  const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const { size, toggle: toggleSize } = useTextSize();
+  const actions = QUICK_ACTIONS.filter(a => canAny(...a.permissions));
+  return (
+    <aside className="shortcuts" aria-label="Shortcuts">
+      <div className="shortcuts-group">
+        {actions.length > 0 && (
+          <Menu
+            align="side"
+            trigger={(toggle, open) => (
+              <button className="shortcut shortcut-primary" onClick={toggle} aria-expanded={open} aria-label="Quick add" title="Quick add">
+                <Plus />
+              </button>
+            )}
+          >
+            {close => (
+              <>
+                <div className="menu-header">Quick add</div>
+                {actions.map(a => (
+                  <MenuItem
+                    key={a.to}
+                    icon={<a.icon />}
+                    onClick={() => {
+                      close();
+                      navigate(a.to);
+                    }}
+                  >
+                    {a.label}
+                  </MenuItem>
+                ))}
+              </>
+            )}
+          </Menu>
+        )}
+        <button className="shortcut" onClick={() => navigate("/me/account")} aria-label="My account" title="My account">
+          <UserRound />
+        </button>
+      </div>
+      <div className="shortcuts-group">
+        <button
+          className={`shortcut${size === "large" ? " on" : ""}`}
+          onClick={toggleSize}
+          aria-pressed={size === "large"}
+          aria-label="Larger text"
+          title={size === "large" ? "Normal text size" : "Larger text"}
+        >
+          <CaseSensitive />
+        </button>
+        <button className="shortcut" onClick={toggleTheme} aria-label={theme === "dark" ? "Day mode" : "Night mode"} title={theme === "dark" ? "Day mode" : "Night mode"}>
+          {theme === "dark" ? <Sun /> : <Moon />}
+        </button>
+      </div>
+    </aside>
   );
 }

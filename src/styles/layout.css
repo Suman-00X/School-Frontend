@@ -1,193 +1,469 @@
+/* ---------- App shell ----------
+   rail | header        | shortcuts
+   rail | content       | shortcuts
+   Every region has a fixed size; pages only change what is inside .content. */
 .shell {
   display: grid;
-  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  min-height: 100vh;
-}
-.sidebar {
-  position: sticky;
-  top: 0;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--shortcuts-width);
+  grid-template-rows: var(--header-height) minmax(0, 1fr);
+  grid-template-areas:
+    "rail header header"
+    "rail content shortcuts";
   height: 100vh;
-  overflow-y: auto;
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text);
-  display: flex;
-  flex-direction: column;
-  padding: 14px 10px 20px;
-  z-index: 30;
-}
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 8px 16px;
-  color: #fff;
-}
-.sidebar-brand:hover {
-  text-decoration: none;
-}
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--primary);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  flex-shrink: 0;
   overflow: hidden;
 }
-.brand-mark img {
+
+/* Left rail: one tile per module */
+.rail {
+  grid-area: rail;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  z-index: 30;
+}
+.rail-brand {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+.rail-brand img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   background: #fff;
 }
-.brand-name {
-  font-weight: 650;
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.brand-code {
-  font-size: 11.5px;
-  color: var(--sidebar-text-muted);
-}
-.nav-group {
-  margin-top: 14px;
-}
-.nav-group-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--sidebar-text-muted);
-  padding: 0 10px 6px;
-  font-weight: 600;
-}
-.nav-link {
+.rail-items {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.rail-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: var(--radius);
+  gap: 5px;
+  padding: 6px 4px;
   color: var(--sidebar-text);
+  font-size: 11.5px;
   font-weight: 500;
-  font-size: 13.5px;
+  text-align: center;
+  line-height: 1.2;
 }
-.nav-link svg {
-  width: 17px;
-  height: 17px;
-  color: var(--sidebar-text-muted);
-  flex-shrink: 0;
-}
-.nav-link:hover {
-  background: var(--sidebar-hover);
+.rail-item:hover {
   text-decoration: none;
   color: #fff;
 }
-.nav-link.active {
-  background: var(--sidebar-active);
-  color: var(--sidebar-active-text);
+.rail-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 0.04);
+  transition: background 0.12s;
 }
-.nav-link.active svg {
-  color: #c7d2fe;
+.rail-icon svg {
+  width: 22px;
+  height: 22px;
 }
-.main {
+.rail-item:hover .rail-icon {
+  background: var(--sidebar-hover);
+}
+.rail-item.active {
+  color: #fff;
+}
+.rail-item.active .rail-icon {
+  background: #3b82f6;
+  color: #fff;
+}
+
+/* Header: submodule tabs, or a page's drill-in header */
+.header {
+  grid-area: header;
+  background: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0 14px 0 20px;
+  z-index: 20;
+  min-width: 0;
+}
+.header-main {
+  flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
 }
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: var(--header-height);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+.header-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.header-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--header-text-muted);
+  font-weight: 550;
+  font-size: 14.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.header-tab:hover {
+  color: #fff;
+  text-decoration: none;
+}
+.header-tab.active {
+  color: #fff;
+}
+/* The underline is always there (transparent), so the active tab never changes height */
+.header-tab::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+}
+.header-tab.active::after {
+  background: #3b82f6;
+}
+.header-tab-count {
+  font-size: 11.5px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+}
+.header-end {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 20px;
+  gap: 10px;
+  flex-shrink: 0;
 }
-.topbar-spacer {
-  flex: 1;
-}
-.topbar .menu-toggle {
+.header .header-menu {
   display: none;
+  align-self: center;
+  color: var(--header-text);
 }
-.user-button {
+.header .header-menu:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+.year-switch {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.year-switch .select {
+  width: auto;
+  min-width: 160px;
+  background-color: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+.year-switch .select option {
+  color: var(--text);
+  background: var(--surface);
+}
+/* Fixed width: the Read-only badge appears without moving anything */
+.year-flag {
+  width: 78px;
+  display: inline-flex;
+}
+.avatar-button {
   border: 0;
   background: none;
-  padding: 4px 6px;
-  border-radius: var(--radius);
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+}
+.avatar-button:hover .avatar,
+.avatar-button[aria-expanded="true"] .avatar {
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.25);
+}
+.header .menu .menu-header div + div {
+  margin-top: 1px;
+}
+
+/* Drill-in header: back, title, own tabs (record pages, areas with sections) */
+.drill {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.drill-back {
+  align-self: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #3b82f6;
+  color: #fff;
+  flex-shrink: 0;
+}
+.drill-back:hover {
+  background: #2563eb;
+}
+.drill-back svg {
+  width: 18px;
+  height: 18px;
+}
+.drill-title {
+  align-self: center;
+  font-size: 16px;
+  font-weight: 650;
+  color: #fff;
+  padding: 0 18px 0 10px;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.drill-actions {
+  margin-left: auto;
+  align-self: center;
+  display: flex;
+  gap: 8px;
+}
+
+/* Content: the only scrolling region */
+.content {
+  grid-area: content;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  min-width: 0;
+}
+
+/* Right panel: shortcuts */
+.shortcuts {
+  grid-area: shortcuts;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  z-index: 15;
+}
+.shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.shortcut {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.shortcut svg {
+  width: 18px;
+  height: 18px;
+}
+.shortcut:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.shortcut.on {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+  border-color: transparent;
+}
+.shortcut-primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+.shortcut-primary:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Secondary navigation inside the content (areas with many sections) */
+.sidenav-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.sidenav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sidenav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidenav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  font-weight: 600;
+  color: var(--text);
   cursor: pointer;
   text-align: left;
 }
-.user-button:hover {
-  background: var(--surface-hover);
-}
-.user-button .user-name {
-  font-weight: 550;
-  font-size: 13.5px;
-  line-height: 1.2;
-}
-.user-button .user-role {
-  font-size: 12px;
+.sidenav-group-label svg {
+  width: 15px;
+  height: 15px;
   color: var(--text-3);
+  transition: transform 0.15s;
 }
-.year-banner {
-  background: var(--warning-soft);
-  color: var(--warning-text);
-  padding: 8px 20px;
-  font-size: 13px;
-  font-weight: 500;
+.sidenav-group-label svg.collapsed {
+  transform: rotate(-90deg);
+}
+.sidenav-group-items {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 14px;
 }
-.year-banner svg {
-  width: 16px;
-  height: 16px;
+.sidenav-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 9px 14px;
+  border-radius: var(--radius);
+  color: var(--text-2);
+  font-weight: 500;
+  cursor: pointer;
 }
-.sidebar-backdrop {
+.sidenav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  text-decoration: none;
+}
+.sidenav-item.active {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+  font-weight: 600;
+}
+
+/* Larger text (shortcut panel): scales the page content, not the shell */
+html[data-text-size="large"] .content > *,
+html[data-text-size="large"] .drawer,
+html[data-text-size="large"] .dialog {
+  zoom: 1.12;
+}
+
+/* ---------- Narrow screens: rail slides in, shortcuts move to the account menu ---------- */
+.rail-backdrop {
   display: none;
 }
 @media (max-width: 960px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "header"
+      "content";
   }
-  .sidebar {
+  .shortcuts {
+    display: none;
+  }
+  .rail {
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
-    width: var(--sidebar-width);
+    width: var(--rail-width);
     transform: translateX(-100%);
     transition: transform 0.2s;
   }
-  .shell.nav-open .sidebar {
+  .shell.nav-open .rail {
     transform: none;
     box-shadow: var(--shadow-lg);
   }
-  .shell.nav-open .sidebar-backdrop {
+  .shell.nav-open .rail-backdrop {
     display: block;
     position: fixed;
     inset: 0;
     background: var(--overlay);
     z-index: 25;
   }
-  .topbar .menu-toggle {
+  .header {
+    padding: 0 8px;
+  }
+  .header .header-menu {
     display: inline-flex;
   }
-  .user-button .user-text {
+  .header-tab {
+    padding: 0 10px;
+    font-size: 13.5px;
+  }
+  .year-switch .select {
+    min-width: 0;
+    max-width: 130px;
+  }
+  .year-flag {
     display: none;
   }
-  .topbar {
-    padding: 0 12px;
+  .drill-title {
+    max-width: 140px;
+    padding: 0 8px;
+  }
+  .sidenav-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidenav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .sidenav-group,
+  .sidenav-group-items {
+    flex-direction: row;
+  }
+  .sidenav-group-label {
+    display: none;
+  }
+  .sidenav-item {
+    white-space: nowrap;
+    width: auto;
   }
 }
 

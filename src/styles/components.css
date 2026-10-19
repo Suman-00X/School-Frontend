@@ -1131,3 +1131,93 @@ button.step {
 .accordion-panel {
   padding: 4px 16px 14px 42px;
 }
+
+/* ---------- Layout stability ----------
+   Things that appear on an action (errors, selection, spinners, notes) take space that was
+   already reserved, or float over the content. They never push existing content around. */
+.field-message {
+  min-height: 17px;
+  font-size: 12px;
+  line-height: 17px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.field-message.field-hint {
+  color: var(--text-3);
+}
+.field-message.field-error {
+  color: var(--danger);
+}
+/* Filters never show messages: the bar keeps one height */
+.filter-bar .field-message {
+  display: none;
+}
+.btn.is-loading {
+  position: relative;
+  color: transparent !important;
+}
+.btn.is-loading > svg {
+  visibility: hidden;
+}
+.btn-spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+.btn-primary .btn-spinner,
+.btn-danger .btn-spinner {
+  color: #fff;
+}
+.btn .btn-spinner .spinner {
+  border-color: currentColor;
+  border-top-color: transparent;
+  opacity: 0.8;
+}
+.table-shell {
+  position: relative;
+}
+.table th {
+  height: 38px;
+}
+/* Covers the header row exactly while rows are selected */
+.table-shell > .bulk-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  z-index: 2;
+  padding: 0 14px 0 13px;
+  border-bottom: 1px solid var(--border);
+}
+.table-shell > .bulk-bar .btn-sm {
+  height: 26px;
+}
+.footer-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--danger);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  align-self: center;
+}
+.drawer-footer,
+.dialog-footer {
+  min-height: 58px;
+  align-items: center;
+}
+.form-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+}
+.menu-side {
+  top: 0;
+  right: calc(100% + 8px);
+}

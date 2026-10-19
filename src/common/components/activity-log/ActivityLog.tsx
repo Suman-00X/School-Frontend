@@ -163,15 +163,6 @@ export function ActivityLog({
     { key: "method", header: "", width: 90, render: e => <MethodBadge method={e.method} /> }
   ];
 
-  const chip = (label: string, onClear: () => void) => (
-    <span className="chip" key={label}>
-      {label}
-      <button onClick={onClear} aria-label={`Remove ${label}`}>
-        <X />
-      </button>
-    </span>
-  );
-
   const personName = (id: string) => {
     const p = people.rows?.find(u => u.id === id);
     return p ? `${p.firstName} ${p.lastName}` : list.rows?.find(e => e.userId === id)?.actor?.name ?? "this person";
@@ -200,6 +191,17 @@ export function ActivityLog({
                 onChange={e => setParam("userId", e.target.value)}
                 placeholder="Anyone"
                 options={(people.rows ?? []).map(u => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))}
+              />
+            )}
+            {!fixed?.userId && !can("users.accounts.read") && (
+              <ClearableField label="Person" value={params.userId ? personName(params.userId) : ""} placeholder="Anyone" onClear={() => setParam("userId", "")} />
+            )}
+            {!fixed?.entityId && (
+              <ClearableField
+                label="Record"
+                value={params.entityId}
+                placeholder="Any record (set from an entry)"
+                onClear={() => setParam("entityId", "")}
               />
             )}
             {actionOptions.length > 0 ? (
@@ -235,12 +237,6 @@ export function ActivityLog({
               <SearchInput placeholder="Words in the summary" value={searchText} onChange={e => setSearchText(e.target.value)} />
             </div>
           </div>
-          {(params.userId || params.entityId) && (
-            <div className="row" style={{ padding: "8px 14px", borderBottom: "1px solid var(--border)" }}>
-              {params.userId && !fixed?.userId && chip(`Person: ${personName(params.userId)}`, () => setParam("userId", ""))}
-              {params.entityId && !fixed?.entityId && chip(`Record: ${params.entityId.slice(0, 8)}…`, () => setParam("entityId", ""))}
-            </div>
-          )}
         </>
       )}
       <DataTable
@@ -265,6 +261,46 @@ export function ActivityLog({
         }}
       />
     </Card>
+  );
+}
+
+/* A filter field that is always in the bar (so applying it never adds a row), with a clear button */
+function ClearableField({
+  label,
+  value,
+  placeholder,
+  onClear,
+  onChange
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  onClear: () => void;
+  onChange?: (value: string) => void;
+}) {
+  return (
+    <div className="field" style={{ width: 190 }}>
+      <span className="field-label">{label}</span>
+      <div className="input-group">
+        <input
+          className="input input-sm"
+          value={value}
+          placeholder={placeholder}
+          readOnly={!onChange}
+          onChange={e => onChange?.(e.target.value)}
+          aria-label={label}
+        />
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-icon input-addon"
+          onClick={onClear}
+          aria-label={`Clear ${label.toLowerCase()}`}
+          style={{ visibility: value ? "visible" : "hidden" }}
+        >
+          <X />
+        </button>
+      </div>
+    </div>
   );
 }
 

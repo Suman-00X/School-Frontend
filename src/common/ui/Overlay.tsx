@@ -30,6 +30,7 @@ export function Drawer({
   title,
   subtitle,
   footer,
+  footerStatus,
   wide,
   children
 }: {
@@ -38,6 +39,8 @@ export function Drawer({
   title: ReactNode;
   subtitle?: ReactNode;
   footer?: ReactNode;
+  /* Form-level error or note, shown at the start of the footer (the footer's height never changes) */
+  footerStatus?: ReactNode;
   wide?: boolean;
   children: ReactNode;
 }) {
@@ -56,7 +59,12 @@ export function Drawer({
           <Button variant="ghost" size="sm" icon={<X />} onClick={onClose} aria-label="Close" />
         </div>
         <div className="drawer-body">{children}</div>
-        {footer && <div className="drawer-footer">{footer}</div>}
+        {footer && (
+          <div className="drawer-footer">
+            <FooterStatus>{footerStatus}</FooterStatus>
+            {footer}
+          </div>
+        )}
       </aside>
     </>,
     document.body
@@ -68,6 +76,7 @@ export function Dialog({
   onClose,
   title,
   footer,
+  footerStatus,
   wide,
   children
 }: {
@@ -75,6 +84,7 @@ export function Dialog({
   onClose: () => void;
   title: ReactNode;
   footer?: ReactNode;
+  footerStatus?: ReactNode;
   wide?: boolean;
   children: ReactNode;
 }) {
@@ -90,10 +100,34 @@ export function Dialog({
           <Button variant="ghost" size="sm" icon={<X />} onClick={onClose} aria-label="Close" />
         </div>
         <div className="dialog-body">{children}</div>
-        {footer && <div className="dialog-footer">{footer}</div>}
+        {footer && (
+          <div className="dialog-footer">
+            <FooterStatus>{footerStatus}</FooterStatus>
+            {footer}
+          </div>
+        )}
       </div>
     </>,
     document.body
+  );
+}
+
+/* The start of a footer: one line, truncated, always present */
+export function FooterStatus({ children }: { children?: ReactNode }) {
+  return (
+    <div className="footer-status" role={children ? "alert" : undefined} title={typeof children === "string" ? children : undefined}>
+      {children}
+    </div>
+  );
+}
+
+/* Actions under a page form: error on the left, buttons on the right, fixed height */
+export function FormActions({ error, children }: { error?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="form-actions-bar">
+      <FooterStatus>{error}</FooterStatus>
+      <div className="row">{children}</div>
+    </div>
   );
 }
 
