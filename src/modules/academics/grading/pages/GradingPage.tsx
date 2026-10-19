@@ -1,11 +1,11 @@
 /* AC-06 · Grading setup (Academics › Setup): grade scales, result policies, where policies apply,
    and assessment schemes. Configuration only; publishing results is on the exams pages. */
 import { useState } from "react";
-import { Layers, Plus, Scale, Sigma } from "lucide-react";
+import { FlaskConical, Layers, Plus, Scale, Sigma } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiList, useListParams } from "@/common/hooks";
-import { Badge, Button, Card, DataTable, EmptyState, Page, PageHeader, Select, Tabs, useTabParam, type TabItem } from "@/common/ui";
+import { Badge, Button, ButtonLink, Card, DataTable, EmptyState, Page, PageHeader, Select, Tabs, useTabParam, type TabItem } from "@/common/ui";
 import { formatDate } from "@/common/utils/format";
 import { SCHEMES_PATH, type AssessmentScheme } from "../api/assessmentSchemes";
 import { GRADE_SCALES_PATH, bandSummary, passFrom, type GradeScale } from "../api/gradeScales";
@@ -129,7 +129,12 @@ function ScalesTab({ onOpen, onCreate }: { onOpen: (s: GradeScale) => void; onCr
   );
 }
 
+/* AC-15's "Preview rules" tab with the policy picked: the reader then picks an exam */
+const previewPath = (p: ResultPolicy) => `/academics/results?tab=preview&policyId=${encodeURIComponent(p.id)}`;
+
 function PoliciesTab({ onOpen, onCreate }: { onOpen: (p: ResultPolicy) => void; onCreate?: () => void }) {
+  const { can } = useAuth();
+  const canPreview = can("academics.reportCards.preview");
   const { params, setParam, setPage } = useListParams({ mode: "" });
   const list = useApiList<ResultPolicy>(RESULT_POLICIES_PATH, { page: params.page, limit: params.limit, gradingMode: params.mode || undefined });
   return (
@@ -184,7 +189,29 @@ function PoliciesTab({ onOpen, onCreate }: { onOpen: (p: ResultPolicy) => void; 
                 <span className="muted">{p.usePaperPassMarks ? "Paper pass marks" : "—"}</span>
               )
           },
-          { key: "ranking", header: "Ranks", render: p => (p.rankingMethod === "NONE" ? <span className="muted">No ranks</span> : p.rankScope === "BOTH" ? "Section and class" : p.rankScope === "CLASS" ? "Class" : "Section") }
+          { key: "ranking", header: "Ranks", render: p => (p.rankingMethod === "NONE" ? <span className="muted">No ranks</span> : p.rankScope === "BOTH" ? "Section and class" : p.rankScope === "CLASS" ? "Class" : "Section") },
+          ...(canPreview
+            ? [
+                {
+                  key: "preview",
+                  header: "",
+                  align: "right" as const,
+                  width: 180,
+                  render: (p: ResultPolicy) => (
+                    <ButtonLink
+                      to={previewPath(p)}
+                      size="sm"
+                      variant="ghost"
+                      icon={<FlaskConical />}
+                      title={`Run ${p.name} on an exam's real marks. Nothing is saved.`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Preview on an exam
+                    </ButtonLink>
+                  )
+                }
+              ]
+            : [])
         ]}
       />
     </Card>
