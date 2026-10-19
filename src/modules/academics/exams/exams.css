@@ -1,0 +1,72 @@
+/* Academics › Exams & results (AC-13, AC-14, AC-15) */
+
+/* Drill-in title: a fixed width so the header tabs don't move when the name arrives */
+.exam-drill-title {
+  display: inline-block;
+  width: min(260px, 42vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.exam-desc {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Plan several exams: one line per exam, each with its reserved message line */
+.bulk-exams {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bulk-exams-head,
+.bulk-exams-row {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr)
+    minmax(130px, 1fr) 32px;
+  gap: 8px;
+  align-items: start;
+}
+.bulk-exams-head {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.bulk-exams-row > .btn {
+  margin-top: 4px;
+}
+@media (max-width: 720px) {
+  .bulk-exams-head {
+    display: none;
+  }
+  .bulk-exams-row {
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* Date sheet: days down, sections across */
+.datesheet td {
+  vertical-align: top;
+  min-width: 150px;
+}
+.datesheet-day {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  min-width: 110px;
+  z-index: 1;
+}
+.datesheet-paper {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+.datesheet-paper + .datesheet-paper {
+  border-top: 1px dashed var(--border);
+}

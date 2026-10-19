@@ -1,0 +1,76 @@
+/* AC-15 · Report cards and result publishing */
+.rc-toggle {
+  display: inline-flex;
+  gap: 4px;
+  height: 34px;
+  align-items: center;
+}
+/* The status badge sits at the end of the bar, always in the same place */
+.rc-status {
+  margin-left: auto;
+  height: 34px;
+  display: flex;
+  align-items: center;
+}
+.rc-tabs {
+  padding: 0 14px;
+}
+.rc-tabs .tabs {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+.rc-inline-bar {
+  border-bottom: 0;
+}
+.rc-subtitle {
+  display: block;
+  min-height: 18px;
+}
+.rc-subject-head {
+  white-space: nowrap;
+}
+.rc-failed {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+.rc-ab {
+  color: var(--warning-text);
+  font-weight: 650;
+}
+.rc-ex {
+  color: var(--info-text);
+  font-weight: 650;
+}
+.rc-intact {
+  color: var(--success-text);
+}
+.rc-tampered {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+.rc-status-icon {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+.rc-status-icon.is-on {
+  color: var(--success);
+}
+.rc-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+@media (max-width: 720px) {
+  .rc-status {
+    margin-left: 0;
+  }
+  .rc-status-text {
+    white-space: normal;
+  }
+}

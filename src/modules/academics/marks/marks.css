@@ -1,0 +1,154 @@
+/* AC-14 · Marks entry grid */
+.mg-toggle {
+  display: inline-flex;
+  gap: 4px;
+  height: 34px;
+  align-items: center;
+}
+/* One reserved line: the published warning or the paper's facts */
+.mg-note {
+  height: 34px;
+  line-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-note.is-warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+.mg-actions {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+}
+.mg-legend {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+}
+.mg-legend kbd {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.marks-grid td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  vertical-align: middle;
+}
+.marks-grid .mg-roll {
+  width: 80px;
+  white-space: nowrap;
+}
+.marks-grid .mg-name {
+  min-width: 170px;
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+.marks-grid .mg-paper {
+  text-align: center;
+  min-width: 84px;
+}
+.marks-grid.is-detail .mg-paper {
+  width: 120px;
+}
+.mg-paper-name {
+  white-space: nowrap;
+}
+.mg-paper-max {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+.mg-student {
+  display: block;
+  max-width: 240px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 550;
+  color: var(--text);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+button.mg-student:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+/* The row's message line: its hint, or its error in the same place */
+.mg-sub {
+  height: 16px;
+  line-height: 16px;
+  font-size: 12px;
+  color: var(--text-3);
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-sub.is-error {
+  color: var(--danger-text);
+}
+.mg-row-error td,
+.mg-row-error .mg-name {
+  background: var(--danger-soft);
+}
+.mg-row-left {
+  opacity: 0.6;
+}
+.mg-cell {
+  text-align: center;
+}
+.mg-input {
+  width: 72px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mg-cell.is-dirty .mg-input,
+.mg-cell.is-dirty .select-trigger {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.mg-cell.is-absent .mg-input {
+  color: var(--warning-text);
+  font-weight: 650;
+}
+.mg-cell.is-invalid .mg-input,
+.mg-cell.is-invalid .select-trigger {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.mg-grade {
+  min-width: 96px;
+}
+.marks-grid .mg-attendance {
+  width: 140px;
+}
+.marks-grid .mg-remarks {
+  min-width: 200px;
+}
+@media (max-width: 720px) {
+  .marks-grid .mg-roll {
+    display: none;
+  }
+  .marks-grid .mg-name {
+    min-width: 130px;
+  }
+  .mg-student,
+  .mg-sub {
+    max-width: 150px;
+  }
+}
