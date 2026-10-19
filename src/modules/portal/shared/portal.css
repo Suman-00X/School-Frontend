@@ -1,0 +1,338 @@
+/* Portal (My school): the child switcher above the side list, cards, timetable grid */
+
+.portal-side {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.portal-side .sidenav {
+  position: static;
+}
+.portal-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  min-width: 0;
+}
+.portal-child-pick {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.portal-child-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.portal-child-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.portal-child-sub {
+  padding: 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 860px) {
+  .portal-side {
+    position: static;
+  }
+}
+
+/* Overview cards: a responsive grid, each card a fixed minimum height */
+.portal-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.portal-cards > .card {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+}
+.portal-cards > .card > .card-body {
+  flex: 1;
+}
+.portal-card-figure {
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.portal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.portal-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.portal-list .grow {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.portal-list .now {
+  color: var(--primary-text);
+  font-weight: 600;
+}
+.po-danger {
+  color: var(--danger-text);
+}
+.po-success {
+  color: var(--success-text);
+}
+.po-warning {
+  color: var(--warning-text);
+}
+
+/* Read-only week (WeekTimetable): academics' grid on wide screens, a day list on phones */
+.po-tt-period-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+.po-tt-period-time {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.po-tt-subject {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.po-tt-line {
+  font-size: 12px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.po-tt-free {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Phones: one day at a time */
+.po-tt-day {
+  display: none;
+}
+.po-tt-day-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.po-tt-day-list li {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.po-tt-day-list li:last-child {
+  border-bottom: 0;
+}
+.po-tt-day-list li.po-tt-break {
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 12.5px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.po-tt-day-list li.is-now {
+  box-shadow: inset 3px 0 0 var(--primary);
+  background: var(--primary-soft);
+}
+.po-tt-day-picker {
+  padding: 10px 12px 0;
+  overflow-x: auto;
+}
+@media (max-width: 720px) {
+  .po-tt-wrap {
+    display: none;
+  }
+  .po-tt-day {
+    display: block;
+  }
+}
+
+/* Small chips (subjects, event types) */
+.po-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.po-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.po-toggle:hover {
+  background: var(--surface-hover);
+}
+.po-toggle[aria-pressed="true"] {
+  background: var(--primary-soft);
+  border-color: transparent;
+  color: var(--primary-text);
+  font-weight: 600;
+}
+
+/* A block of reserved height for a note that may or may not be there */
+.po-reserved {
+  min-height: 20px;
+}
+
+/* Expandable result rows */
+.po-result-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+.po-result-head:hover {
+  background: var(--surface-hover);
+}
+.po-result-head .chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-3);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.po-result-head[aria-expanded="true"] .chevron {
+  transform: rotate(90deg);
+}
+.po-result-body {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.po-result-item + .po-result-item {
+  border-top: 1px solid var(--border);
+}
+
+/* Contacts with a call link */
+.po-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.po-contact:first-child {
+  border-top: 0;
+}
+
+/* Section cards (teachers) */
+.po-section-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.po-section-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Attendance and calendar dialogs: a simple list of lines */
+.po-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.po-lines li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.po-lines li:last-child {
+  border-bottom: 0;
+}
+
+/* Book search results in the reserve drawer */
+.po-book-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 280px;
+}
+.po-book {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.po-book:hover {
+  background: var(--surface-hover);
+}
+.po-book.is-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.po-book:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Money columns line up */
+.po-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
