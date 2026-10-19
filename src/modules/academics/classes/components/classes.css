@@ -45,3 +45,101 @@
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
+.class-item .class-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The class list while it loads: the same rows, greyed */
+.class-item.is-placeholder {
+  cursor: default;
+}
+
+/* Level picker: every level always has a cell, so the grid keeps its size */
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+@media (max-width: 560px) {
+  .level-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.level-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+.level-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.level-option:hover:not(.disabled) {
+  background: var(--surface-hover);
+}
+.level-option:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.level-option .level-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.level-option .level-tick {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  visibility: hidden;
+}
+.level-option.checked {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-text);
+  font-weight: 550;
+}
+.level-option.checked .level-tick {
+  visibility: visible;
+}
+.level-option.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.level-option.taken {
+  border-color: var(--border);
+  background: var(--surface-hover);
+  color: var(--text-3);
+  font-weight: 400;
+}
+.level-option.is-placeholder {
+  cursor: default;
+}
+
+/* Bulk sections: the preview keeps two rows of chips' height and scrolls beyond */
+.section-preview {
+  height: 62px;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+}
+.chip.chip-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}

@@ -14,8 +14,8 @@ export type AcademicYearRecord = AcademicYear & {
   updatedAt: string;
 };
 
+/* No name: the server derives it from the dates ("2026-27") and re-derives it when they change */
 export type AcademicYearInput = {
-  yearName: string;
   startDate: string;
   endDate: string;
   isCurrent?: boolean;

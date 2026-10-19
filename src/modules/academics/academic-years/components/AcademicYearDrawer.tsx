@@ -1,7 +1,8 @@
 import { useEffect, type FormEvent } from "react";
 import { isApiError } from "@/common/api";
+import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useForm } from "@/common/hooks";
-import { Alert, Badge, Button, Checkbox, DescriptionList, Drawer, Field, Switch, TextInput, Textarea, useToast } from "@/common/ui";
+import { Badge, Button, Checkbox, DescriptionList, Drawer, Field, Switch, TextInput, Textarea, useToast } from "@/common/ui";
 import { formatDate, formatDateTime } from "@/common/utils/format";
 import {
   createAcademicYear,
@@ -12,13 +13,14 @@ import {
   type AcademicYearInput,
   type AcademicYearRecord
 } from "../api/academicYears";
+import { isDate, latestEndFor, MAX_YEAR_MONTHS, yearDatesProblem, yearNameFor } from "../utils/yearName";
+import "./academicYears.css";
 
-type Values = { yearName: string; startDate: string; endDate: string; weeklyOffDays: number[]; description: string; isCurrent: boolean };
+type Values = { startDate: string; endDate: string; weeklyOffDays: number[]; description: string; isCurrent: boolean };
 
-const EMPTY: Values = { yearName: "", startDate: "", endDate: "", weeklyOffDays: [0], description: "", isCurrent: false };
+const EMPTY: Values = { startDate: "", endDate: "", weeklyOffDays: [0], description: "", isCurrent: false };
 
 const toValues = (y: AcademicYearRecord): Values => ({
-  yearName: y.yearName,
   startDate: y.startDate,
   endDate: y.endDate,
   weeklyOffDays: [...y.weeklyOffDays].sort(),
@@ -26,10 +28,10 @@ const toValues = (y: AcademicYearRecord): Values => ({
   isCurrent: y.isCurrent
 });
 
-/* The fields that changed (PATCH); the API refuses null for description, so "" clears it */
+/* The fields that changed (PATCH); the API refuses null for description, so "" clears it.
+   The name is never sent: new dates rename the year. */
 function patchOf(before: Values, now: Values): Partial<AcademicYearInput> {
   const out: Partial<AcademicYearInput> = {};
-  if (now.yearName.trim() !== before.yearName) out.yearName = now.yearName.trim();
   if (now.startDate !== before.startDate) out.startDate = now.startDate;
   if (now.endDate !== before.endDate) out.endDate = now.endDate;
   if (now.weeklyOffDays.join() !== before.weeklyOffDays.join()) out.weeklyOffDays = now.weeklyOffDays;
@@ -37,7 +39,17 @@ function patchOf(before: Values, now: Values): Partial<AcademicYearInput> {
   return out;
 }
 
-/* Create (year = null) or view/edit one year. Archived years and readers without update see it read-only. */
+/* The server's date-range refusals (overlap, too long, too many calendar years, same name):
+   they belong to the dates, not to one of them */
+const isDatesError = (err: unknown) =>
+  isApiError(err) &&
+  ((err.status === 409 && /overlap|already exists|archived/i.test(err.message)) ||
+    (err.status === 422 && /academic year|yearName/i.test(err.message)));
+
+const RULES = `A year lasts at most ${MAX_YEAR_MONTHS} months, spans at most two calendar years and may not overlap another year.`;
+
+/* AC-01 drawer. Create (year = null) or view/edit one year. No name field: the name comes from the
+   dates and is previewed live. Archived years and readers without update see it read-only. */
 export function AcademicYearDrawer({
   open,
   year,
@@ -50,6 +62,7 @@ export function AcademicYearDrawer({
   onClose: () => void;
 }) {
   const toast = useToast();
+  const { years } = useAcademicYear();
   const form = useForm<Values>(EMPTY);
   const create = useAcademicYearMutation(createAcademicYear, { everything: v => !!v.isCurrent });
   const update = useAcademicYearMutation(updateAcademicYear);
@@ -63,23 +76,45 @@ export function AcademicYearDrawer({
   const editable = canEdit && !year?.archivedAt;
   const changes = year ? patchOf(toValues(year), values) : null;
 
+  const { startDate, endDate } = values;
+  const ordered = isDate(startDate) && isDate(endDate) && endDate > startDate;
+  /* Unchanged dates keep the stored name (a year named before names were derived keeps its own)
+     and aren't re-checked: the server only checks dates that are sent */
+  const datesChanged = !year || startDate !== year.startDate || endDate !== year.endDate;
+  const derived = !datesChanged && year ? year.yearName : ordered ? yearNameFor(startDate, endDate) : null;
+  const rangeProblem = datesChanged ? yearDatesProblem(startDate, endDate, years, year?.id) : null;
+  /* One reserved line pair under the dates: the server's refusal, else a broken rule, else the rules */
+  const datesError = errors.dates ?? rangeProblem;
+  const datesHint = isDate(startDate)
+    ? `Ends by ${formatDate(latestEndFor(startDate))} at the latest. ${RULES}`
+    : RULES;
+
+  const setDate = (key: "startDate" | "endDate", value: string) => {
+    form.set(key, value);
+    form.setErrors(e => {
+      if (!e.dates) return e;
+      const next = { ...e };
+      delete next.dates;
+      return next;
+    });
+  };
+
   const toggleDay = (d: number) =>
     form.set("weeklyOffDays", values.weeklyOffDays.includes(d) ? values.weeklyOffDays.filter(x => x !== d) : [...values.weeklyOffDays, d].sort());
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!values.yearName.trim()) e.yearName = "Enter a name, e.g. 2026-27";
-    if (!values.startDate) e.startDate = "Pick the first day";
-    if (!values.endDate) e.endDate = "Pick the last day";
-    else if (values.startDate && values.endDate <= values.startDate) e.endDate = "Must be after the start date";
+    if (!startDate) e.startDate = "Pick the first day";
+    if (!endDate) e.endDate = "Pick the last day";
+    else if (startDate && endDate <= startDate) e.endDate = "Must be after the start date";
     if (values.weeklyOffDays.length > 6) e.weeklyOffDays = "At least one day must be a school day";
     form.setErrors(e);
-    return Object.keys(e).length === 0;
+    return Object.keys(e).length === 0 && !rangeProblem;
   };
 
   const onError = (err: unknown) => {
-    if (isApiError(err) && err.status === 409 && /yearName/.test(err.message)) {
-      form.setErrors({ yearName: "A year with this name already exists" });
+    if (isDatesError(err)) {
+      form.setErrors({ dates: (err as Error).message });
       form.setFormError(null);
     } else form.setServerErrors(err);
   };
@@ -93,13 +128,7 @@ export function AcademicYearDrawer({
       onClose();
     };
     if (!year) {
-      const body: AcademicYearInput = {
-        yearName: values.yearName.trim(),
-        startDate: values.startDate,
-        endDate: values.endDate,
-        weeklyOffDays: values.weeklyOffDays,
-        isCurrent: values.isCurrent
-      };
+      const body: AcademicYearInput = { startDate, endDate, weeklyOffDays: values.weeklyOffDays, isCurrent: values.isCurrent };
       if (values.description.trim()) body.description = values.description.trim();
       create.mutate(body, { onSuccess: done, onError });
     } else if (changes && Object.keys(changes).length) update.mutate({ id: year.id, ...changes }, { onSuccess: done, onError });
@@ -117,20 +146,25 @@ export function AcademicYearDrawer({
   if (year && !editable)
     return (
       <Drawer open={open} onClose={onClose} title={title} subtitle={badges}>
-        <div className="stack">
-          {year.archivedAt && <Alert tone="info">Archived {formatDateTime(year.archivedAt)}. Its academic records are read-only.</Alert>}
-          <DescriptionList
-            columns={1}
-            items={[
-              { label: "Dates", value: `${formatDate(year.startDate)} – ${formatDate(year.endDate)}` },
-              { label: "Weekly off days", value: offDaysLabel(year.weeklyOffDays) },
-              { label: "Description", value: year.description },
-              { label: "Stopped being current", value: formatDateTime(year.currentUntil), hidden: !year.currentUntil }
-            ]}
-          />
-        </div>
+        <DescriptionList
+          columns={1}
+          items={[
+            { label: "Dates", value: `${formatDate(year.startDate)} – ${formatDate(year.endDate)}` },
+            { label: "Weekly off days", value: offDaysLabel(year.weeklyOffDays) },
+            { label: "Description", value: year.description },
+            { label: "Stopped being current", value: formatDateTime(year.currentUntil), hidden: !year.currentUntil },
+            {
+              label: "Archived",
+              value: `${formatDateTime(year.archivedAt)}. Its dates and academic records are read-only${canEdit ? "; unarchive it to change them" : ""}.`,
+              hidden: !year.archivedAt
+            }
+          ]}
+        />
       </Drawer>
     );
+
+  /* An edit renames the year when its dates give another name */
+  const renameNote = year && derived && derived !== year.yearName ? ` · renamed from ${year.yearName} when saved` : "";
 
   return (
     <Drawer
@@ -138,6 +172,7 @@ export function AcademicYearDrawer({
       onClose={onClose}
       title={title}
       subtitle={badges}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
@@ -148,11 +183,45 @@ export function AcademicYearDrawer({
       }
     >
       <form id="academic-year-form" className="stack" onSubmit={submit} noValidate>
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
-        <TextInput label="Name" required maxLength={20} placeholder="2026-27" autoFocus={!year} {...form.text("yearName")} />
         <div className="form-grid">
-          <TextInput label="Starts" type="date" required {...form.text("startDate")} />
-          <TextInput label="Ends" type="date" required min={values.startDate || undefined} {...form.text("endDate")} />
+          <TextInput
+            label="Starts"
+            type="date"
+            required
+            autoFocus={!year}
+            className={datesError ? "invalid" : undefined}
+            {...form.text("startDate")}
+            onChange={e => setDate("startDate", e.target.value)}
+          />
+          <TextInput
+            label="Ends"
+            type="date"
+            required
+            min={startDate || undefined}
+            max={isDate(startDate) ? latestEndFor(startDate) : undefined}
+            className={datesError ? "invalid" : undefined}
+            {...form.text("endDate")}
+            onChange={e => setDate("endDate", e.target.value)}
+          />
+        </div>
+        {/* Fixed height: the name line and two reserved lines for the rules or the refusal */}
+        <div className="year-dates-summary">
+          <div className="year-name-preview" title={derived ? `Name: ${derived}${renameNote}` : undefined}>
+            <span className="muted">Name</span>
+            {derived ? (
+              <strong>{derived}</strong>
+            ) : (
+              <span className="muted">comes from the dates, e.g. 2026-27</span>
+            )}
+            {renameNote && <span className="muted">{renameNote}</span>}
+          </div>
+          <div
+            className={`year-rules${datesError ? " field-error" : ""}`}
+            role={datesError ? "alert" : undefined}
+            title={datesError ?? datesHint}
+          >
+            {datesError ?? datesHint}
+          </div>
         </div>
         <Field label="Weekly off days" hint="Days with no school every week" error={errors.weeklyOffDays}>
           <div className="row" role="group" aria-label="Weekly off days" style={{ gap: 14 }}>

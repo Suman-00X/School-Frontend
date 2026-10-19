@@ -1,7 +1,7 @@
 import { useEffect, type FormEvent } from "react";
 import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, DescriptionList, Drawer, Select, TextInput, Textarea, useToast } from "@/common/ui";
+import { Button, DescriptionList, Drawer, Select, TextInput, Textarea, useToast } from "@/common/ui";
 import type { SchoolClass } from "../api/classes";
 import { createSection, SECTIONS_PATH, updateSection, useTeacherOptions, type Section, type SectionInput } from "../api/sections";
 
@@ -101,8 +101,9 @@ export function SectionDrawer({
   };
 
   const onError = (err: unknown) => {
-    if (isApiError(err) && err.status === 409 && /sectionName/.test(err.message)) {
-      form.setErrors({ sectionName: `This class already has section ${values.sectionName.trim().toUpperCase()} in ${yearName}` });
+    /* "Section A already exists in this class for this academic year" */
+    if (isApiError(err) && err.status === 409 && /already exists/i.test(err.message)) {
+      form.setErrors({ sectionName: err.message });
       return form.setFormError(null);
     }
     if (isApiError(err) && err.status === 422) {
@@ -162,6 +163,7 @@ export function SectionDrawer({
       onClose={onClose}
       title={title}
       subtitle={subtitle}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
@@ -172,7 +174,6 @@ export function SectionDrawer({
       }
     >
       <form id="section-form" className="stack" onSubmit={submit} noValidate>
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
         <div className="form-grid">
           <Select
             label="Class"
@@ -188,6 +189,7 @@ export function SectionDrawer({
             placeholder="A"
             autoFocus={!section}
             autoCapitalize="characters"
+            hint="1 to 5 letters or digits"
             {...form.text("sectionName")}
             onChange={e => form.set("sectionName", e.target.value.toUpperCase())}
           />

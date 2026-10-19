@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Archive, ArchiveRestore, CalendarCheck, MoreHorizontal, Pencil, Plus } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useApiList, useListParams } from "@/common/hooks";
-import { Badge, Button, Card, DataTable, EmptyState, Menu, MenuItem, Page, PageHeader, useConfirm, useToast } from "@/common/ui";
+import { Badge, Button, Card, DataTable, EmptyState, Menu, MenuItem, Page, useConfirm, useToast } from "@/common/ui";
 import { formatDate } from "@/common/utils/format";
 import {
   ACADEMIC_YEARS_PATH,
@@ -13,6 +13,7 @@ import {
   useAcademicYearMutation,
   type AcademicYearRecord
 } from "../api/academicYears";
+import { PageIntro } from "../../shared/components/PageIntro";
 import { AcademicYearDrawer } from "../components/AcademicYearDrawer";
 
 const MONTH_MS = 30 * 86_400_000;
@@ -108,10 +109,8 @@ export default function AcademicYearsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title="Academic years"
-        subtitle="The school year's dates and weekly off days. The current year is the default everywhere."
-        breadcrumbs={[{ label: "Academics" }, { label: "Academic years" }]}
+      {/* The header tab already says "Academic years": no title */}
+      <PageIntro
         actions={
           canCreate && (
             <Button variant="primary" icon={<Plus />} onClick={() => setDrawer({ year: null })}>
@@ -119,7 +118,9 @@ export default function AcademicYearsPage() {
             </Button>
           )
         }
-      />
+      >
+        The school year's dates and weekly off days. Names come from the dates (2026-27). The current year is the default everywhere.
+      </PageIntro>
       <Card flush>
         <DataTable
           rows={list.rows}

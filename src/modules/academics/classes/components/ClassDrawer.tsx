@@ -1,104 +1,124 @@
 import { useEffect, type FormEvent } from "react";
-import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, Drawer, TextInput, Textarea, useToast } from "@/common/ui";
-import { CLASSES_PATH, createClass, updateClass, type ClassInput, type SchoolClass } from "../api/classes";
-import { classConflict } from "../utils/errors";
+import { isApiError } from "@/common/api";
+import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
+import { useApiList, useApiMutation, useForm } from "@/common/hooks";
+import { Button, Drawer, Field, Textarea, useToast } from "@/common/ui";
+import { CLASSES_PATH, createClass, updateClass, type ClassInput, type ClassLevel, type LevelRow, type SchoolClass } from "../api/classes";
+import { SECTIONS_PATH } from "../api/sections";
+import { LevelPicker } from "./LevelPicker";
 
-type Values = { className: string; classOrder: string; description: string };
+type Values = { level: ClassLevel | ""; description: string };
 
-/* Create (klass = null) or edit a class */
+/* Create (klass = null: pick one of the levels not created yet) or edit a class. A class's level
+   changes only while it has no sections; a class from before levels (level null) can always get one. */
 export function ClassDrawer({
   open,
   klass,
-  nextOrder,
+  levels,
   onClose,
   onSaved
 }: {
   open: boolean;
   klass: SchoolClass | null;
-  nextOrder: number;
+  levels: LevelRow[] | undefined;
   onClose: () => void;
   onSaved?: (saved: SchoolClass) => void;
 }) {
   const toast = useToast();
-  const form = useForm<Values>({ className: "", classOrder: "", description: "" });
+  const { selected: year } = useAcademicYear();
+  const form = useForm<Values>({ level: "", description: "" });
   const create = useApiMutation(createClass, { invalidate: [CLASSES_PATH] });
   const update = useApiMutation(updateClass, { invalidate: [CLASSES_PATH] });
-  const { values } = form;
+  const { values, errors } = form;
+
+  /* Sections in the header's year tell us the level is locked (the server also counts other years) */
+  const sections = useApiList(SECTIONS_PATH, { classId: klass?.id ?? "", limit: 1 }, { enabled: open && !!klass?.level });
+  const sectionCount = sections.meta?.total ?? 0;
+  const locked = !!klass?.level && sectionCount > 0;
 
   useEffect(() => {
-    if (open)
-      form.reset(
-        klass
-          ? { className: klass.className, classOrder: String(klass.classOrder), description: klass.description ?? "" }
-          : { className: "", classOrder: nextOrder <= 50 ? String(nextOrder) : "", description: "" }
-      );
+    if (open) form.reset(klass ? { level: klass.level ?? "", description: klass.description ?? "" } : { level: "", description: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, klass?.id]);
+
+  const missing = (levels ?? []).filter(l => !l.created);
+  const legacy = !!klass && !klass.level;
+
+  let hint: string;
+  if (!klass) hint = levels && !missing.length ? "Every level already has a class." : "The class takes the level's name and place in the order.";
+  else if (legacy) hint = `"${klass.className}" was created before classes had levels. Pick the level it is.`;
+  else if (locked)
+    hint = `${klass.className} has ${sectionCount} section${sectionCount === 1 ? "" : "s"} in ${year?.yearName ?? "this year"}, so its level can't change.`;
+  else hint = "The level can change only while the class has no sections in any year.";
+
+  const onError = (err: unknown) => {
+    /* "A class named Class 1 already exists", "Class 1 has 2 sections, so it cannot become Class 3…" */
+    if (isApiError(err) && err.status === 409) {
+      form.setErrors({ level: err.message });
+      form.setFormError(null);
+    } else form.setServerErrors(err, { className: "level" });
+  };
+  const onSuccess = (res: { data: SchoolClass; message: string }) => {
+    toast.success(res.message);
+    onSaved?.(res.data);
+    onClose();
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     form.setFormError(null);
-    const order = Number(values.classOrder);
-    const errors: Record<string, string> = {};
-    if (!values.className.trim()) errors.className = "Enter a name, e.g. Class 1";
-    if (!Number.isInteger(order) || order < 1 || order > 50) errors.classOrder = "A whole number from 1 to 50";
-    form.setErrors(errors);
-    if (Object.keys(errors).length) return;
-
-    const body: ClassInput = { className: values.className.trim(), classOrder: order, description: values.description.trim() };
-    const onError = (err: unknown) => {
-      const fields = classConflict(err);
-      if (fields) form.setErrors(fields);
-      else form.setServerErrors(err);
-    };
-    const onSuccess = (res: { data: SchoolClass; message: string }) => {
-      toast.success(res.message);
-      onSaved?.(res.data);
-      onClose();
-    };
+    if (!values.level) return form.setErrors({ level: legacy ? "Pick the level this class is" : "Pick a level" });
+    const description = values.description.trim();
 
     if (!klass) {
-      if (!body.description) delete body.description;
-      create.mutate(body, { onSuccess, onError });
-    } else {
-      const patch: Partial<ClassInput> = {};
-      if (body.className !== klass.className) patch.className = body.className;
-      if (order !== klass.classOrder) patch.classOrder = order;
-      if (body.description !== (klass.description ?? "")) patch.description = body.description;
-      if (!Object.keys(patch).length) return onClose();
-      update.mutate({ id: klass.id, ...patch }, { onSuccess, onError });
+      const body: ClassInput = { level: values.level };
+      if (description) body.description = description;
+      return create.mutate(body, { onSuccess, onError });
     }
+    const patch: Partial<ClassInput> = {};
+    if (values.level !== klass.level) patch.level = values.level;
+    if (description !== (klass.description ?? "")) patch.description = description;
+    if (!Object.keys(patch).length) return onClose();
+    update.mutate({ id: klass.id, ...patch }, { onSuccess, onError });
   };
+
+  const title = !klass ? "New class" : legacy ? `Set a level for ${klass.className}` : `Edit ${klass.className}`;
 
   return (
     <Drawer
       open={open}
       onClose={onClose}
-      title={klass ? `Edit ${klass.className}` : "New class"}
+      title={title}
       subtitle="Classes are school-wide and carry over to every year."
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" form="class-form" variant="primary" loading={create.isPending || update.isPending}>
+          <Button
+            type="submit"
+            form="class-form"
+            variant="primary"
+            loading={create.isPending || update.isPending}
+            disabled={!klass && !!levels && !missing.length}
+          >
             {klass ? "Save changes" : "Create class"}
           </Button>
         </>
       }
     >
       <form id="class-form" className="stack" onSubmit={submit} noValidate>
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
-        <TextInput label="Name" required maxLength={50} placeholder="Class 1" autoFocus {...form.text("className")} />
-        <TextInput
-          label="Order"
-          type="number"
-          required
-          min={1}
-          max={50}
-          hint="Sorts the classes (1 is the youngest) and is used in student codes. Each class needs its own."
-          {...form.text("classOrder")}
-        />
-        <Textarea label="Description" rows={2} maxLength={1000} {...form.text("description")} />
+        <Field label="Level" required hint={hint} error={errors.level}>
+          <LevelPicker
+            label="Level"
+            mode="one"
+            levels={levels}
+            own={klass?.level}
+            disabled={locked}
+            value={values.level ? [values.level] : []}
+            onChange={([level]) => form.set("level", level ?? "")}
+          />
+        </Field>
+        <Textarea label="Description" hint="Optional" rows={2} maxLength={1000} {...form.text("description")} />
       </form>
     </Drawer>
   );

@@ -23,6 +23,13 @@ export function SectionsPanel({ klass, classes, onEditClass }: { klass: SchoolCl
   const [bulkOpen, setBulkOpen] = useState(false);
 
   const yearName = selected?.yearName ?? "the current year";
+  const subtitle = [
+    !klass.level && "Level not set",
+    `Sections in ${yearName}${readOnly ? " (archived, read-only)" : ""}`,
+    klass.description
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const canCreate = can("academics.sections.create") && !readOnly;
   const canUpdate = can("academics.sections.update") && !readOnly;
   const noYear = isApiError(list.error) && list.error.status === 422;
@@ -31,14 +38,19 @@ export function SectionsPanel({ klass, classes, onEditClass }: { klass: SchoolCl
     <Card
       flush
       title={klass.className}
-      subtitle={`Order ${klass.classOrder} · sections in ${yearName}${klass.description ? ` · ${klass.description}` : ""}`}
+      subtitle={subtitle}
       actions={
         <>
-          {onEditClass && (
-            <Button size="sm" variant="ghost" icon={<Pencil />} onClick={onEditClass}>
-              Edit class
-            </Button>
-          )}
+          {onEditClass &&
+            (klass.level ? (
+              <Button size="sm" variant="ghost" icon={<Pencil />} onClick={onEditClass}>
+                Edit class
+              </Button>
+            ) : (
+              <Button size="sm" icon={<Pencil />} onClick={onEditClass}>
+                Set level
+              </Button>
+            ))}
           {canCreate && !noYear && (
             <>
               <Button size="sm" icon={<ListPlus />} onClick={() => setBulkOpen(true)}>

@@ -9,7 +9,7 @@ The page specs are in `../School-Backend/docs/FRONTEND_PAGES.md` (page ids such 
 ```sh
 # 1. Backend with throwaway databases and a demo school (in ../School-Backend)
 APP_URL=http://localhost:5173 npm run dev:memory
-                            # API on :3000. Sign in: school DEMO, admin@demo.school / Admin12345
+                            # API on :3000. Sign in with admin@demo.school / Admin12345 (no school code)
 
 # 2. This app
 npm install
