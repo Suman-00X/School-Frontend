@@ -1,0 +1,185 @@
+/* HR module styles (tokens only, so dark mode follows) */
+
+/* A bar of parts against a total: used and pending leave, days present */
+.hr-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  overflow: hidden;
+  min-width: 80px;
+}
+.hr-bar > span {
+  height: 100%;
+}
+.hr-bar .is-used {
+  background: var(--primary);
+}
+.hr-bar .is-pending {
+  background: var(--warning);
+  opacity: 0.7;
+}
+.hr-bar .is-over {
+  background: var(--danger);
+}
+.hr-bar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  margin-top: 6px;
+}
+.hr-bar-legend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: 0;
+}
+
+/* Staff attendance register */
+.hr-register td {
+  vertical-align: middle;
+}
+.hr-register .input,
+.hr-register .select {
+  height: 30px;
+  font-size: 13px;
+}
+.hr-register .hr-time {
+  width: 104px;
+}
+.hr-register .hr-remarks {
+  min-width: 140px;
+}
+.hr-register tr.is-changed > td:first-child {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+.hr-register tr.has-error > td:first-child {
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+.hr-register tr:focus-within {
+  background: var(--surface-2);
+}
+.hr-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.hr-toolbar .input-group {
+  width: min(260px, 100%);
+}
+.hr-status-line {
+  min-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Payslip */
+.hr-payslip-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 720px) {
+  .hr-payslip-cols {
+    grid-template-columns: 1fr;
+  }
+}
+.hr-lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.hr-lines td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.hr-lines td:last-child {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.hr-lines tr.is-total td {
+  font-weight: 600;
+  border-bottom: 0;
+}
+.hr-lines tr.is-lop td {
+  color: var(--danger-text);
+}
+.hr-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.hr-net strong {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.hr-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hr-strip > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  font-size: 13px;
+}
+
+/* Salary revision lines editor */
+.hr-lines-editor {
+  width: 100%;
+  border-collapse: collapse;
+}
+.hr-lines-editor th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 0 6px 6px 0;
+}
+.hr-lines-editor td {
+  padding: 0 6px 4px 0;
+  vertical-align: top;
+}
+.hr-lines-editor td.amount {
+  text-align: right;
+  white-space: nowrap;
+  padding-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.hr-totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.hr-totals > div {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.hr-totals .kpi-label {
+  font-size: 12px;
+}
+.hr-totals strong {
+  font-variant-numeric: tabular-nums;
+}
+.hr-num {
+  font-variant-numeric: tabular-nums;
+}
