@@ -3,15 +3,14 @@ import { RequirePermission } from "@/common/auth";
 import ParentsListPage from "./pages/ParentsListPage";
 import NewParentPage from "./pages/NewParentPage";
 
-/* List page: shown inside User Management (Admin), with its side list */
+/* List and create pages: shown inside User Management (Admin), with its side list */
 export const listRoutes: RouteObject[] = [
-  { path: "/users/parents", element: <RequirePermission permission="users.parents.read"><ParentsListPage /></RequirePermission> }
-];
-
-/* Record and create pages: full width, with a drill-in header */
-export const routes: RouteObject[] = [
+  { path: "/users/parents", element: <RequirePermission permission="users.parents.read"><ParentsListPage /></RequirePermission> },
   { path: "/users/parents/new", element: <RequirePermission permission="users.parents.create"><NewParentPage /></RequirePermission> }
 ];
+
+/* A parent opens in a drawer on the list: no record page */
+export const routes: RouteObject[] = [];
 
 /* Used by the students submodule (admission, profile) */
 export { createParent, useAllParents, type Parent, type ParentProfileBody } from "./api/parents";

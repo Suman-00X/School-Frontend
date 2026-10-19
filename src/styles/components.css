@@ -735,6 +735,37 @@
   font-size: 11px;
   padding: 0 6px;
 }
+/* A long form in tabs (FormTabs): the tab strip is the card's header */
+.form-tabs > .tabs {
+  padding: 0 10px;
+}
+.form-tab-panels {
+  display: grid;
+}
+.form-tab-panel {
+  grid-area: 1 / 1;
+  padding: 18px;
+}
+/* Kept in the layout (for the height) but not seen, focused or read */
+.form-tab-panel[hidden] {
+  display: block;
+  visibility: hidden;
+}
+.form-tab-hint {
+  margin-bottom: 14px;
+}
+.tab-errors {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+}
 
 /* ---------- Overlays: drawer, dialog ---------- */
 .overlay {

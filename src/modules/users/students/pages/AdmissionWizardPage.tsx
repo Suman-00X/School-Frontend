@@ -4,8 +4,7 @@ import type { AcademicYear } from "@/common/api";
 import { CalendarRange, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { DrillHeader } from "@/common/layout/ShellHeader";
-import { Button, ButtonLink, Card, EmptyState, FormActions, Page, PageLoader, Stepper, useToast } from "@/common/ui";
+import { Button, ButtonLink, Card, EmptyState, FormActions, Page, PageHeader, PageLoader, Stepper, useToast } from "@/common/ui";
 import { todayIso } from "@/common/utils/format";
 import { PersonFields, emptyPerson, personPayload, validatePerson } from "@/modules/users/shared";
 import type { Parent } from "@/modules/users/parents";
@@ -18,7 +17,8 @@ import { ReviewStep } from "../components/admission/ReviewStep";
 import { AdmissionSuccess } from "../components/admission/AdmissionSuccess";
 import { STEPS, cardsPayload, routeAdmissionError, validateCards, type EnrollmentValues, type ParentCard } from "../components/admission/state";
 
-/* PE-03: student → parents → enrollment → review, then one POST (a single transaction) */
+/* PE-03, in the User Management list area: student → parents → enrollment → review, then one POST
+   (a single transaction) */
 export default function AdmissionWizardPage() {
   /* "Admit another" starts over with a fresh wizard */
   const [run, setRun] = useState(0);
@@ -37,7 +37,7 @@ function AdmissionWizard({ onAnother }: { onAnother: () => void }) {
 
   return (
     <Page>
-      <DrillHeader back="/users/students" backLabel="Back to students" title="Admit a student" />
+      <PageHeader title="Admit a student" breadcrumbs={[{ label: "Students", to: "/users/students" }, { label: "Admit a student" }]} />
       {loading ? (
         <PageLoader />
       ) : ready ? (

@@ -8,6 +8,7 @@ export * from "./ErrorState";
 export * from "./Feedback";
 export * from "./FileDrop";
 export * from "./Form";
+export * from "./FormTabs";
 export * from "./JsonView";
 export * from "./Menu";
 export * from "./Overlay";
