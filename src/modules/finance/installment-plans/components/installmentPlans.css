@@ -1,0 +1,72 @@
+.plan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.plan-card {
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.plan-card:hover {
+  border-color: var(--border-strong);
+}
+.plan-card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.plan-card .card-body {
+  padding-top: 4px;
+}
+.plan-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.plan-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.plan-bar span {
+  flex-basis: 0;
+  background: var(--primary);
+}
+.plan-dates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px 12px;
+}
+.plan-dates li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.plan-dates li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-date {
+  font-weight: 550;
+  font-size: 13px;
+}
+.plan-skeleton {
+  min-height: 150px;
+}
+/* Ticking students of a section: a fixed-height scrolling list */
+.roster-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 240px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}

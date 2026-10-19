@@ -1,0 +1,104 @@
+/* Finance-wide pieces (money input, chips, grid editors) */
+.money-input .input {
+  padding-left: 28px;
+  padding-right: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.money-sign {
+  position: absolute;
+  left: 10px;
+  color: var(--text-3);
+  font-size: 13px;
+  pointer-events: none;
+}
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.chips .badge svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* A grid editor inside a drawer or card: rows of fields with a remove button at the end.
+   Each cell keeps its reserved message line, so a row error never moves the rows below. */
+.grid-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.grid-editor-head,
+.grid-editor-row {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+}
+.grid-editor-head {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding-bottom: 4px;
+}
+.grid-editor-row .field-label {
+  display: none;
+}
+.grid-editor-row .remove {
+  margin-top: 1px;
+}
+.grid-editor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  min-height: 42px;
+}
+.grid-editor-total {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.grid-editor-total.off {
+  color: var(--danger-text);
+}
+/* One reserved line under a grid for the server's grid-level message (or a rule) */
+.grid-editor-message {
+  min-height: 18px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.grid-editor-message.field-error {
+  color: var(--danger-text);
+}
+.grid-editor-index {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .grid-editor-head {
+    display: none;
+  }
+  .grid-editor-row {
+    grid-template-columns: 1fr 1fr !important;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .grid-editor-row .field-label {
+    display: block;
+  }
+  .grid-editor-index {
+    display: none;
+  }
+}
