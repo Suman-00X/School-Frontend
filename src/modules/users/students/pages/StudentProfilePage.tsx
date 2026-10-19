@@ -6,6 +6,7 @@ import { DrillHeader } from "@/common/layout/ShellHeader";
 import { Badge, Button, ButtonLink, ErrorState, Page, SkeletonBlock, useTabParam, type TabItem } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
+import { StudentAccountLink } from "@/modules/finance";
 import { DrillName, RecordHeader } from "@/modules/users/shared";
 import { useStudent, type Student } from "../api/students";
 import { useFileLink, useStudentFiles } from "../api/records";
@@ -70,6 +71,8 @@ export default function StudentProfilePage() {
 
 function ProfileHeader({ student: s }: { student: Student | undefined }) {
   const { can } = useAuth();
+  /* From the route, so the fee account button is there before the student loads */
+  const { studentId = "" } = useParams();
   const [editing, setEditing] = useState(false);
   /* Photo: the newest PHOTO file (the list is newest first). It fills the avatar's fixed circle. */
   const files = useStudentFiles(s?.id ?? "", !!s && can("files.documents.read"));
@@ -114,6 +117,8 @@ function ProfileHeader({ student: s }: { student: Student | undefined }) {
                 Edit account
               </ButtonLink>
             )}
+            {/* FI-11: the student's invoices, payments and balance (shown with finance.invoices.read) */}
+            <StudentAccountLink studentId={studentId} />
             <InviteButton userIds={s ? [s.userId] : []} names={s ? { [s.userId]: name } : {}} />
             {can("users.students.update") && (
               <Button variant="primary" icon={<Pencil />} disabled={!s} onClick={() => setEditing(true)}>
