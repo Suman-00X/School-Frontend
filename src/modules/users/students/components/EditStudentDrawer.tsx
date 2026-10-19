@@ -1,5 +1,4 @@
 import type { FormEvent } from "react";
-import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
 import { Button, Drawer, useToast } from "@/common/ui";
 import { patchFrom } from "@/modules/users/shared";
@@ -33,12 +32,7 @@ export function EditStudentDrawer({ student, onClose }: { student: Student; onCl
           toast.success(res.message);
           onClose();
         },
-        onError: err => {
-          /* 409: "A record with this admissionNumber already exists" */
-          if (isApiError(err) && err.status === 409 && /admissionNumber/i.test(err.message))
-            form.setErrors({ admissionNumber: "is already used by another student" });
-          else form.setServerErrors(err);
-        }
+        onError: err => form.setServerErrors(err)
       }
     );
   };
@@ -62,7 +56,7 @@ export function EditStudentDrawer({ student, onClose }: { student: Student; onCl
       }
     >
       <form id="edit-student" className="stack" onSubmit={submit} noValidate>
-        <StudentProfileFields form={form} disabled={save.isPending} />
+        <StudentProfileFields form={form} disabled={save.isPending} admissionNumber={student.admissionNumber} />
       </form>
     </Drawer>
   );

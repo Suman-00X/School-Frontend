@@ -7,6 +7,8 @@ import { useApiMutation } from "@/common/hooks";
 export type AcademicYearRecord = AcademicYear & {
   /* 0 = Sunday … 6 = Saturday */
   weeklyOffDays: number[];
+  /* Saturdays of the month that are off: 1 = first … 5 = fifth ([2] = second Saturday) */
+  offSaturdays: number[];
   description: string | null;
   /* When it stopped being current; its teachers keep it for a month after */
   currentUntil: string | null;
@@ -20,6 +22,7 @@ export type AcademicYearInput = {
   endDate: string;
   isCurrent?: boolean;
   weeklyOffDays?: number[];
+  offSaturdays?: number[];
   /* "" clears it (the API refuses null) */
   description?: string;
 };
@@ -40,7 +43,18 @@ export const restoreAcademicYear = (id: string) => api.delete<AcademicYearRecord
 
 export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export const offDaysLabel = (days: number[]) => (days.length ? [...days].sort().map(d => WEEKDAYS[d]).join(", ") : "None");
+export const SATURDAY = 6;
+
+/* Which Saturday of the month: 1 -> "1st" … 5 -> "5th" */
+export const SATURDAY_WEEKS = ["1st", "2nd", "3rd", "4th", "5th"];
+
+/* "Sun, 2nd & 4th Sat"; off Saturdays are left out when every Saturday is off */
+export const offDaysLabel = (days: number[], offSaturdays: number[] = []) => {
+  const parts = [...days].sort().map(d => WEEKDAYS[d]);
+  const weeks = days.includes(SATURDAY) ? [] : [...offSaturdays].sort().map(w => SATURDAY_WEEKS[w - 1]);
+  if (weeks.length) parts.push(`${weeks.length > 1 ? `${weeks.slice(0, -1).join(", ")} & ${weeks.at(-1)}` : weeks[0]} Sat`);
+  return parts.length ? parts.join(", ") : "None";
+};
 
 /* Year writes also refresh the header's switcher; a change of current or archived year
    changes what every year-scoped page shows, so those refresh everything */

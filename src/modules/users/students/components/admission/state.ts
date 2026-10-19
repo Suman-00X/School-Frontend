@@ -133,13 +133,6 @@ export function routeAdmissionError(
   }
 
   const msg = err.message;
-  if (err.status === 409 && /admissionNumber/i.test(msg)) {
-    r.profile.admissionNumber = "is already used by another student";
-    r.message = msg;
-    at(0);
-    return r;
-  }
-
   if (err.status === 409 && /email/i.test(msg)) {
     const student = ctx.studentEmail.trim().toLowerCase();
     const newCards = ctx.cards.map((c, i) => ({ i, email: c.person.email.trim().toLowerCase(), mode: c.mode })).filter(c => c.mode === "new");

@@ -42,7 +42,7 @@ export function ReviewStep({
             { label: "Phone", value: person.phone },
             { label: "Gender", value: enumLabel(person.gender) },
             { label: "Date of birth", value: formatDate(person.dob) },
-            { label: "Admission number", value: profile.admissionNumber },
+            { label: "Admission number", value: <span className="muted">Generated on admission</span> },
             { label: "Admission date", value: formatDate(profile.admissionDate) },
             { label: "Blood group", value: profile.bloodGroup },
             { label: "Category", value: profile.category },

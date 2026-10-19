@@ -7,6 +7,8 @@ import { formatDate, formatDateTime } from "@/common/utils/format";
 import {
   createAcademicYear,
   offDaysLabel,
+  SATURDAY,
+  SATURDAY_WEEKS,
   updateAcademicYear,
   useAcademicYearMutation,
   WEEKDAYS,
@@ -16,14 +18,22 @@ import {
 import { isDate, latestEndFor, MAX_YEAR_MONTHS, yearDatesProblem, yearNameFor } from "../utils/yearName";
 import "./academicYears.css";
 
-type Values = { startDate: string; endDate: string; weeklyOffDays: number[]; description: string; isCurrent: boolean };
+type Values = {
+  startDate: string;
+  endDate: string;
+  weeklyOffDays: number[];
+  offSaturdays: number[];
+  description: string;
+  isCurrent: boolean;
+};
 
-const EMPTY: Values = { startDate: "", endDate: "", weeklyOffDays: [0], description: "", isCurrent: false };
+const EMPTY: Values = { startDate: "", endDate: "", weeklyOffDays: [0], offSaturdays: [], description: "", isCurrent: false };
 
 const toValues = (y: AcademicYearRecord): Values => ({
   startDate: y.startDate,
   endDate: y.endDate,
   weeklyOffDays: [...y.weeklyOffDays].sort(),
+  offSaturdays: [...(y.offSaturdays ?? [])].sort(),
   description: y.description ?? "",
   isCurrent: y.isCurrent
 });
@@ -35,6 +45,7 @@ function patchOf(before: Values, now: Values): Partial<AcademicYearInput> {
   if (now.startDate !== before.startDate) out.startDate = now.startDate;
   if (now.endDate !== before.endDate) out.endDate = now.endDate;
   if (now.weeklyOffDays.join() !== before.weeklyOffDays.join()) out.weeklyOffDays = now.weeklyOffDays;
+  if (now.offSaturdays.join() !== before.offSaturdays.join()) out.offSaturdays = now.offSaturdays;
   if (now.description.trim() !== before.description) out.description = now.description.trim();
   return out;
 }
@@ -99,8 +110,15 @@ export function AcademicYearDrawer({
     });
   };
 
-  const toggleDay = (d: number) =>
-    form.set("weeklyOffDays", values.weeklyOffDays.includes(d) ? values.weeklyOffDays.filter(x => x !== d) : [...values.weeklyOffDays, d].sort());
+  const toggle = (list: number[], n: number) => (list.includes(n) ? list.filter(x => x !== n) : [...list, n].sort());
+
+  /* Every Saturday off makes the chosen Saturdays moot: they are cleared */
+  const toggleDay = (d: number) => {
+    const days = toggle(values.weeklyOffDays, d);
+    form.set("weeklyOffDays", days);
+    if (days.includes(SATURDAY)) form.set("offSaturdays", []);
+  };
+  const allSaturdaysOff = values.weeklyOffDays.includes(SATURDAY);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -128,7 +146,13 @@ export function AcademicYearDrawer({
       onClose();
     };
     if (!year) {
-      const body: AcademicYearInput = { startDate, endDate, weeklyOffDays: values.weeklyOffDays, isCurrent: values.isCurrent };
+      const body: AcademicYearInput = {
+        startDate,
+        endDate,
+        weeklyOffDays: values.weeklyOffDays,
+        offSaturdays: values.offSaturdays,
+        isCurrent: values.isCurrent
+      };
       if (values.description.trim()) body.description = values.description.trim();
       create.mutate(body, { onSuccess: done, onError });
     } else if (changes && Object.keys(changes).length) update.mutate({ id: year.id, ...changes }, { onSuccess: done, onError });
@@ -150,7 +174,7 @@ export function AcademicYearDrawer({
           columns={1}
           items={[
             { label: "Dates", value: `${formatDate(year.startDate)} – ${formatDate(year.endDate)}` },
-            { label: "Weekly off days", value: offDaysLabel(year.weeklyOffDays) },
+            { label: "Weekly off days", value: offDaysLabel(year.weeklyOffDays, year.offSaturdays) },
             { label: "Description", value: year.description },
             { label: "Stopped being current", value: formatDateTime(year.currentUntil), hidden: !year.currentUntil },
             {
@@ -227,6 +251,22 @@ export function AcademicYearDrawer({
           <div className="row" role="group" aria-label="Weekly off days" style={{ gap: 14 }}>
             {WEEKDAYS.map((d, i) => (
               <Checkbox key={d} label={d} checked={values.weeklyOffDays.includes(i)} onChange={() => toggleDay(i)} />
+            ))}
+          </div>
+        </Field>
+        <Field
+          label="Saturdays off"
+          hint={allSaturdaysOff ? "Every Saturday is already a weekly off day" : "Saturdays of each month with no school, e.g. the 2nd Saturday"}
+        >
+          <div className="row" role="group" aria-label="Saturdays off" style={{ gap: 14 }}>
+            {SATURDAY_WEEKS.map((w, i) => (
+              <Checkbox
+                key={w}
+                label={w}
+                disabled={allSaturdaysOff}
+                checked={values.offSaturdays.includes(i + 1)}
+                onChange={() => form.set("offSaturdays", toggle(values.offSaturdays, i + 1))}
+              />
             ))}
           </div>
         </Field>

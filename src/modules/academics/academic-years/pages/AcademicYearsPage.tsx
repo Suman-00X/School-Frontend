@@ -169,7 +169,7 @@ export default function AcademicYearsPage() {
                 </span>
               )
             },
-            { key: "weeklyOffDays", header: "Weekly off", render: y => offDaysLabel(y.weeklyOffDays) },
+            { key: "weeklyOffDays", header: "Weekly off", render: y => offDaysLabel(y.weeklyOffDays, y.offSaturdays) },
             { key: "description", header: "Description", render: y => <span className="muted">{y.description || "—"}</span> },
             { key: "actions", header: "", align: "right", width: 48, render: rowActions }
           ]}

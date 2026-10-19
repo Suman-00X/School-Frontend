@@ -37,9 +37,9 @@ export type StudentParent = ParentLink & {
   parent: { id: string; parentCode: string; occupation: string | null; user: UserSummary };
 };
 
-/* Profile form values ("" = not set) */
+/* Profile form values ("" = not set). The admission number is not one: the server generates
+   it on admission (ADM26-0001) and it never changes */
 export type StudentProfileValues = {
-  admissionNumber: string;
   admissionDate: string;
   bloodGroup: string;
   category: string;
@@ -47,7 +47,7 @@ export type StudentProfileValues = {
   description: string;
 };
 
-export const STUDENT_PROFILE_KEYS = ["admissionNumber", "admissionDate", "bloodGroup", "category", "religion", "description"];
+export const STUDENT_PROFILE_KEYS = ["admissionDate", "bloodGroup", "category", "religion", "description"];
 /* Fields that may be emptied on edit (dates can't be cleared once set) */
 export const STUDENT_PROFILE_TEXT_KEYS = ["bloodGroup", "category", "religion", "description"];
 
@@ -94,7 +94,6 @@ export const unlinkParent = ({ studentId, parentId }: { studentId: string; paren
   api.delete<null>(`${STUDENTS_PATH}/${studentId}/parents/${parentId}`);
 
 export const emptyStudentProfile = (): StudentProfileValues => ({
-  admissionNumber: "",
   admissionDate: "",
   bloodGroup: "",
   category: "",
@@ -103,7 +102,6 @@ export const emptyStudentProfile = (): StudentProfileValues => ({
 });
 
 export const studentProfileFrom = (s: Partial<Student>): StudentProfileValues => ({
-  admissionNumber: s.admissionNumber ?? "",
   admissionDate: s.admissionDate ?? "",
   bloodGroup: s.bloodGroup ?? "",
   category: s.category ?? "",
@@ -113,7 +111,6 @@ export const studentProfileFrom = (s: Partial<Student>): StudentProfileValues =>
 
 export function validateStudentProfile(v: StudentProfileValues): Record<string, string> {
   const e: Record<string, string> = {};
-  if (!v.admissionNumber.trim()) e.admissionNumber = "is required";
   if (v.admissionDate && !/^\d{4}-\d{2}-\d{2}$/.test(v.admissionDate)) e.admissionDate = "must be a date (YYYY-MM-DD)";
   return e;
 }

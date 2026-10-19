@@ -4,7 +4,7 @@ import { fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
 import { useStudentParents, type AdmissionResult } from "../../api/students";
 
-/* After POST /users/students: codes, then invite the student and the parents just linked */
+/* After POST /users/students: the generated admission number, student code and roll number, then invite the student and the parents just linked */
 export function AdmissionSuccess({ result, onAnother }: { result: AdmissionResult; onAnother: () => void }) {
   /* The admission response has parent ids only; their accounts come from the student's parent links */
   const links = useStudentParents(result.id, result.parents.length > 0);
@@ -22,7 +22,7 @@ export function AdmissionSuccess({ result, onAnother }: { result: AdmissionResul
         title={`${name} admitted`}
         message={
           <>
-            Student code <strong className="mono">{result.studentCode}</strong>, roll no. <strong className="mono">{result.enrollment.rollNumber}</strong>
+            Admission no. <strong className="mono">{result.admissionNumber}</strong>, student code <strong className="mono">{result.studentCode}</strong>, roll no. <strong className="mono">{result.enrollment.rollNumber}</strong>
             {result.parents.length > 0 && `, ${result.parents.length} parent${result.parents.length === 1 ? "" : "s"} linked`}.
           </>
         }
