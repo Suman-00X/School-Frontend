@@ -47,6 +47,7 @@ function patchOf(before: Values, now: Values): Partial<AcademicYearInput> {
   if (now.weeklyOffDays.join() !== before.weeklyOffDays.join()) out.weeklyOffDays = now.weeklyOffDays;
   if (now.offSaturdays.join() !== before.offSaturdays.join()) out.offSaturdays = now.offSaturdays;
   if (now.description.trim() !== before.description) out.description = now.description.trim();
+  if (now.isCurrent && !before.isCurrent) out.isCurrent = true;
   return out;
 }
 
@@ -76,7 +77,8 @@ export function AcademicYearDrawer({
   const { years } = useAcademicYear();
   const form = useForm<Values>(EMPTY);
   const create = useAcademicYearMutation(createAcademicYear, { everything: v => !!v.isCurrent });
-  const update = useAcademicYearMutation(updateAcademicYear);
+  /* Making a year current changes the default year on every page */
+  const update = useAcademicYearMutation(updateAcademicYear, { everything: v => !!v.isCurrent });
   const { values, errors } = form;
 
   useEffect(() => {
@@ -187,6 +189,11 @@ export function AcademicYearDrawer({
       </Drawer>
     );
 
+  const current = years.find(y => y.isCurrent && y.id !== year?.id);
+  const currentHint = current
+    ? `Replaces ${current.yearName} as the default year. Teachers keep ${current.yearName} sections a month.`
+    : "The current year is the default everywhere.";
+
   /* An edit renames the year when its dates give another name */
   const renameNote = year && derived && derived !== year.yearName ? ` · renamed from ${year.yearName} when saved` : "";
 
@@ -271,8 +278,8 @@ export function AcademicYearDrawer({
           </div>
         </Field>
         <Textarea label="Description" rows={2} maxLength={1000} {...form.text("description")} />
-        {!year && (
-          <Field hint="The current year is the default everywhere. The previous current year stops being current.">
+        {!year?.isCurrent && (
+          <Field hint={currentHint}>
             <Switch label="Make this the current year" checked={values.isCurrent} onChange={v => form.set("isCurrent", v)} />
           </Field>
         )}

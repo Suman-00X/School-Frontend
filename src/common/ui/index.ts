@@ -17,3 +17,4 @@ export * from "./Stepper";
 export * from "./Tabs";
 export * from "./Toast";
 export * from "./Placeholder";
+export * from "./Select";

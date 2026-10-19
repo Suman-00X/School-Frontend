@@ -6,7 +6,7 @@ import { relativeTime } from "@/common/utils/format";
 import { useSettings, useUpdateSettings, type SchoolSettings, type SettingsChanges } from "../api/settings";
 import { LogoCard } from "../components/LogoCard";
 import { PageIntro } from "../../shared/components/PageIntro";
-import { countryOptions, currencyOptions, timeZones } from "../utils/regions";
+import { countryOptions, currencyOptions, timeZoneOptions } from "../utils/regions";
 import "../settings.css";
 
 type Values = {
@@ -92,7 +92,6 @@ function SettingsForm({ settings, canEdit, loading }: { settings: SchoolSettings
 
   const changes = changedFields(original, values);
   const dirty = Object.keys(changes).length > 0;
-  const zones = timeZones();
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -102,8 +101,6 @@ function SettingsForm({ settings, canEdit, loading }: { settings: SchoolSettings
     /* The API takes no empty email or phone: once set they can be changed, not removed */
     if ("contactEmail" in changes && !values.contactEmail.trim()) errors.contactEmail = "can be changed but not removed";
     if ("contactPhone" in changes && !values.contactPhone.trim()) errors.contactPhone = "can be changed but not removed";
-    if (values.timezone && !zones.includes(values.timezone) && values.timezone !== settings.timezone)
-      errors.timezone = "pick a time zone from the list, such as Asia/Kolkata";
     if (Object.keys(errors).length) {
       form.setErrors(errors);
       form.setFormError("Please correct the highlighted fields.");
@@ -134,18 +131,13 @@ function SettingsForm({ settings, canEdit, loading }: { settings: SchoolSettings
       </Card>
       <Card title="Region" subtitle="Dates and money across the app follow these">
         <div className="form-grid">
-          <TextInput
+          <Select
             label="Time zone"
-            list="settings-time-zones"
-            autoComplete="off"
+            placeholder={values.timezone ? undefined : "Not set"}
+            options={timeZoneOptions(values.timezone)}
             hint="Changes what 'today' means for attendance, fees and due dates."
             {...field("timezone")}
           />
-          <datalist id="settings-time-zones">
-            {zones.map(z => (
-              <option key={z} value={z} />
-            ))}
-          </datalist>
           <Select label="Currency" options={currencyOptions(values.currency)} {...field("currency")} />
           <Select label="Country" options={countryOptions(values.country)} {...field("country")} />
         </div>

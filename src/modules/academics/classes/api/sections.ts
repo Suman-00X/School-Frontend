@@ -58,6 +58,6 @@ export function useTeacherOptions() {
     const t = byId.get(ref.id);
     return t ? `${t.user.firstName} ${t.user.lastName} (${t.employeeCode})` : ref.employeeCode;
   };
-  const options = (list.rows ?? []).map(t => ({ value: t.id, label: `${t.user.firstName} ${t.user.lastName} · ${t.employeeCode}` }));
+  const options = (list.rows ?? []).map(t => ({ value: t.id, label: `${t.user.firstName} ${t.user.lastName}`, description: t.employeeCode }));
   return { enabled, options, label, isLoading: list.isLoading };
 }

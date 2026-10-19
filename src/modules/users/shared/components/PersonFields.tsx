@@ -1,6 +1,6 @@
 import { Select, TextInput, Textarea } from "@/common/ui";
 import { enumOptions } from "@/common/utils/format";
-import { EMPLOYMENT_TYPES, GENDERS, type EmploymentValues, type PersonValues } from "../utils/person";
+import { BLOOD_GROUPS, EMPLOYMENT_TYPES, GENDERS, TEACHER_QUALIFICATIONS, type EmploymentValues, type PersonValues } from "../utils/person";
 
 type Bind<T> = {
   values: T;
@@ -31,8 +31,12 @@ export function PersonFields({ form, disabled, emailHint }: { form: Bind<PersonV
   );
 }
 
-/* Employment details shared by teachers and staff */
-export function EmploymentFields({ form, disabled }: { form: Bind<EmploymentValues>; disabled?: boolean }) {
+const qualificationOptions = TEACHER_QUALIFICATIONS.map(q => ({ value: q.value, label: q.value, description: q.description }));
+const bloodGroupOptions = BLOOD_GROUPS.map(g => ({ value: g, label: g }));
+
+/* Employment details shared by teachers and staff. A teacher's qualification is picked from the
+   common ones (or typed); staff roles vary too much for a list, so theirs stays free text. */
+export function EmploymentFields({ form, disabled, teacher }: { form: Bind<EmploymentValues>; disabled?: boolean; teacher?: boolean }) {
   const f = (key: keyof EmploymentValues) => ({
     value: form.values[key],
     error: form.errors[key],
@@ -41,10 +45,14 @@ export function EmploymentFields({ form, disabled }: { form: Bind<EmploymentValu
   });
   return (
     <div className="form-grid">
-      <TextInput label="Qualification" maxLength={255} {...f("qualification")} />
+      {teacher ? (
+        <Select label="Qualification" placeholder="Not set" creatable options={qualificationOptions} {...f("qualification")} />
+      ) : (
+        <TextInput label="Qualification" maxLength={255} {...f("qualification")} />
+      )}
       <TextInput label="Joining date" type="date" {...f("joiningDate")} />
       <Select label="Employment type" placeholder="Not set" options={enumOptions(EMPLOYMENT_TYPES)} {...f("employmentType")} />
-      <TextInput label="Blood group" maxLength={10} placeholder="e.g. O+" {...f("bloodGroup")} />
+      <Select label="Blood group" placeholder="Not set" options={bloodGroupOptions} {...f("bloodGroup")} />
       <Textarea label="Notes" rows={2} fieldClassName="span-2" {...f("description")} />
     </div>
   );

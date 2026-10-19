@@ -1,4 +1,4 @@
-import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from "react";
 import { Check, Circle, Eye, EyeOff, Search } from "lucide-react";
 
 /* Label + control + hint/error. Pass the control as children, or use the field-wrapped inputs below. */
@@ -104,40 +104,6 @@ export function SearchInput({ className, ...rest }: InputHTMLAttributes<HTMLInpu
   );
 }
 
-export type Option = { value: string; label: string; disabled?: boolean };
-
-export type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "children"> &
-  Common & { options: Option[]; placeholder?: string };
-
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(props, ref) {
-  const { label, hint, error, fieldClassName, id, className, options, placeholder, required, ...rest } = props;
-  const auto = useId();
-  const selectId = id ?? auto;
-  const select = (
-    <select
-      ref={ref}
-      id={selectId}
-      className={`select${error ? " invalid" : ""}${className ? " " + className : ""}`}
-      aria-invalid={!!error || undefined}
-      required={required}
-      {...rest}
-    >
-      {placeholder !== undefined && <option value="">{placeholder}</option>}
-      {options.map(o => (
-        <option key={o.value} value={o.value} disabled={o.disabled}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-  if (!wantsField(props)) return select;
-  return (
-    <Field label={label} hint={hint} error={error} required={required} htmlFor={selectId} className={fieldClassName}>
-      {select}
-    </Field>
-  );
-});
-
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & Common;
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
@@ -170,6 +136,41 @@ export function Checkbox({
       <input type="checkbox" {...rest} />
       {label}
     </label>
+  );
+}
+
+/* A few choices shown at once, each with an optional line of explanation. Better than a
+   dropdown when there are two to four options the reader should compare. */
+export function RadioGroup<V extends string>({
+  name,
+  options,
+  value,
+  onChange,
+  disabled,
+  title,
+  "aria-label": ariaLabel
+}: {
+  name?: string;
+  options: { value: V; label: ReactNode; description?: ReactNode }[];
+  value: V | "";
+  onChange: (value: V) => void;
+  disabled?: boolean;
+  title?: string;
+  "aria-label"?: string;
+}) {
+  const auto = useId();
+  return (
+    <div className="radio-group" role="radiogroup" aria-label={ariaLabel} title={title}>
+      {options.map(o => (
+        <label key={o.value} className={`radio-option${o.value === value ? " is-checked" : ""}${disabled ? " is-disabled" : ""}`}>
+          <input type="radio" name={name ?? auto} value={o.value} checked={o.value === value} disabled={disabled} onChange={() => onChange(o.value)} />
+          <span>
+            <span className="radio-label">{o.label}</span>
+            {o.description && <span className="radio-desc">{o.description}</span>}
+          </span>
+        </label>
+      ))}
+    </div>
   );
 }
 

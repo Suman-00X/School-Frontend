@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Info, Play, XCircle } from "lucide-react";
 import { isApiError } from "@/common/api";
-import { Alert, Badge, Button, Card, DataTable, useConfirm, useToast } from "@/common/ui";
+import { Alert, Badge, Button, Card, DataTable, Select, useConfirm, useToast } from "@/common/ui";
 import { useCancelImport, useStartImport, useUpdateMapping, type ImportView, type MappingColumn } from "../api/imports";
 
 const NOT_IN_FILE = "";
@@ -92,20 +92,13 @@ export function MappingStep({ job, canEdit, onStale }: { job: ImportView; canEdi
                 <div className="small muted mono">{f.field}</div>
               </div>
               <div>
-                <select
-                  className="select"
+                <Select
                   aria-label={`Column for ${f.label}`}
                   value={f.column ?? NOT_IN_FILE}
                   disabled={!canEdit || busy}
+                  options={[{ value: NOT_IN_FILE, label: "Not in file" }, ...columns.map(c => ({ value: c.header, label: c.header }))]}
                   onChange={e => choose(f.field, e.target.value)}
-                >
-                  <option value={NOT_IN_FILE}>Not in file</option>
-                  {columns.map(c => (
-                    <option key={c.header} value={c.header}>
-                      {c.header}
-                    </option>
-                  ))}
-                </select>
+                />
                 {/* Always one line, so choosing a column never makes the row taller */}
                 <div className="small muted import-sample">
                   {f.column && samplesOf(f.column).length > 0 ? `e.g. ${samplesOf(f.column).slice(0, 3).join(", ")}` : "\u00a0"}

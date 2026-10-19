@@ -331,7 +331,7 @@ function EditTeacherDrawer({ teacher, open, onClose }: { teacher: Teacher; open:
           void submit();
         }}
       >
-        <EmploymentFields form={form} />
+        <EmploymentFields form={form} teacher />
         <div className="form-grid">
           <TextInput label="Experience (years)" type="number" min={0} max={60} step={1} {...form.text("experienceYears")} />
         </div>

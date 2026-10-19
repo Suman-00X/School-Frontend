@@ -4,6 +4,22 @@ import { compact } from "@/common/hooks";
 export const GENDERS = ["MALE", "FEMALE", "OTHER"] as const;
 export const EMPLOYMENT_TYPES = ["FULL_TIME", "PART_TIME"] as const;
 export const PARENT_RELATIONS = ["FATHER", "MOTHER", "GUARDIAN"] as const;
+export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+
+/* Common teacher qualifications (stored as the text shown). Anything else can be typed in the dropdown. */
+export const TEACHER_QUALIFICATIONS: { value: string; description?: string }[] = [
+  { value: "NTT", description: "Nursery Teacher Training" },
+  { value: "D.El.Ed", description: "Diploma in Elementary Education" },
+  { value: "B.El.Ed", description: "Bachelor of Elementary Education" },
+  { value: "B.Ed", description: "Bachelor of Education" },
+  { value: "M.Ed", description: "Master of Education" },
+  { value: "B.P.Ed", description: "Bachelor of Physical Education" },
+  { value: "M.P.Ed", description: "Master of Physical Education" },
+  { value: "Graduate", description: "B.A., B.Sc., B.Com. or similar" },
+  { value: "Post-graduate", description: "M.A., M.Sc., M.Com. or similar" },
+  { value: "M.Phil" },
+  { value: "Ph.D" }
+];
 
 /* Form values are strings; "" means not set */
 export type PersonValues = {
