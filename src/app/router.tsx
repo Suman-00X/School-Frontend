@@ -4,8 +4,8 @@ import { AppShell } from "@/common/layout/AppShell";
 import { NotFound, Page } from "@/common/ui";
 import { linkRoutes as authLinkRoutes, publicRoutes as authPublicRoutes, routes as authRoutes } from "@/modules/auth";
 import { routes as homeRoutes } from "@/modules/home";
-import { routes as administrationRoutes } from "@/modules/administration";
-import { routes as userRoutes } from "@/modules/users";
+import { importListRoutes, routes as administrationRoutes } from "@/modules/administration";
+import { listRoutes as userListRoutes, routes as userRoutes, UserManagementLayout } from "@/modules/users";
 import { routes as academicsRoutes } from "@/modules/academics";
 
 export const router = createBrowserRouter([
@@ -26,6 +26,8 @@ export const router = createBrowserRouter([
         children: [
           ...homeRoutes,
           ...authRoutes,
+          /* Admin › User Management: the user lists and imports share one side list */
+          { element: <UserManagementLayout />, children: [...userListRoutes, ...importListRoutes] },
           ...userRoutes,
           ...academicsRoutes,
           ...administrationRoutes,

@@ -13,7 +13,11 @@ export type NavTab = {
   end?: boolean;
   /* Extra path prefixes that belong to this tab */
   match?: string[];
+  /* Where the tab opens: the first of these the person may see (default: `to`) */
+  opens?: { to: string; permission: string }[];
 };
+
+export const tabTarget = (tab: NavTab, can: (key: string) => boolean) => tab.opens?.find(o => can(o.permission))?.to ?? tab.to;
 
 export type NavModule = {
   id: string;
@@ -24,19 +28,6 @@ export type NavModule = {
 
 export const MODULES: NavModule[] = [
   { id: "home", label: "Home", icon: House, tabs: [{ label: "Dashboard", to: "/", end: true, match: ["/me"] }] },
-  {
-    id: "people",
-    label: "People",
-    icon: Users,
-    tabs: [
-      { label: "Students", to: "/users/students", permissions: ["users.students.read"] },
-      { label: "Parents", to: "/users/parents", permissions: ["users.parents.read"] },
-      { label: "Teachers", to: "/users/teachers", permissions: ["users.teachers.read"] },
-      { label: "Staff", to: "/users/staff", permissions: ["users.staff.read"] },
-      { label: "Accounts", to: "/users", permissions: ["users.accounts.read"] },
-      { label: "Activity", to: "/users/activity", permissions: ["users.activity.read"] }
-    ]
-  },
   {
     id: "academics",
     label: "Academics",
@@ -51,8 +42,28 @@ export const MODULES: NavModule[] = [
     label: "Admin",
     icon: ShieldCheck,
     tabs: [
+      {
+        label: "User Management",
+        to: "/users",
+        permissions: [
+          "users.accounts.read",
+          "users.students.read",
+          "users.parents.read",
+          "users.teachers.read",
+          "users.staff.read",
+          "administration.imports.read"
+        ],
+        match: ["/administration/imports"],
+        opens: [
+          { to: "/users", permission: "users.accounts.read" },
+          { to: "/users/students", permission: "users.students.read" },
+          { to: "/users/parents", permission: "users.parents.read" },
+          { to: "/users/teachers", permission: "users.teachers.read" },
+          { to: "/users/staff", permission: "users.staff.read" },
+          { to: "/administration/imports", permission: "administration.imports.read" }
+        ]
+      },
       { label: "School settings", to: "/administration/settings", permissions: ["administration.settings.read"] },
-      { label: "Imports", to: "/administration/imports", permissions: ["administration.imports.read"] },
       { label: "Access control", to: "/administration/access", permissions: ["administration.access.read"] },
       { label: "Audit log", to: "/administration/audit-logs", permissions: ["administration.auditLogs.read"] }
     ]

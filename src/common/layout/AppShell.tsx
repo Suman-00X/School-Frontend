@@ -8,7 +8,7 @@ import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useTextSize, useTheme } from "@/common/theme/preferences";
 import { Avatar, Badge, Button, Menu, MenuItem, roleLabel } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
-import { activeLocation, BRAND_ICON, MODULES, QUICK_ACTIONS, type NavModule } from "@/app/navigation";
+import { activeLocation, BRAND_ICON, MODULES, QUICK_ACTIONS, tabTarget, type NavModule } from "@/app/navigation";
 import { ShellHeaderContext, useShellHeaderSlot } from "./ShellHeader";
 
 /* Left: one icon per module. Top: the module's submodule tabs (or a page's drill-in header).
@@ -64,6 +64,7 @@ function useSchoolBrand() {
 
 function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }) {
   const brand = useSchoolBrand();
+  const { can } = useAuth();
   const Brand = BRAND_ICON;
   return (
     <nav className="rail" aria-label="Modules">
@@ -72,7 +73,7 @@ function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }
       </NavLink>
       <div className="rail-items">
         {modules.map(m => (
-          <NavLink key={m.id} to={m.tabs[0]!.to} className={() => `rail-item${m.id === activeId ? " active" : ""}`} aria-current={m.id === activeId ? "page" : undefined}>
+          <NavLink key={m.id} to={tabTarget(m.tabs[0]!, can)} className={() => `rail-item${m.id === activeId ? " active" : ""}`} aria-current={m.id === activeId ? "page" : undefined}>
             <span className="rail-icon">
               <m.icon />
             </span>
@@ -86,11 +87,12 @@ function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }
 
 function ModuleTabs({ module }: { module: NavModule }) {
   const location = useLocation();
+  const { can } = useAuth();
   const active = activeLocation(location.pathname, [module]);
   return (
     <nav className="header-tabs" aria-label={module.label}>
       {module.tabs.map(t => (
-        <NavLink key={t.to} to={t.to} className={() => `header-tab${active?.tab.to === t.to ? " active" : ""}`}>
+        <NavLink key={t.to} to={tabTarget(t, can)} className={() => `header-tab${active?.tab.to === t.to ? " active" : ""}`}>
           {t.label}
         </NavLink>
       ))}
