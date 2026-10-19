@@ -1,0 +1,321 @@
+/* Library module (tokens only, so day and night both work) */
+
+.lib-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lib-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.lib-stat-label {
+  font-size: 12.5px;
+  color: var(--text-3);
+  line-height: 28px;
+}
+.lib-stat-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.lib-stat-danger {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.lib-stat-danger .lib-stat-value {
+  color: var(--danger-text);
+}
+.lib-stat-warning {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+.lib-stat-warning .lib-stat-value {
+  color: var(--warning-text);
+}
+.lib-stat-success .lib-stat-value {
+  color: var(--success-text);
+}
+
+.text-danger {
+  color: var(--danger-text);
+}
+.text-warning {
+  color: var(--warning-text);
+}
+.text-success {
+  color: var(--success-text);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* One line that is always there (a preview, a status) so nothing below moves */
+.lib-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.lib-line > .lib-line-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Standing box under the borrower: blocks (red) or a quiet "can borrow" line */
+.lib-standing {
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  min-height: 44px;
+}
+.lib-standing.is-blocked {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.lib-standing ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+/* ---- Circulation desk ---- */
+.desk-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .desk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.desk-grid > .card {
+  height: 100%;
+}
+.desk-scan .input {
+  height: 44px;
+  font-size: 16px;
+}
+.desk-preview {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.desk-preview.is-ok {
+  border-style: solid;
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+.desk-preview.is-bad {
+  border-style: solid;
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.desk-preview-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desk-keys {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.desk-keys kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  background: var(--surface);
+}
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.segmented button {
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  padding: 0 16px;
+  height: 34px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.segmented button + button {
+  border-left: 1px solid var(--border-strong);
+}
+.segmented button.active {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.segmented button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* The desk's running log (this session) and the stock check's scan log */
+.lib-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow: auto;
+}
+.lib-log li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border-strong);
+  background: var(--surface-2);
+  font-size: 13.5px;
+}
+.lib-log li.is-success {
+  border-left-color: var(--success);
+}
+.lib-log li.is-warning {
+  border-left-color: var(--warning);
+}
+.lib-log li.is-danger {
+  border-left-color: var(--danger);
+}
+.lib-log li.is-muted {
+  opacity: 0.7;
+}
+.lib-log .lib-log-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Catalogue (browse view) ---- */
+.catalogue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.catalogue-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  min-height: 132px;
+}
+.catalogue-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+.catalogue-card-title {
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.catalogue-card-meta {
+  font-size: 13px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.catalogue-card-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+/* The header card of a book or a borrower */
+.lib-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.lib-header-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lib-header-sub {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 20px;
+}
+
+/* New accession numbers after adding copies */
+.lib-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+.lib-codes .badge {
+  font-family: var(--font-mono);
+}
+
+/* Reports: list on the left, parameters, tiles, table */
+.lib-params {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lib-params .field {
+  min-width: 150px;
+}
+.lib-grow {
+  flex: 1;
+  min-width: 0;
+}
+.lib-params-bar {
+  padding: 12px 14px 0;
+  border-bottom: 1px solid var(--border);
+}
