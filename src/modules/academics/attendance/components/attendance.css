@@ -1,0 +1,243 @@
+/* Attendance: register, cover, missing registers */
+.reg-remark {
+  width: 100%;
+  min-width: 140px;
+}
+.reg-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px 4px;
+}
+.reg-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 14px;
+}
+.reg-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* The top bar: section, date, registers. One height whatever is picked. */
+.reg-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+}
+.reg-bar .field {
+  margin: 0;
+  min-width: 200px;
+}
+.reg-bar .field-message {
+  display: none;
+}
+.reg-date {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+.reg-date .input {
+  width: 150px;
+}
+
+/* Register chips: Day / Forenoon / Afternoon / Period n */
+.reg-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 14px 12px;
+  min-height: 44px;
+  align-items: center;
+  scrollbar-width: thin;
+}
+.reg-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.reg-chip:hover {
+  border-color: var(--text-3);
+}
+.reg-chip.is-active {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.reg-chip-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.reg-chip-state {
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-3);
+}
+.reg-chip-state::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.reg-chip.is-taken .reg-chip-state {
+  color: var(--success-text);
+}
+.reg-chip.is-taken .reg-chip-state::before {
+  background: var(--success);
+}
+.reg-chip.is-open .reg-chip-state {
+  color: var(--warning-text);
+}
+.reg-chip.is-open .reg-chip-state::before {
+  background: var(--warning);
+}
+.reg-chip.is-free .reg-chip-state::before {
+  background: var(--text-3);
+}
+.reg-chip.is-sub .reg-chip-state {
+  color: var(--info-text);
+}
+.reg-chip.is-sub .reg-chip-state::before {
+  background: var(--info-text);
+}
+
+/* Percentage bar in the summary */
+.pct {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+}
+.pct .progress {
+  flex: 1;
+  min-width: 60px;
+}
+.pct-value {
+  width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 550;
+}
+.pct.is-low .progress > div {
+  background: var(--danger);
+}
+.pct.is-mid .progress > div {
+  background: var(--warning);
+}
+.pct.is-ok .progress > div {
+  background: var(--success);
+}
+
+/* Cover: period cards */
+.cover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.cover-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+}
+.cover-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+.cover-card-title {
+  font-weight: 600;
+}
+.cover-card-body {
+  font-size: 13px;
+  color: var(--text-2);
+  flex: 1;
+}
+.cover-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cover-section {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 14px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.cover-section:hover {
+  border-color: var(--primary);
+}
+
+/* Missing registers */
+.mr-teachers {
+  display: flex;
+  flex-direction: column;
+}
+.mr-teacher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.mr-teacher:last-child {
+  border-bottom: 0;
+}
+.mr-teacher:hover,
+.mr-teacher.is-active {
+  background: var(--surface-hover);
+}
+.mr-teacher-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mr-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .mr-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.mr-date {
+  font-weight: 600;
+  white-space: nowrap;
+}

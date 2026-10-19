@@ -1,0 +1,167 @@
+/* GridEditor: rows × columns of one-tap choices (attendance, staff attendance) */
+.ge-table td.ge-td {
+  padding: 6px 8px;
+}
+.ge-table th.ge-colhead {
+  text-align: center;
+}
+.ge-table .ge-rowhead {
+  min-width: 160px;
+}
+.ge-name {
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+/* Always one line: the hint, or the row's error in its place */
+.ge-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  min-height: 16px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+.ge-sub-error {
+  color: var(--danger-text);
+}
+.ge-row-error td {
+  background: var(--danger-soft);
+}
+
+.ge-cell {
+  border-radius: var(--radius-sm);
+  outline: none;
+  display: flex;
+  justify-content: center;
+}
+.ge-cell:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.ge-cell.ge-codes:not(.is-readonly) {
+  cursor: pointer;
+}
+
+.ge-seg {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.ge-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ge-choice:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.ge-choice:disabled {
+  cursor: default;
+}
+.ge-short {
+  font-weight: 650;
+  min-width: 10px;
+  text-align: center;
+}
+.ge-empty {
+  color: var(--text-3);
+  line-height: 30px;
+}
+
+/* The chosen state, per tone (also used for the codes and the legend) */
+.ge-choice.is-on,
+.ge-code.is-on {
+  border-color: transparent;
+}
+.tone-success.is-on {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+.tone-danger.is-on {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.tone-warning.is-on {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+.tone-info.is-on {
+  background: var(--info-soft);
+  color: var(--info-text);
+}
+.tone-primary.is-on {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.tone-neutral.is-on {
+  background: var(--neutral-soft);
+  color: var(--neutral-text);
+}
+.ge-choice.is-on {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.ge-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-3);
+  font-weight: 650;
+  font-size: 12.5px;
+}
+
+.ge-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+.ge-legend .ge-code {
+  min-width: 22px;
+  height: 20px;
+  font-size: 11.5px;
+}
+.ge-keys {
+  margin-left: auto;
+}
+
+/* Phones: only the codes on the buttons */
+@media (max-width: 720px) {
+  .ge-label {
+    display: none;
+  }
+  .ge-choice {
+    padding: 0 9px;
+  }
+  .ge-table .ge-rowhead {
+    min-width: 120px;
+  }
+  .ge-name,
+  .ge-sub {
+    max-width: 150px;
+  }
+  .ge-keys {
+    display: none;
+  }
+}
