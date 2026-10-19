@@ -143,3 +143,56 @@
   background: var(--danger-soft);
   color: var(--danger);
 }
+
+/* Roll numbers: the preview dialog keeps one height; the table scrolls inside it */
+.roll-preview {
+  height: min(460px, calc(100vh - 220px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.roll-summary {
+  height: 20px;
+  line-height: 20px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.roll-note {
+  flex-shrink: 0;
+}
+.roll-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.roll-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+.roll-table td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.roll-table tr.roll-changed td {
+  background: var(--warning-soft);
+}
+.roll-table tr.roll-section-row td {
+  background: var(--surface-2);
+}
+.roll-table s {
+  text-decoration-thickness: 1px;
+}
+
+/* The roll-number rule under the class list */
+.roll-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
