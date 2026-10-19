@@ -147,11 +147,12 @@ function Editor({
       if (!announcement) {
         const res = await create.mutateAsync(input);
         saved = res.data;
-        if (then === "close") toast.success(res.message);
+        /* Also when publishing next: if the publish dialog is cancelled, the draft is kept */
+        toast.success(then === "close" ? res.message : "Draft saved");
       } else if (dirty) {
         const res = await update.mutateAsync({ id: announcement.id, ...changes });
         saved = res.data;
-        if (then === "close") toast.success(res.message);
+        toast.success(then === "close" ? res.message : "Changes saved");
       }
       if (then === "publish" && saved) onPublish(saved);
       onClose();

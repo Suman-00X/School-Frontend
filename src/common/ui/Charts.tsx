@@ -1,4 +1,4 @@
-import { useCallback, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { useCallback, useId, useLayoutEffect, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import "./charts.css";
 
@@ -33,19 +33,19 @@ function niceScale(maxValue: number, ticks = 4) {
   return { max, step, ticks: out };
 }
 
-/* The element's width, kept up to date */
+/* The element's width, kept up to date (a callback ref, so it also works when the element
+   mounts later, e.g. after an empty state) */
 function useWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
+  const [el, setEl] = useState<T | null>(null);
   const [width, setWidth] = useState(0);
   useLayoutEffect(() => {
-    const el = ref.current;
     if (!el) return;
     setWidth(el.clientWidth);
     const ro = new ResizeObserver(entries => setWidth(Math.floor(entries[0]!.contentRect.width)));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
-  return [ref, width] as const;
+  }, [el]);
+  return [setEl, width] as const;
 }
 
 /* A path for a column with a rounded top (4px) and a square base */
