@@ -1,0 +1,210 @@
+/* Transport module */
+
+.seats-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+.seats-bar .progress {
+  display: block;
+  flex: 1;
+  min-width: 48px;
+  max-width: 90px;
+}
+.seats-bar-wide .progress {
+  max-width: 220px;
+}
+.seats-bar-text {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.seats-bar.is-near .progress > div {
+  background: var(--warning);
+}
+.seats-bar.is-full .progress > div {
+  background: var(--danger);
+}
+
+/* Document badges in the vehicles table wrap inside the cell */
+.doc-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* A line under the page intro whose text depends on data: one fixed height */
+.intro-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger-text);
+}
+.intro-alert svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* Route header facts */
+.route-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: center;
+}
+.route-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.route-fact-label {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+/* ---- Stops editor ---- */
+.stops-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  container-type: inline-size;
+}
+.stop-row {
+  display: grid;
+  grid-template-columns: 28px minmax(140px, 2fr) 104px 104px minmax(120px, 1.5fr) 110px 64px auto;
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.stop-row.is-dragging {
+  opacity: 0.5;
+}
+.stop-row.is-drop-target {
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+.stop-row-head {
+  border: 0;
+  background: none;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.stop-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  color: var(--text-3);
+  cursor: grab;
+  font-variant-numeric: tabular-nums;
+  gap: 2px;
+}
+.stop-count {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+.stop-actions {
+  display: flex;
+  gap: 2px;
+  height: 36px;
+  align-items: center;
+}
+.stop-row .field-label {
+  display: none;
+}
+@container (max-width: 860px) {
+  .stop-row {
+    grid-template-columns: 28px 1fr 1fr;
+  }
+  .stop-row > .stop-name,
+  .stop-row > .stop-landmark {
+    grid-column: 2 / span 2;
+  }
+  .stop-row > .stop-actions,
+  .stop-row > .stop-count {
+    grid-column: 2 / span 2;
+    justify-content: flex-start;
+  }
+  .stop-row .field-label {
+    display: block;
+  }
+  .stop-row-head {
+    display: none;
+  }
+}
+
+/* ---- Roster: a sheet that prints ---- */
+.roster-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.roster-head {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 20px;
+}
+.roster-stop {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.roster-stop-title {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.roster-stop-title .muted {
+  font-weight: 400;
+}
+.roster-print-title {
+  display: none;
+}
+
+@media print {
+  body:has(.roster-sheet) .rail,
+  body:has(.roster-sheet) .header,
+  body:has(.roster-sheet) .shortcuts,
+  body:has(.roster-sheet) .toasts,
+  body:has(.roster-sheet) .no-print {
+    display: none !important;
+  }
+  body:has(.roster-sheet) .shell,
+  body:has(.roster-sheet) .content {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .roster-sheet .card {
+    border: 0;
+    box-shadow: none;
+  }
+  .roster-sheet .card-body,
+  .roster-sheet .card-header {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .roster-print-title {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .roster-sheet .table-wrap {
+    overflow: visible;
+  }
+}
