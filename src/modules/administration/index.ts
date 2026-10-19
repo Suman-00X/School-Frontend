@@ -8,3 +8,7 @@ export const routes: RouteObject[] = [...settingsRoutes, ...importRoutes, ...aud
 
 /* Imports of students belong to User Management: its list is shown there */
 export { importListRoutes };
+
+/* For other modules: pick an employee (staff or teacher) */
+export { PersonPicker, usePersonById } from "./access/components/PersonPicker";
+export { useEmployees, type Person } from "./access/api/people";

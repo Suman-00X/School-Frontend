@@ -6,9 +6,10 @@ import { api } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useTextSize, useTheme } from "@/common/theme/preferences";
-import { Avatar, Badge, Button, Menu, MenuItem, roleLabel } from "@/common/ui";
+import { Avatar, Badge, Button, Menu, MenuItem, roleLabel, Select } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
 import { activeLocation, BRAND_ICON, MODULES, QUICK_ACTIONS, tabTarget, type NavModule } from "@/app/navigation";
+import { NotificationBell } from "@/modules/communication";
 import { ShellHeaderContext, useShellHeaderSlot } from "./ShellHeader";
 
 /* Left: one icon per module. Top: the module's submodule tabs (or a page's drill-in header).
@@ -38,6 +39,7 @@ export function AppShell() {
           </div>
           <div className="header-end">
             <YearSwitcher />
+            <NotificationBell />
             <UserMenu />
           </div>
         </header>
@@ -105,22 +107,16 @@ function YearSwitcher() {
   if (!canSwitch || years.length === 0) return null;
   return (
     <div className="year-switch">
-      <select
-        className="select select-sm"
+      <Select
+        className="select-sm"
         aria-label="Academic year"
         value={selected?.id ?? ""}
+        options={years.map(y => ({ value: y.id, label: y.yearName + (y.isCurrent ? " (current)" : y.archivedAt ? " (archived)" : "") }))}
         onChange={e => {
           const y = years.find(x => x.id === e.target.value);
           select(y && !y.isCurrent ? y.id : null);
         }}
-      >
-        {years.map(y => (
-          <option key={y.id} value={y.id}>
-            {y.yearName}
-            {y.isCurrent ? " (current)" : y.archivedAt ? " (archived)" : ""}
-          </option>
-        ))}
-      </select>
+      />
       {/* Always rendered so switching years never moves the header */}
       <span className="year-flag" aria-live="polite">
         {readOnly && <Badge tone="warning">Read-only</Badge>}
