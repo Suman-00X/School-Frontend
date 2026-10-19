@@ -1,0 +1,39 @@
+/* Academics setup pages (subjects, teacher assignments, calendar, grading, attendance policy, enrollments) */
+.filter-bar .filter-wide {
+  min-width: 260px;
+}
+
+/* Add several subjects: a small grid of rows, each with a reserved error line */
+.bulk-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bulk-subjects-head,
+.bulk-subjects-fields {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 130px 64px 34px;
+  gap: 8px;
+  align-items: center;
+}
+.bulk-subjects-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  padding-bottom: 4px;
+}
+.bulk-subjects-fields .check {
+  justify-content: center;
+}
+@media (max-width: 640px) {
+  .bulk-subjects-head {
+    display: none;
+  }
+  .bulk-subjects-fields {
+    grid-template-columns: 90px minmax(0, 1fr) 34px;
+  }
+  .bulk-subjects-fields > :nth-child(3),
+  .bulk-subjects-fields > :nth-child(4) {
+    grid-column: span 1;
+  }
+}
