@@ -1,7 +1,7 @@
 /* FI-03 · Fee structure (detail and create): items, offered plans and late fee of one structure */
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Receipt, Trash2 } from "lucide-react";
+import { FilePlus2, Receipt, Trash2 } from "lucide-react";
 import { isApiError } from "@/common/api";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useAuth } from "@/common/auth";
@@ -289,6 +289,11 @@ function StructureEditor({ structure }: { structure: FeeStructure | null }) {
               {can("finance.invoices.read") && (
                 <ButtonLink icon={<Receipt />} to={`/finance/invoices?feeStructureId=${structure.id}`}>
                   Invoices
+                </ButtonLink>
+              )}
+              {can("finance.invoices.issue") && !archived && year?.id === structure.academicYearId && (
+                <ButtonLink icon={<FilePlus2 />} to={`/finance/invoices?generate=${structure.id}`}>
+                  Generate invoices
                 </ButtonLink>
               )}
               {canEdit && (
