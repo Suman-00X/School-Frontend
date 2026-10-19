@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Mail, Pencil, Phone, ShieldPlus, UserX } from "lucide-react";
-import { isApiError, type Account } from "@/common/api";
+import { EMPLOYEE_ROLES, isApiError, type Account } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { ActivityLog } from "@/common/components/activity-log";
 import { useApiMutation, useForm } from "@/common/hooks";
@@ -46,9 +46,12 @@ export default function AccountDetailPage() {
   const account = useAccount(userId);
   const [editing, setEditing] = useState(false);
 
+  const a = account.data;
+  /* Operator roles go to employees only; students and parents hold just their built-in role */
+  const holdsAccess = !a || EMPLOYEE_ROLES.includes(a.role);
   const tabs = [
     { id: "account", label: "Account" },
-    { id: "access", label: "Access", hidden: !can("administration.access.read") },
+    { id: "access", label: "Access", hidden: !can("administration.access.read") || !holdsAccess },
     { id: "activity", label: "Activity", hidden: !can("administration.auditLogs.read") }
   ];
   const [tab, setTab] = useTabParam(tabs);
@@ -57,7 +60,6 @@ export default function AccountDetailPage() {
   /* Invalidated by hand after leaving: refetching this page's account would only 404 */
   const deactivate = useApiMutation(() => deactivateAccount(userId));
 
-  const a = account.data;
   const name = a ? fullName(a) : "";
   const isSelf = session?.user.id === userId;
   /* The drill-in header is there from the first frame; only its title waits for the record */
@@ -142,7 +144,8 @@ export default function AccountDetailPage() {
             <EffectiveAccess
               userId={a.id}
               actions={
-                can("administration.access.manage") && (
+                /* The administrator already holds everything */
+                can("administration.access.manage") && a.role !== "ADMIN" && (
                   <ButtonLink size="sm" icon={<ShieldPlus />} to={`/administration/access/assignments?userId=${a.id}&add=operator`}>
                     Add operator role
                   </ButtonLink>
