@@ -1,0 +1,46 @@
+/* Inventory module styles (tokens only, so dark mode follows) */
+
+/* The movement form's before → after line: one fixed height */
+.in-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 13.5px;
+}
+.in-preview > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.in-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.in-plus {
+  color: var(--success-text);
+  font-weight: 600;
+}
+.in-minus {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+.in-cut {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.in-header-line {
+  min-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
