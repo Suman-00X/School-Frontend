@@ -2,6 +2,7 @@
 export { PersonFields, EmploymentFields } from "./components/PersonFields";
 export * from "./utils/person";
 export { EffectiveAccess } from "./components/EffectiveAccess";
+export { DrillName, InlineSkeleton, RecordHeader } from "./components/RecordHeader";
 export { useUserAccess } from "./api/access";
 export * from "./utils/patch";
 export { fetchAllPages, matchesSearch, type UserSummary } from "./api/profiles";

@@ -68,3 +68,41 @@
   color: var(--primary);
   flex-shrink: 0;
 }
+
+/* KPI row: every tile has its three lines (label, value, hint), loaded or not */
+.home-kpis .kpi .small {
+  min-height: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-bar {
+  display: inline-block;
+  vertical-align: middle;
+  height: 0.8em;
+}
+/* Error or "no academic year": one tile across the row, as tall as the KPI tiles */
+.home-kpi-notice {
+  grid-column: 1 / -1;
+}
+.home-kpi-notice-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  /* the value line (24px × 1.5) and the hint line (19px) of a KPI tile */
+  min-height: 55px;
+}
+.home-kpi-notice-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-2);
+}
+
+/* Get started: each step's note is one line, with or without its count */
+.setup-item .setup-note {
+  min-height: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

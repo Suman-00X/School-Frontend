@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { FileDown, GraduationCap } from "lucide-react";
 import { isApiError } from "@/common/api";
-import { Badge, Button, Card, DataTable, EmptyState, ErrorState, SkeletonBlock, useToast } from "@/common/ui";
+import { Badge, Button, Card, DataTable, EmptyState, SkeletonBlock, useToast } from "@/common/ui";
 import { enumLabel, formatDate } from "@/common/utils/format";
 import { downloadReportCard, useReportCards } from "../api/records";
-import { useHideOnForbidden } from "./useHideOnForbidden";
+import { TabError } from "./TabError";
 
 /* Live report cards of the year, one row per exam, with the PDF */
-export function ResultsTab({ studentId, onForbidden }: { studentId: string; onForbidden?: () => void }) {
+export function ResultsTab({ studentId }: { studentId: string }) {
   const toast = useToast();
   const cards = useReportCards(studentId);
   const [busy, setBusy] = useState<string | null>(null);
-  useHideOnForbidden(cards.error, onForbidden);
 
   const pdf = async (examId: string) => {
     setBusy(examId);
@@ -27,7 +26,7 @@ export function ResultsTab({ studentId, onForbidden }: { studentId: string; onFo
   if (cards.isLoading) return <SkeletonBlock lines={4} />;
   if (isApiError(cards.error) && cards.error.status === 404)
     return <EmptyState icon={<GraduationCap />} title="Not enrolled this year" message="Report cards follow the student's enrollment in the academic year." />;
-  if (cards.error) return <ErrorState error={cards.error} onRetry={() => void cards.refetch()} />;
+  if (cards.error) return <TabError error={cards.error} what="results" onRetry={() => void cards.refetch()} />;
 
   const data = cards.data!;
   return (

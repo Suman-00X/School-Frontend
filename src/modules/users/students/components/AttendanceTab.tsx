@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
-import { Card, DataTable, ErrorState, Kpi, SkeletonBlock, TextInput } from "@/common/ui";
+import { Card, DataTable, Kpi, SkeletonBlock, TextInput } from "@/common/ui";
 import { formatDate, todayIso } from "@/common/utils/format";
 import { useStudentAttendance } from "../api/records";
-import { useHideOnForbidden } from "./useHideOnForbidden";
+import { TabError } from "./TabError";
 
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${n}%`);
 
 /* Summary for a date range (default: start of the year to today) */
-export function AttendanceTab({ studentId, onForbidden }: { studentId: string; onForbidden?: () => void }) {
+export function AttendanceTab({ studentId }: { studentId: string }) {
   const { selected } = useAcademicYear();
   const today = todayIso();
   const [from, setFrom] = useState(selected?.startDate ?? "");
   const [to, setTo] = useState(selected && selected.endDate < today ? selected.endDate : today);
   const summary = useStudentAttendance(studentId, from, to);
-  useHideOnForbidden(summary.error, onForbidden);
   const a = summary.data;
 
   return (
@@ -29,7 +28,7 @@ export function AttendanceTab({ studentId, onForbidden }: { studentId: string; o
         )}
       </div>
       {summary.isLoading && <SkeletonBlock lines={4} />}
-      {summary.error && <ErrorState error={summary.error} onRetry={() => void summary.refetch()} />}
+      {summary.error && <TabError error={summary.error} what="attendance" onRetry={() => void summary.refetch()} />}
       {a && (
         <>
           <div className="kpis">

@@ -57,15 +57,25 @@ export function FileDrop({
       <input ref={input} type="file" hidden accept={accept} onChange={e => take(e.target.files?.[0] ?? undefined)} />
       <UploadCloud />
       {file ? (
-        <div>
-          <strong style={{ color: "var(--text)" }}>{file.name}</strong> · {formatBytes(file.size)}
-          <div className="small">Click to choose a different file</div>
-        </div>
+        <>
+          <div className="dropzone-line">
+            <strong style={{ color: "var(--text)" }} title={file.name}>
+              {file.name}
+            </strong>{" "}
+            · {formatBytes(file.size)}
+          </div>
+          <div className="dropzone-line small">Click to choose a different file</div>
+        </>
       ) : (
-        <div>
-          <strong style={{ color: "var(--text)" }}>Click to choose a file</strong> or drag it here
-          {hint && <div className="small">{hint}</div>}
-        </div>
+        <>
+          <div className="dropzone-line">
+            <strong style={{ color: "var(--text)" }}>Click to choose a file</strong> or drag it here
+          </div>
+          {/* Always two lines, whatever was chosen */}
+          <div className="dropzone-line small" title={hint}>
+            {hint}
+          </div>
+        </>
       )}
     </div>
   );

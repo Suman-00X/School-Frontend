@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { Download, FileImage, FileText, Trash2, Upload } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useApiMutation } from "@/common/hooks";
-import { Alert, Button, Card, DataTable, Drawer, EmptyState, FileDrop, Select, TextInput, useConfirm, useToast, type Column } from "@/common/ui";
+import { Button, Card, DataTable, Drawer, EmptyState, FileDrop, Select, TextInput, useConfirm, useToast, type Column } from "@/common/ui";
 import { formatBytes, formatDateTime } from "@/common/utils/format";
 import { FILE_RULES, deleteFile, getDownloadLink, uploadStudentFile, useStudentFiles, type FileCategory, type StoredFile } from "../api/records";
 import type { Student } from "../api/students";
@@ -148,6 +148,7 @@ function UploadDrawer({ student, onClose }: { student: Student; onClose: () => v
       open
       onClose={onClose}
       title="Upload a document"
+      footerStatus={error}
       footer={
         <>
           <Button onClick={onClose} disabled={upload.isPending}>
@@ -160,7 +161,6 @@ function UploadDrawer({ student, onClose }: { student: Student; onClose: () => v
       }
     >
       <form id="upload-file" className="stack" onSubmit={submit} noValidate>
-        {error && <Alert tone="danger">{error}</Alert>}
         <Select
           label="Category"
           required
@@ -169,11 +169,15 @@ function UploadDrawer({ student, onClose }: { student: Student; onClose: () => v
           onChange={e => {
             setCategory(e.target.value as FileCategory);
             setFile(null);
+            setError(null);
           }}
           hint={category === "PHOTO" ? "The newest photo is shown on the profile." : undefined}
         />
         <TextInput label="Description" maxLength={300} value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g. Birth certificate" />
-        <FileDrop accept={rule.accept} maxBytes={rule.maxBytes} hint={rule.hint} file={file} onFile={setFile} onReject={setError} />
+        <FileDrop accept={rule.accept} maxBytes={rule.maxBytes} hint={rule.hint} file={file} onFile={f => {
+            setFile(f);
+            setError(null);
+          }} onReject={setError} />
       </form>
     </Drawer>
   );

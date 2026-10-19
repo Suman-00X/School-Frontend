@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, ButtonLink, Card, Page, PageHeader, TextInput, useToast } from "@/common/ui";
+import { DrillHeader } from "@/common/layout/ShellHeader";
+import { Button, ButtonLink, Card, FormActions, Page, TextInput, useToast } from "@/common/ui";
 import {
   EMPLOYMENT_KEYS,
   EmploymentFields,
@@ -30,6 +31,7 @@ export default function NewTeacherPage() {
   const create = useApiMutation(createTeacher, { invalidate: ["/users"] });
 
   const submit = async () => {
+    form.setFormError(null);
     const errors: Record<string, string> = validatePerson(form.values);
     const exp = experienceError(form.values.experienceYears);
     if (exp) errors.experienceYears = exp;
@@ -57,11 +59,7 @@ export default function NewTeacherPage() {
 
   return (
     <Page>
-      <PageHeader
-        breadcrumbs={[{ label: "Teachers", to: "/users/teachers" }, { label: "New teacher" }]}
-        title="New teacher"
-        subtitle="Creates the sign-in account and the teacher profile. The employee code is generated when you save."
-      />
+      <DrillHeader back="/users/teachers" backLabel="Back to teachers" title="New teacher" />
       <form
         className="stack"
         style={{ maxWidth: 860 }}
@@ -70,11 +68,13 @@ export default function NewTeacherPage() {
           void submit();
         }}
       >
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
-        <Card title="Personal details" subtitle="The account's name and contact details. Invite them to set a password after saving.">
+        <Card
+          title="Personal details"
+          subtitle="Creates the sign-in account and the teacher profile. Invite them to set a password after saving."
+        >
           <PersonFields form={form} />
         </Card>
-        <Card title="Employment">
+        <Card title="Employment" subtitle="The employee code is generated when you save.">
           <div className="stack">
             <EmploymentFields form={form} />
             <div className="form-grid">
@@ -82,12 +82,12 @@ export default function NewTeacherPage() {
             </div>
           </div>
         </Card>
-        <div className="form-actions">
+        <FormActions error={form.formError}>
           <ButtonLink to="/users/teachers">Cancel</ButtonLink>
           <Button type="submit" variant="primary" loading={create.isPending}>
             Create teacher
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Page>
   );

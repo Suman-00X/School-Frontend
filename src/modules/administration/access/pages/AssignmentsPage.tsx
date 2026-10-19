@@ -1,29 +1,24 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Ban, CalendarClock, Crown, MoreHorizontal, Repeat, ShieldCheck, UserPlus, X } from "lucide-react";
+import { Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { Ban, CalendarClock, Crown, MoreHorizontal, ShieldCheck, UserPlus, X } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useListParams } from "@/common/hooks";
 import {
   Badge,
   Button,
-  ButtonLink,
   Card,
   DataTable,
   EmptyState,
   Menu,
   MenuItem,
-  Page,
   PageHeader,
   PersonCell,
   RoleBadge,
   Select,
   StatusBadge,
-  Tabs,
   useConfirm,
-  useTabParam,
   useToast,
-  type Column,
-  type TabItem
+  type Column
 } from "@/common/ui";
 import { enumLabel, formatDate, fullName } from "@/common/utils/format";
 import {
@@ -31,6 +26,7 @@ import {
   accessName,
   useAssignments,
   useManagedModules,
+  useOperatorRole,
   useOperatorRoles,
   useRevokeAssignment,
   type Assignment,
@@ -39,12 +35,28 @@ import {
 import { useEmployees } from "../api/people";
 import { AssignmentFormDrawer } from "../components/AssignmentFormDrawer";
 import { AssignmentDetailDrawer, EditDatesDrawer, isLive } from "../components/AssignmentDrawers";
+import { OWNERS_PATH } from "../utils/paths";
 
 const ANY = "ANY";
 
-/* AD-05. Links from other pages: ?userId= / ?operatorRoleId= (also filters), &add=operator|owner
-   opens the form prefilled, ?open=<assignmentId> opens one assignment. */
-export default function AssignmentsPage() {
+/* AD-05, two sections of the Access control area: Operators (/assignments) and Owners (/assignments/owners).
+   Links from other pages: ?userId= / ?operatorRoleId= (also filters), &add=operator|owner opens the
+   form prefilled, ?open=<assignmentId> opens one assignment. The old ?tab=owners still works. */
+export default function AssignmentsPage({ kind }: { kind: AssignmentKind }) {
+  const { can } = useAuth();
+  const location = useLocation();
+  const [search] = useSearchParams();
+  const canOwners = can("administration.access.manageOwners");
+  if (kind === "OPERATOR" && search.get("tab") === "owners" && canOwners) {
+    const rest = new URLSearchParams(search);
+    rest.delete("tab");
+    const query = rest.toString();
+    return <Navigate to={`${OWNERS_PATH}${query ? `?${query}` : ""}`} replace state={location.state} />;
+  }
+  return <Assignments kind={kind} />;
+}
+
+function Assignments({ kind }: { kind: AssignmentKind }) {
   const { can } = useAuth();
   const toast = useToast();
   const confirm = useConfirm();
@@ -52,17 +64,13 @@ export default function AssignmentsPage() {
   const canManage = can("administration.access.manage");
   const canOwners = can("administration.access.manageOwners");
 
-  const tabs: TabItem[] = [
-    { id: "operators", label: "Operators" },
-    { id: "owners", label: "Owners", hidden: !canOwners }
-  ];
-  const [tab] = useTabParam(tabs);
-  const kind: AssignmentKind = tab === "owners" ? "OWNER" : "OPERATOR";
-
   const { params, setParam, setParams, setPage } = useListParams({ module: "", status: "ACTIVE", operatorRoleId: "", userId: "" });
-  const { modules } = useManagedModules();
+  const { modules, isLoading: modulesLoading } = useManagedModules();
   const { people, canList } = useEmployees();
   const roles = useOperatorRoles({ module: params.module, limit: 100 }, kind === "OPERATOR");
+  /* A role from a link that isn't in the list (yet): its name for the Role filter */
+  const roleMissing = kind === "OPERATOR" && !!params.operatorRoleId && !!roles.rows && !roles.rows.some(r => r.id === params.operatorRoleId);
+  const linkedRole = useOperatorRole(roleMissing ? params.operatorRoleId : null);
 
   const query = {
     kind,
@@ -76,7 +84,7 @@ export default function AssignmentsPage() {
   const list = useAssignments(query);
   /* The default view is the live ones: say how many start later */
   const scheduled = useAssignments({ ...query, status: "SCHEDULED", page: 1, limit: 1 }, params.status === "ACTIVE");
-  const scheduledCount = scheduled.meta?.total ?? 0;
+  const scheduledCount = params.status === "ACTIVE" ? (scheduled.meta?.total ?? 0) : 0;
 
   const add = search.get("add");
   const formKind: AssignmentKind | null = add === "operator" && canManage ? "OPERATOR" : add === "owner" && canOwners ? "OWNER" : null;
@@ -90,17 +98,6 @@ export default function AssignmentsPage() {
         const next = new URLSearchParams(prev);
         if (value) next.set(key, value);
         else next.delete(key);
-        return next;
-      },
-      { replace: true }
-    );
-
-  const switchTab = (id: string) =>
-    setSearch(
-      prev => {
-        const next = new URLSearchParams(prev);
-        for (const k of ["tab", "operatorRoleId", "page", "open", "add"]) next.delete(k);
-        if (id !== tabs[0].id) next.set("tab", id);
         return next;
       },
       { replace: true }
@@ -120,7 +117,8 @@ export default function AssignmentsPage() {
 
   const personName = (id: string) =>
     people.find(p => p.id === id)?.name ?? (list.rows?.find(r => r.userId === id) ? fullName(list.rows.find(r => r.userId === id)!.user) : "this person");
-  const roleName = (id: string) => roles.rows?.find(r => r.id === id)?.name ?? "this role";
+  const roleOptions = (roles.rows ?? []).map(r => ({ value: r.id, label: params.module ? r.name : `${r.name} (${r.moduleLabel})` }));
+  if (roleMissing) roleOptions.unshift({ value: params.operatorRoleId, label: linkedRole.data?.name ?? "This role" });
 
   const columns: Column<Assignment>[] = [
     {
@@ -188,44 +186,44 @@ export default function AssignmentsPage() {
   );
   const filtered = !!(params.module || params.operatorRoleId || params.userId || params.status !== "ACTIVE");
 
+  const noModules = !modulesLoading && modules.length === 0;
+
   return (
-    <Page>
+    <div className="stack">
       <PageHeader
-        title="Access assignments"
-        subtitle="Who holds operator roles and who owns each add-on module"
+        title={kind === "OWNER" ? "Owners" : "Operators"}
+        subtitle={
+          kind === "OWNER"
+            ? "Who runs each add-on module besides its built-in manager"
+            : "Who holds an operator role in the add-on modules, and for how long"
+        }
         actions={
-          <>
-            {can("administration.access.handOver") && modules.length > 0 && (
-              <ButtonLink icon={<Repeat />} to={`/administration/access/handovers/new${params.module ? `?module=${params.module}` : ""}`}>
-                Hand over work
-              </ButtonLink>
-            )}
-            {kind === "OWNER" && canOwners && (
-              <Button variant="primary" icon={<Crown />} onClick={() => setQueryParam("add", "owner")}>
-                Make owner
-              </Button>
-            )}
-            {kind === "OPERATOR" && canManage && modules.length > 0 && (
-              <Button variant="primary" icon={<UserPlus />} onClick={() => setQueryParam("add", "operator")}>
-                Add operator
-              </Button>
-            )}
-          </>
+          /* Shown from the start; disabled until the modules arrive, so the header never changes */
+          kind === "OWNER"
+            ? canOwners && (
+                <Button variant="primary" icon={<Crown />} onClick={() => setQueryParam("add", "owner")} disabled={modulesLoading || noModules}>
+                  Make owner
+                </Button>
+              )
+            : canManage && (
+                <Button variant="primary" icon={<UserPlus />} onClick={() => setQueryParam("add", "operator")} disabled={modulesLoading || noModules}>
+                  Add operator
+                </Button>
+              )
         }
       />
-      <Tabs tabs={tabs} value={tab} onChange={switchTab} />
       <Card flush>
+        {/* One height: every filter is always a field in the bar, and the "start later" link has its place */}
         <div className="filter-bar">
-          {modules.length > 1 && (
-            <Select
-              label="Module"
-              className="select-sm"
-              value={params.module}
-              onChange={e => setParams({ module: e.target.value, operatorRoleId: "" })}
-              placeholder="All my modules"
-              options={modules}
-            />
-          )}
+          <Select
+            label="Module"
+            className="select-sm"
+            value={params.module}
+            onChange={e => setParams({ module: e.target.value, operatorRoleId: "" })}
+            placeholder="All my modules"
+            options={modules}
+            disabled={modules.length < 2 && !params.module}
+          />
           <Select label="Status" className="select-sm" value={params.status} onChange={e => setParam("status", e.target.value)} options={statusOptions} />
           {kind === "OPERATOR" && (
             <Select
@@ -234,10 +232,10 @@ export default function AssignmentsPage() {
               value={params.operatorRoleId}
               onChange={e => setParam("operatorRoleId", e.target.value)}
               placeholder="Any role"
-              options={(roles.rows ?? []).map(r => ({ value: r.id, label: params.module ? r.name : `${r.name} (${r.moduleLabel})` }))}
+              options={roleOptions}
             />
           )}
-          {canList && (
+          {canList ? (
             <Select
               label="Person"
               className="select-sm"
@@ -246,21 +244,15 @@ export default function AssignmentsPage() {
               placeholder="Anyone"
               options={people.filter(p => p.role !== "ADMIN").map(p => ({ value: p.id, label: p.name }))}
             />
+          ) : (
+            <ClearableField label="Person" value={params.userId ? personName(params.userId) : ""} placeholder="Anyone" onClear={() => setParam("userId", "")} />
           )}
-        </div>
-        {(params.userId || params.operatorRoleId || (params.status === "ACTIVE" && scheduledCount > 0)) && (
-          <div className="row" style={{ padding: "8px 14px", borderBottom: "1px solid var(--border)" }}>
-            {params.userId && !canList && <Chip label={`Person: ${personName(params.userId)}`} onClear={() => setParam("userId", "")} />}
-            {params.operatorRoleId && kind === "OPERATOR" && !roles.rows?.some(r => r.id === params.operatorRoleId) && (
-              <Chip label={`Role: ${roleName(params.operatorRoleId)}`} onClear={() => setParam("operatorRoleId", "")} />
-            )}
-            {params.status === "ACTIVE" && scheduledCount > 0 && (
-              <Button size="sm" variant="link" onClick={() => setParam("status", "SCHEDULED")}>
-                {scheduledCount} more start later
-              </Button>
-            )}
+          <div className="field" style={{ marginLeft: "auto", justifyContent: "flex-end", visibility: scheduledCount > 0 ? "visible" : "hidden" }}>
+            <Button size="sm" variant="link" onClick={() => setParam("status", "SCHEDULED")} tabIndex={scheduledCount > 0 ? undefined : -1}>
+              {scheduledCount || 0} more start later
+            </Button>
           </div>
-        )}
+        </div>
         <DataTable
           columns={columns}
           rows={list.rows}
@@ -305,17 +297,27 @@ export default function AssignmentsPage() {
         onRevoke={a => void onRevoke(a)}
       />
       <EditDatesDrawer assignment={editing} onClose={() => setEditing(null)} />
-    </Page>
+    </div>
   );
 }
 
-function Chip({ label, onClear }: { label: string; onClear: () => void }) {
+/* A filter that is always in the bar (applying it from a link never adds a row), with a clear button */
+function ClearableField({ label, value, placeholder, onClear }: { label: string; value: string; placeholder: string; onClear: () => void }) {
   return (
-    <span className="chip">
-      {label}
-      <button onClick={onClear} aria-label={`Remove ${label}`}>
-        <X />
-      </button>
-    </span>
+    <div className="field" style={{ width: 190 }}>
+      <span className="field-label">{label}</span>
+      <div className="input-group">
+        <input className="input input-sm" value={value} placeholder={placeholder} readOnly aria-label={label} title={value || undefined} />
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-icon input-addon"
+          onClick={onClear}
+          aria-label={`Clear ${label.toLowerCase()}`}
+          style={{ visibility: value ? "visible" : "hidden" }}
+        >
+          <X />
+        </button>
+      </div>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { endSession, errorMessage, isApiError, sessionStore } from "@/common/api
 import { useForm } from "@/common/hooks";
 import { Alert, Button, ButtonLink, EmptyState, PasswordChecklist, PasswordInput, passwordOk } from "@/common/ui";
 import { AuthLayout } from "../../shared/components/AuthLayout";
+import { AuthStatus } from "../../shared/components/AuthStatus";
 import { formatWait, retryAfterSeconds, useCooldown } from "../../shared/hooks/useCooldown";
 import { resetPassword } from "../api/passwords";
 
@@ -84,7 +85,6 @@ export default function SetPasswordPage({ mode = "reset" }: { mode?: "reset" | "
       subtitle={mode === "invite" ? "Welcome! This link works once and lasts 7 days." : undefined}
       footer={<Link to={withSchool("/sign-in")}>Back to sign in</Link>}
     >
-      {form.formError && <Alert tone="danger">{form.formError}</Alert>}
       <form className="stack" onSubmit={e => void submit(e)} noValidate>
         <div className="stack-sm">
           <PasswordInput label="New password" required maxLength={128} autoComplete="new-password" autoFocus {...form.text("password")} />
@@ -102,6 +102,7 @@ export default function SetPasswordPage({ mode = "reset" }: { mode?: "reset" | "
           {waiting ? `Try again in ${formatWait(cooldown.secondsLeft)}` : mode === "invite" ? "Set my password" : "Set the new password"}
         </Button>
       </form>
+      <AuthStatus problem={form.formError ? { message: form.formError } : null} />
     </AuthLayout>
   );
 }

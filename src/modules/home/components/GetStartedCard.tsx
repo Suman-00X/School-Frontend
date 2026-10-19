@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle2, ChevronRight, Circle } from "lucide-react"
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiList } from "@/common/hooks";
-import { Card, Skeleton } from "@/common/ui";
+import { Card } from "@/common/ui";
 import "./home.css";
 
 type Status = "done" | "warn" | "todo" | "loading";
@@ -18,7 +18,8 @@ function useTotal(path: string, enabled: boolean) {
 
 const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
 
-/* The setup steps before a school can admit students, each shown with its permission */
+/* The setup steps before a school can admit students, each shown with its permission.
+   Which steps show depends on permissions only, never on the counts, so the card keeps its height. */
 export function GetStartedCard() {
   const { can, canAny } = useAuth();
   const { years, current, selected, canSwitch, isLoading: yearsLoading } = useAcademicYear();
@@ -109,7 +110,10 @@ export function GetStartedCard() {
               <Link to={s.to} className="setup-title">
                 {s.title}
               </Link>
-              <div className="small muted setup-note">{s.status === "loading" ? <Skeleton width="40%" height={12} /> : s.note}</div>
+              {/* One line in every state (the count arriving never makes the card taller) */}
+              <div className="small muted setup-note" title={typeof s.note === "string" ? s.note : undefined}>
+                {s.status === "loading" ? <span className="skeleton home-bar" style={{ width: "40%" }} /> : s.note}
+              </div>
             </div>
             <Link to={s.to} className="btn btn-ghost btn-sm btn-icon" aria-label={`Open ${s.title}`}>
               <ChevronRight />

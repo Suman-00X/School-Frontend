@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from "react";
-import { Alert, Button, Field, PersonCell, RoleBadge, SearchInput, Spinner, TextInput } from "@/common/ui";
+import { Alert, Button, Field, PersonCell, RoleBadge, SearchInput, TextInput } from "@/common/ui";
 import { useEmployees, type Person } from "../api/people";
 import "../access.css";
 
@@ -16,7 +16,9 @@ export function usePersonById(id: string | null | undefined, known: Person[] = [
 }
 
 /* Pick an employee. Search runs on the client over GET /users/staff and /users/teachers.
-   Someone who can't list them (module owners) picks from `known` people or pastes a user id. */
+   Someone who can't list them (module owners) picks from `known` people or pastes a user id.
+   Layout: the search box and the chosen person take the same one-line slot, and the matches
+   float under it, so typing or choosing never moves the fields below. */
 export function PersonPicker({
   label,
   value,
@@ -41,6 +43,7 @@ export function PersonPicker({
   const id = useId();
   const { people, canList, isLoading } = useEmployees();
   const [search, setSearch] = useState("");
+  const [focused, setFocused] = useState(false);
   const [pasted, setPasted] = useState("");
   const [pasteError, setPasteError] = useState<string | null>(null);
 
@@ -50,76 +53,91 @@ export function PersonPicker({
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [people, known, exclude]);
 
+  const q = search.trim().toLowerCase();
   const matches = useMemo(() => {
-    const q = search.trim().toLowerCase();
     if (!q) return canList ? [] : pool;
     return pool.filter(p => p.name.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q));
-  }, [pool, search, canList]);
+  }, [pool, q, canList]);
 
-  if (value)
-    return (
-      <Field label={label} required={required} error={error} hint={hint}>
-        <div className="picker-selected">
-          <PersonCell name={value.name} sub={value.email} extra={<RoleBadge role={value.role} />} />
-          {!disabled && (
-            <Button size="sm" variant="ghost" onClick={() => onChange(null)}>
-              Change
-            </Button>
-          )}
-        </div>
-      </Field>
-    );
+  const pick = (p: Person) => {
+    setSearch("");
+    setFocused(false);
+    onChange(p);
+  };
 
-  const usePasted = () => {
+  const takePasted = () => {
     const v = pasted.trim();
     if (!UUID.test(v)) return setPasteError("must be a user id such as 3f2c…-…");
     if (exclude.includes(v)) return setPasteError("pick someone else");
     setPasteError(null);
     setPasted("");
-    onChange(pool.find(p => p.id === v) ?? { id: v, name: `User ${v.slice(0, 8)}…` });
+    pick(pool.find(p => p.id === v) ?? { id: v, name: `User ${v.slice(0, 8)}…` });
   };
+
+  const open = focused && !value && (matches.length > 0 || (canList && !!q && !isLoading));
+  const placeholder = !canList
+    ? known.length
+      ? "Filter by name or email"
+      : "Nobody to pick from yet: paste a user id"
+    : isLoading
+      ? "Loading staff and teachers…"
+      : "Search staff and teachers by name or email";
 
   return (
     <Field label={label} required={required} error={error} hint={hint} htmlFor={id}>
       <div className="stack-sm">
         {!canList && (
           <Alert tone="info">
-            You can't search the school's staff list.{" "}
-            {known.length ? "Pick someone who already has access in this module, or paste a user id." : "Paste the person's user id."}
+            You can't search the school's staff list. Pick someone who already has access in this module, or paste a user id.
           </Alert>
         )}
-        {(canList || known.length > 0) && (
-          <SearchInput
-            id={id}
-            placeholder={canList ? "Search staff and teachers by name or email" : "Filter by name or email"}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            disabled={disabled}
-            autoComplete="off"
-          />
-        )}
-        {isLoading && canList && (
-          <span className="row small muted">
-            <Spinner /> Loading staff and teachers…
-          </span>
-        )}
-        {matches.length > 0 && (
-          <div className="picker-list" role="listbox" aria-label={label}>
-            {matches.slice(0, MAX_SHOWN).map(p => (
-              <button key={p.id} type="button" role="option" aria-selected={false} className="picker-option" onClick={() => onChange(p)} disabled={disabled}>
-                <PersonCell name={p.name} sub={p.email} extra={<RoleBadge role={p.role} />} />
-              </button>
-            ))}
-            {matches.length > MAX_SHOWN && (
-              <div className="small muted" style={{ padding: "6px 10px" }}>
-                {matches.length - MAX_SHOWN} more: type more of the name
-              </div>
-            )}
-          </div>
-        )}
-        {canList && search.trim() && !isLoading && matches.length === 0 && (
-          <div className="small muted">No staff member or teacher matches “{search.trim()}”.</div>
-        )}
+        <div className="picker-combo">
+          {value ? (
+            <div className="picker-selected">
+              <span className="picker-selected-name" title={value.email ? `${value.name} · ${value.email}` : value.name}>
+                <strong>{value.name}</strong>
+                {value.email && <span className="muted"> · {value.email}</span>}
+              </span>
+              <RoleBadge role={value.role} />
+              <Button size="sm" variant="ghost" onClick={() => onChange(null)} disabled={disabled} style={{ visibility: disabled ? "hidden" : "visible" }}>
+                Change
+              </Button>
+            </div>
+          ) : (
+            <SearchInput
+              id={id}
+              placeholder={placeholder}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              disabled={disabled || (!canList && known.length === 0)}
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={open}
+            />
+          )}
+          {open && (
+            /* Floats over what follows; mousedown keeps the focus so a click picks */
+            <div className="picker-list picker-float" role="listbox" aria-label={label} onMouseDown={e => e.preventDefault()}>
+              {matches.slice(0, MAX_SHOWN).map(p => (
+                <button key={p.id} type="button" role="option" aria-selected={false} className="picker-option" onClick={() => pick(p)} disabled={disabled}>
+                  <PersonCell name={p.name} sub={p.email} extra={<RoleBadge role={p.role} />} />
+                </button>
+              ))}
+              {matches.length > MAX_SHOWN && (
+                <div className="small muted" style={{ padding: "6px 10px" }}>
+                  {matches.length - MAX_SHOWN} more: type more of the name
+                </div>
+              )}
+              {matches.length === 0 && (
+                <div className="small muted" style={{ padding: "8px 10px" }}>
+                  No staff member or teacher matches “{search.trim()}”.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {!canList && (
           <div className="row" style={{ alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
@@ -132,7 +150,7 @@ export function PersonPicker({
                 aria-label="User id"
               />
             </div>
-            <Button onClick={usePasted} disabled={disabled || !pasted.trim()}>
+            <Button onClick={takePasted} disabled={disabled || !pasted.trim()}>
               Use
             </Button>
           </div>

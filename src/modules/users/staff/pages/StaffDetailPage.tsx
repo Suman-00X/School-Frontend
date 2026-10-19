@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { ExternalLink, Pencil, ShieldCheck } from "lucide-react";
+import { ExternalLink, Mail, Pencil, Phone, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useApiMutation, useForm } from "@/common/hooks";
+import { DrillHeader } from "@/common/layout/ShellHeader";
 import {
-  Alert,
-  Avatar,
+  Badge,
   Button,
   ButtonLink,
   Card,
@@ -13,115 +13,157 @@ import {
   Drawer,
   ErrorState,
   Page,
-  PageHeader,
-  PageLoader,
   RoleBadge,
-  useToast
+  SkeletonBlock,
+  useTabParam,
+  useToast,
+  type TabItem
 } from "@/common/ui";
 import { enumLabel, formatDate, fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
-import { EMPLOYMENT_KEYS, EMPLOYMENT_TEXT_KEYS, EffectiveAccess, EmploymentFields, employmentFrom, patchFrom } from "@/modules/users/shared";
+import {
+  DrillName,
+  EMPLOYMENT_KEYS,
+  EMPLOYMENT_TEXT_KEYS,
+  EffectiveAccess,
+  EmploymentFields,
+  RecordHeader,
+  employmentFrom,
+  patchFrom
+} from "@/modules/users/shared";
 import { STAFF_PROFILE_KEYS, STAFF_ROLE_INFO, updateStaffMember, useStaffMember, type StaffMember, type StaffRole } from "../api/staff";
 import { StaffDocuments } from "../components/StaffDocuments";
 import { StaffProfileFields } from "../components/StaffProfileFields";
 
-/* PE-06 · Staff member: profile, effective access, documents */
+/* PE-06 · Staff member: drill-in header (name, Profile / Documents / Access), a header card
+   with the key facts and actions, then the open tab */
 export default function StaffDetailPage() {
   const { staffId = "" } = useParams();
   const { can } = useAuth();
   const staff = useStaffMember(staffId);
   const [editing, setEditing] = useState(false);
 
-  if (staff.isLoading) return <PageLoader />;
-  if (staff.error || !staff.data)
+  const tabs: TabItem[] = [
+    { id: "profile", label: "Profile" },
+    { id: "documents", label: "Documents", hidden: !can("files.documents.read") },
+    { id: "access", label: "Access", hidden: !can("administration.access.read") }
+  ];
+  const [tab, setTab] = useTabParam(tabs);
+
+  const s = staff.data;
+  const name = s ? fullName(s.user) : "";
+  const header = <DrillHeader back="/users/staff" backLabel="Back to staff" title={<DrillName name={name} />} tabs={tabs} value={tab} onChange={setTab} />;
+
+  if (staff.error || (!staff.isLoading && !s))
     return (
       <Page>
+        {header}
         <ErrorState error={staff.error} onRetry={() => void staff.refetch()} />
       </Page>
     );
 
-  const s = staff.data;
-  const name = fullName(s.user);
-  const roleInfo = STAFF_ROLE_INFO[s.user.role as StaffRole];
+  const roleInfo = s ? STAFF_ROLE_INFO[s.user.role as StaffRole] : undefined;
 
   return (
     <Page>
-      <PageHeader
-        breadcrumbs={[{ label: "Staff", to: "/users/staff" }, { label: name }]}
-        title={
-          <span className="row" style={{ gap: 12 }}>
-            <Avatar name={name} size="lg" />
-            <span>
-              {name} <RoleBadge role={s.user.role} />
-              <span className="small muted" style={{ display: "block", fontWeight: 400 }}>
+      {header}
+      <RecordHeader
+        loading={!s}
+        name={name}
+        facts={
+          s && (
+            <>
+              <Badge tone="primary">
                 <span className="mono">{s.employeeCode}</span>
-                {s.designation ? ` · ${s.designation}` : ""}
+              </Badge>
+              <RoleBadge role={s.user.role} />
+              {s.designation && <span className="small muted">{s.designation}</span>}
+            </>
+          )
+        }
+        contact={
+          s && (
+            <>
+              <span className="row" style={{ gap: 4 }}>
+                <Mail size={14} /> {s.user.email}
               </span>
-            </span>
-          </span>
+              {s.user.phone && (
+                <span className="row" style={{ gap: 4 }}>
+                  <Phone size={14} /> {s.user.phone}
+                </span>
+              )}
+            </>
+          )
         }
         actions={
           <>
-            <InviteButton userIds={[s.user.id]} names={{ [s.user.id]: name }} />
+            <InviteButton userIds={s ? [s.user.id] : []} names={s ? { [s.user.id]: name } : {}} />
             {can("users.accounts.read") && (
-              <ButtonLink icon={<ExternalLink />} to={`/users/${s.user.id}`}>
+              <ButtonLink icon={<ExternalLink />} to={s ? `/users/${s.user.id}` : "#"}>
                 Account
               </ButtonLink>
             )}
             {can("users.staff.update") && (
-              <Button icon={<Pencil />} onClick={() => setEditing(true)}>
+              <Button icon={<Pencil />} disabled={!s} onClick={() => setEditing(true)}>
                 Edit profile
               </Button>
             )}
           </>
         }
       />
-      <div className="grid-2">
-        <Card title="Profile" subtitle={roleInfo ? `${roleInfo.label}: ${roleInfo.description}` : undefined}>
-          <DescriptionList
-            items={[
-              { label: "Employee code", value: <span className="mono">{s.employeeCode}</span> },
-              { label: "Role", value: <RoleBadge role={s.user.role} /> },
-              { label: "Email", value: s.user.email },
-              { label: "Phone", value: s.user.phone },
-              { label: "Designation", value: s.designation },
-              { label: "Department", value: s.department },
-              { label: "Qualification", value: s.qualification },
-              { label: "Joined", value: formatDate(s.joiningDate) },
-              { label: "Employment type", value: enumLabel(s.employmentType) },
-              { label: "Blood group", value: s.bloodGroup },
-              { label: "Notes", value: s.description, wide: true }
-            ]}
-          />
-          <div className="small muted" style={{ marginTop: 12 }}>
-            The role can't be changed. Name, email and phone are on the account
-            {can("users.accounts.update") && (
-              <>
-                {": "}
-                <ButtonLink variant="link" to={`/users/${s.user.id}`}>
-                  edit them there
-                </ButtonLink>
-              </>
-            )}
-            .
-          </div>
-        </Card>
-        {can("files.documents.read") && <StaffDocuments staffId={s.id} personName={name} />}
-      </div>
-      {can("administration.access.read") && (
-        <EffectiveAccess
-          userId={s.user.id}
-          title="Access"
-          actions={
-            can("administration.access.manage") && (
-              <ButtonLink size="sm" icon={<ShieldCheck />} to={`/administration/access/assignments?userId=${s.user.id}`}>
-                Manage access
-              </ButtonLink>
-            )
-          }
-        />
+      {!s ? (
+        <SkeletonBlock lines={8} />
+      ) : (
+        <>
+          {tab === "profile" && (
+            <Card title="Profile" subtitle={roleInfo ? `${roleInfo.label}: ${roleInfo.description}` : undefined}>
+              <DescriptionList
+                columns={3}
+                items={[
+                  { label: "Employee code", value: <span className="mono">{s.employeeCode}</span> },
+                  { label: "Role", value: <RoleBadge role={s.user.role} /> },
+                  { label: "Email", value: s.user.email },
+                  { label: "Phone", value: s.user.phone },
+                  { label: "Designation", value: s.designation },
+                  { label: "Department", value: s.department },
+                  { label: "Qualification", value: s.qualification },
+                  { label: "Joined", value: formatDate(s.joiningDate) },
+                  { label: "Employment type", value: enumLabel(s.employmentType) },
+                  { label: "Blood group", value: s.bloodGroup },
+                  { label: "Notes", value: s.description, wide: true }
+                ]}
+              />
+              <div className="small muted" style={{ marginTop: 12 }}>
+                The role can't be changed. Name, email and phone are on the account
+                {can("users.accounts.update") && (
+                  <>
+                    {": "}
+                    <ButtonLink variant="link" to={`/users/${s.user.id}`}>
+                      edit them there
+                    </ButtonLink>
+                  </>
+                )}
+                .
+              </div>
+            </Card>
+          )}
+          {tab === "documents" && <StaffDocuments staffId={s.id} personName={name} />}
+          {tab === "access" && (
+            <EffectiveAccess
+              userId={s.user.id}
+              title="Access"
+              actions={
+                can("administration.access.manage") && (
+                  <ButtonLink size="sm" icon={<ShieldCheck />} to={`/administration/access/assignments?userId=${s.user.id}`}>
+                    Manage access
+                  </ButtonLink>
+                )
+              }
+            />
+          )}
+          <EditStaffDrawer staff={s} open={editing} onClose={() => setEditing(false)} />
+        </>
       )}
-      <EditStaffDrawer staff={s} open={editing} onClose={() => setEditing(false)} />
     </Page>
   );
 }
@@ -162,6 +204,7 @@ function EditStaffDrawer({ staff, open, onClose }: { staff: StaffMember; open: b
       onClose={close}
       title="Edit profile"
       subtitle={`${fullName(staff.user)} · ${staff.employeeCode}`}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={close}>Cancel</Button>
@@ -178,7 +221,6 @@ function EditStaffDrawer({ staff, open, onClose }: { staff: StaffMember; open: b
           void submit();
         }}
       >
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
         <StaffProfileFields form={form} />
         <EmploymentFields form={form} />
       </form>

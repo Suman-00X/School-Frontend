@@ -3,7 +3,7 @@ import { Download, FileText, Trash2, Upload } from "lucide-react";
 import { errorMessage } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useApiList, useApiMutation } from "@/common/hooks";
-import { Alert, Badge, Button, Card, DataTable, Dialog, EmptyState, FileDrop, Select, TextInput, useConfirm, useToast } from "@/common/ui";
+import { Badge, Button, Card, DataTable, Dialog, EmptyState, FileDrop, Select, TextInput, useConfirm, useToast } from "@/common/ui";
 import { enumLabel, formatBytes, formatDate } from "@/common/utils/format";
 import { CATEGORY_RULES, deleteFile, fileDownloadUrl, uploadStaffFile, type StoredFile } from "../api/documents";
 
@@ -130,6 +130,7 @@ function UploadDialog({ staffId, onClose }: { staffId: string; onClose: () => vo
       open
       onClose={onClose}
       title="Upload a document"
+      footerStatus={error}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
@@ -140,7 +141,6 @@ function UploadDialog({ staffId, onClose }: { staffId: string; onClose: () => vo
       }
     >
       <div className="stack">
-        {error && <Alert tone="danger">{error}</Alert>}
         <Select
           label="Kind"
           value={category}

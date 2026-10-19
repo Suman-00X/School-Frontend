@@ -4,7 +4,8 @@ import type { AcademicYear } from "@/common/api";
 import { CalendarRange, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, ButtonLink, Card, EmptyState, Page, PageHeader, PageLoader, Stepper, useToast } from "@/common/ui";
+import { DrillHeader } from "@/common/layout/ShellHeader";
+import { Button, ButtonLink, Card, EmptyState, FormActions, Page, PageLoader, Stepper, useToast } from "@/common/ui";
 import { todayIso } from "@/common/utils/format";
 import { PersonFields, emptyPerson, personPayload, validatePerson } from "@/modules/users/shared";
 import type { Parent } from "@/modules/users/parents";
@@ -31,13 +32,15 @@ function AdmissionWizard({ onAnother }: { onAnother: () => void }) {
   /* Prerequisite: the default year has at least one section */
   const prereq = useSections(null, defaultYear?.id, !!defaultYear);
 
-  if (yearsLoading || (defaultYear && prereq.isLoading)) return <PageLoader />;
+  const loading = yearsLoading || (!!defaultYear && prereq.isLoading);
   const ready = !!defaultYear && (prereq.data?.total ?? 0) > 0;
 
   return (
     <Page>
-      <PageHeader title="Admit a student" breadcrumbs={[{ label: "Students", to: "/users/students" }, { label: "Admit" }]} />
-      {ready ? (
+      <DrillHeader back="/users/students" backLabel="Back to students" title="Admit a student" />
+      {loading ? (
+        <PageLoader />
+      ) : ready ? (
         <Wizard years={years} defaultYearId={defaultYear!.id} onAnother={onAnother} />
       ) : (
         <Card>
@@ -84,7 +87,8 @@ function Wizard({ years, defaultYearId, onAnother }: { years: AcademicYear[]; de
   const go = (to: number) => {
     setMessage(null);
     setStep(to);
-    window.scrollTo({ top: 0 });
+    /* The shell's content area is the scrolling region, not the window */
+    document.querySelector(".content")?.scrollTo({ top: 0 });
   };
 
   /* Next runs the step's own checks before moving on */
@@ -161,7 +165,6 @@ function Wizard({ years, defaultYearId, onAnother }: { years: AcademicYear[]; de
   return (
     <div className="stack">
       <Stepper steps={STEPS} current={step} onStepClick={go} />
-      {message && <Alert tone="danger">{message}</Alert>}
 
       {step === 0 && (
         <>
@@ -189,7 +192,8 @@ function Wizard({ years, defaultYearId, onAnother }: { years: AcademicYear[]; de
       )}
       {step === 3 && <ReviewStep person={person.values} profile={profile.values} cards={cards} enrollment={enrollment} years={years} onEdit={go} />}
 
-      <div className="form-actions">
+      {/* The form-level message sits in the actions bar (fixed height), never above the step */}
+      <FormActions error={message}>
         {step > 0 ? (
           <Button icon={<ChevronLeft />} onClick={() => go(step - 1)} disabled={admit.isPending}>
             Back
@@ -197,21 +201,20 @@ function Wizard({ years, defaultYearId, onAnother }: { years: AcademicYear[]; de
         ) : (
           <ButtonLink to="/users/students">Cancel</ButtonLink>
         )}
-        {step === 1 && cards.length === 0 && (
-          <Button variant="ghost" onClick={() => go(2)}>
-            Skip
-          </Button>
-        )}
+        {/* Always in the bar (hidden unless it applies), so Back and Next keep their places */}
+        <Button variant="ghost" onClick={() => go(2)} style={{ visibility: step === 1 && cards.length === 0 ? undefined : "hidden" }}>
+          Skip
+        </Button>
         {step < 3 ? (
-          <Button variant="primary" onClick={next}>
+          <Button variant="primary" onClick={next} style={{ minWidth: 132 }}>
             Next <ChevronRight size={16} />
           </Button>
         ) : (
-          <Button variant="primary" loading={admit.isPending} onClick={submit}>
+          <Button variant="primary" loading={admit.isPending} onClick={submit} style={{ minWidth: 132 }}>
             Admit student
           </Button>
         )}
-      </div>
+      </FormActions>
     </div>
   );
 }

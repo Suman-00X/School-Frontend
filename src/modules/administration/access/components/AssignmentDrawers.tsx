@@ -43,9 +43,8 @@ export function AssignmentDetailDrawer({
       title={a ? `${fullName(a.user)}: ${accessName(a)}` : "Assignment"}
       subtitle={a ? `${a.moduleLabel} module` : undefined}
       footer={
-        a &&
-        isLive(a) &&
-        canChange(a) && (
+        /* Always a footer (Close while loading or read-only), so it never appears under the content */
+        a && isLive(a) && canChange(a) ? (
           <>
             <Button icon={<Ban />} onClick={() => onRevoke(a)}>
               Revoke
@@ -54,6 +53,8 @@ export function AssignmentDetailDrawer({
               Edit dates
             </Button>
           </>
+        ) : (
+          <Button onClick={onClose}>Close</Button>
         )
       }
     >
@@ -137,6 +138,7 @@ function EditDates({ assignment: a, onClose }: { assignment: Assignment; onClose
       onClose={onClose}
       title="Edit dates"
       subtitle={`${fullName(a.user)}: ${accessName(a)} (${a.moduleLabel})`}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={onClose} disabled={update.isPending}>
@@ -155,7 +157,6 @@ function EditDates({ assignment: a, onClose }: { assignment: Assignment; onClose
         </div>
         <Textarea label="Note" rows={2} maxLength={500} {...form.text("note")} />
         <div className="small muted">To end it today, revoke it instead. Changes apply on the person's next request.</div>
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
       </form>
     </Drawer>
   );

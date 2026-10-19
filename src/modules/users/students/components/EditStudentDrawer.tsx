@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, Drawer, useToast } from "@/common/ui";
+import { Button, Drawer, useToast } from "@/common/ui";
 import { patchFrom } from "@/modules/users/shared";
 import {
   STUDENT_PROFILE_TEXT_KEYS,
@@ -49,6 +49,7 @@ export function EditStudentDrawer({ student, onClose }: { student: Student; onCl
       onClose={onClose}
       title="Edit student"
       subtitle={<span className="mono">{student.studentCode}</span>}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={onClose} disabled={save.isPending}>
@@ -61,7 +62,6 @@ export function EditStudentDrawer({ student, onClose }: { student: Student; onCl
       }
     >
       <form id="edit-student" className="stack" onSubmit={submit} noValidate>
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
         <StudentProfileFields form={form} disabled={save.isPending} />
       </form>
     </Drawer>

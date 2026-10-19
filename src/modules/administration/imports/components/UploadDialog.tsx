@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { errorMessage, isApiError } from "@/common/api";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
-import { Alert, Button, Dialog, FileDrop, Select, useToast } from "@/common/ui";
+import { Button, Dialog, FileDrop, Select, useToast } from "@/common/ui";
 import { useUploadStudents } from "../api/imports";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -49,6 +49,20 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
       open={open}
       onClose={onClose}
       title="Import students"
+      /* Errors take the footer's status line, so the dialog never grows */
+      footerStatus={
+        error && (
+          <>
+            {error.message}
+            {error.noYear && (
+              <>
+                {" "}
+                <Link to="/academics/academic-years">Set up academic years</Link>
+              </>
+            )}
+          </>
+        )
+      }
       footer={
         <>
           <Button onClick={onClose} disabled={upload.isPending}>
@@ -80,19 +94,8 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
             setFile(f);
           }}
           onReject={message => setError({ message })}
-          hint="CSV, up to 5 MB and 5,000 rows. Start from the template for the expected columns."
+          hint="CSV, up to 5 MB and 5,000 rows"
         />
-        {error && (
-          <Alert tone="danger">
-            {error.message}
-            {error.noYear && (
-              <>
-                {" "}
-                <Link to="/academics/academic-years">Set up academic years</Link>
-              </>
-            )}
-          </Alert>
-        )}
       </div>
     </Dialog>
   );

@@ -8,7 +8,7 @@ import { Button, ButtonLink, Card, DataTable, EmptyState, Menu, MenuItem, Page, 
 import { formatDate, fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
 import { useStudents, type Student } from "../api/students";
-import { SectionRoster } from "../components/SectionRoster";
+import { SectionPickers, SectionRosterTable } from "../components/SectionRoster";
 
 /* PE-01: every student (the API has no search or filters: gap), or one section's roster */
 export default function StudentsListPage() {
@@ -44,7 +44,7 @@ export default function StudentsListPage() {
     );
   const importButton = can("administration.imports.create") && (
     <ButtonLink to="/administration/imports" icon={<FileUp />}>
-      {list.meta?.total === 0 ? "Import from CSV" : "Import"}
+      Import
     </ButtonLink>
   );
 
@@ -52,6 +52,7 @@ export default function StudentsListPage() {
     <Page>
       <PageHeader
         title="Students"
+        subtitle="Everyone admitted to the school, or one section's roster for the selected year."
         actions={
           <>
             {importButton}
@@ -60,24 +61,26 @@ export default function StudentsListPage() {
           </>
         }
       />
-      {canBrowse && (
-        <div style={{ marginBottom: 12 }}>
-          <Switch
-            label="Browse by section"
-            checked={bySection}
-            onChange={on => setParams({ view: on ? "section" : "", classId: "", sectionId: "" })}
-          />
-        </div>
-      )}
       <Card flush>
+        {/* One filter bar for both views: the view switch, then the section pickers (kept in place,
+            hidden, while browsing everyone), so switching never inserts anything above the table */}
+        {canBrowse && (
+          <div className="filter-bar">
+            <div className="field" style={{ minWidth: 0 }}>
+              <span className="field-label">View</span>
+              <div style={{ height: 30, display: "flex", alignItems: "center" }}>
+                <Switch
+                  label="Browse by section"
+                  checked={bySection}
+                  onChange={on => setParams({ view: on ? "section" : "", classId: "", sectionId: "" })}
+                />
+              </div>
+            </div>
+            <SectionPickers visible={bySection} classId={params.classId} sectionId={params.sectionId} onChange={setParams} />
+          </div>
+        )}
         {bySection ? (
-          <SectionRoster
-            classId={params.classId}
-            sectionId={params.sectionId}
-            page={params.page}
-            onChange={setParams}
-            onPageChange={setPage}
-          />
+          <SectionRosterTable sectionId={params.sectionId} page={params.page} onPageChange={setPage} />
         ) : (
           <DataTable
             columns={columns}

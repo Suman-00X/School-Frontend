@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Copy, Link2, Plus, Trash2, UsersRound } from "lucide-react";
 import { useAuth } from "@/common/auth";
-import { Alert, Button, Card, Checkbox, DataTable, Dialog, EmptyState, ErrorState, Menu, MenuItem, PersonCell, SearchInput, Select, SkeletonBlock, Switch } from "@/common/ui";
+import { Button, Card, Checkbox, DataTable, Dialog, EmptyState, ErrorState, Menu, MenuItem, PersonCell, SearchInput, Select, SkeletonBlock, Switch } from "@/common/ui";
 import { enumLabel, enumOptions, fullName } from "@/common/utils/format";
 import { PARENT_RELATIONS, PersonFields, matchesSearch, useSchoolCurrency, type PersonValues } from "@/modules/users/shared";
 import { ParentPicker, ParentProfileFields, type ParentProfileValues } from "@/modules/users/parents";
@@ -9,6 +9,8 @@ import { useAllStudents, useStudentParents, type Student } from "../../api/stude
 import { MAX_PARENTS, cardName, newCard, type ParentCard, type PickedParent } from "./state";
 
 const relationOptions = enumOptions(PARENT_RELATIONS);
+/* The sibling search's result box: a fixed height, so typing never resizes the dialog */
+const PICK_HEIGHT = 300;
 
 export function ParentsStep({ cards, onChange }: { cards: ParentCard[]; onChange: (cards: ParentCard[]) => void }) {
   const { can } = useAuth();
@@ -27,7 +29,15 @@ export function ParentsStep({ cards, onChange }: { cards: ParentCard[]; onChange
   return (
     <div className="stack">
       <div className="row-between">
-        <div className="small muted">Up to {MAX_PARENTS} parents or guardians. You can skip this step and link parents later from the profile.</div>
+        {/* One line that says the primary-contact problem in place of the usual text: no banner is
+            inserted above the cards when a switch is flipped */}
+        {cards.length > 0 && primaries !== 1 ? (
+          <div className="small" style={{ color: "var(--warning-text)", fontWeight: 550 }}>
+            {primaries === 0 ? "No primary contact is set. Pick one so the school knows whom to call first." : "More than one primary contact is set."}
+          </div>
+        ) : (
+          <div className="small muted">Up to {MAX_PARENTS} parents or guardians. You can skip this step and link parents later from the profile.</div>
+        )}
         <Menu
           trigger={(toggle, open) => (
             <Button icon={<Plus />} disabled={full} onClick={toggle} aria-expanded={open} aria-haspopup="menu">
@@ -72,10 +82,6 @@ export function ParentsStep({ cards, onChange }: { cards: ParentCard[]; onChange
           )}
         </Menu>
       </div>
-
-      {cards.length > 0 && primaries !== 1 && (
-        <Alert tone="warning">{primaries === 0 ? "No primary contact is set. Pick one so the school knows whom to call first." : "More than one primary contact is set."}</Alert>
-      )}
 
       {cards.length === 0 && <EmptyState icon={<UsersRound />} title="No parents added" message="Add a new parent, pick an existing one, or copy a sibling's parents." />}
 
@@ -147,11 +153,21 @@ function ParentCardView({
   return (
     <Card
       title={`${index + 1}. ${cardName(c)}`}
-      subtitle={c.mode === "existing" ? "Existing parent" : "New parent account"}
+      /* The card's own error (no parent chosen, twice on the form) replaces its subtitle: same line */
+      subtitle={
+        c.error ? (
+          <span style={{ color: "var(--danger)" }} role="alert">
+            {c.error}
+          </span>
+        ) : c.mode === "existing" ? (
+          "Existing parent"
+        ) : (
+          "New parent account"
+        )
+      }
       actions={<Button size="sm" variant="ghost" icon={<Trash2 />} onClick={onRemove} aria-label={`Remove ${cardName(c)}`} />}
     >
       <div className="stack">
-        {c.error && <Alert tone="danger">{c.error}</Alert>}
         {c.mode === "existing" ? (
           <ParentPicker
             value={c.parent}
@@ -213,6 +229,12 @@ function SiblingDialog({
 
   const available = (links.rows ?? []).filter(l => !takenIds.includes(l.parentId));
   const tooMany = ticked.size > room;
+  const pick = () =>
+    onPick(
+      available
+        .filter(l => ticked.has(l.parentId))
+        .map(l => ({ parent: { id: l.parent.id, parentCode: l.parent.parentCode, user: l.parent.user }, relation: l.relation, isPrimaryContact: l.isPrimaryContact }))
+    );
 
   return (
     <Dialog
@@ -220,90 +242,89 @@ function SiblingDialog({
       wide
       onClose={onClose}
       title="Copy parents from a sibling"
+      footerStatus={tooMany ? `Only ${room} more parent${room === 1 ? "" : "s"} can be added.` : undefined}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
-          {sibling && (
-            <Button
-              variant="primary"
-              disabled={!ticked.size || tooMany}
-              onClick={() =>
-                onPick(
-                  available
-                    .filter(l => ticked.has(l.parentId))
-                    .map(l => ({ parent: { id: l.parent.id, parentCode: l.parent.parentCode, user: l.parent.user }, relation: l.relation, isPrimaryContact: l.isPrimaryContact }))
-                )
-              }
-            >
-              Add {ticked.size || ""} parent{ticked.size === 1 ? "" : "s"}
-            </Button>
-          )}
+          {/* Always in the footer (disabled until a sibling's parents are ticked), so Cancel doesn't move */}
+          <Button variant="primary" disabled={!sibling || !ticked.size || tooMany} onClick={pick} style={{ minWidth: 130 }}>
+            Add {ticked.size || ""} parent{ticked.size === 1 ? "" : "s"}
+          </Button>
         </>
       }
     >
-      {!sibling ? (
-        <div className="stack-sm">
-          <SearchInput autoFocus placeholder="Search the sibling by name, student code or admission number" value={search} onChange={e => setSearch(e.target.value)} />
-          {students.isLoading ? (
-            <SkeletonBlock lines={4} />
-          ) : students.error ? (
-            <ErrorState error={students.error} onRetry={() => void students.refetch()} />
-          ) : (
-            <DataTable
-              rows={matches.slice(0, 8)}
-              rowKey={s => s.id}
-              onRowClick={s => {
-                setSibling(s);
-                setTicked(new Set());
-              }}
-              columns={[
-                { key: "name", header: "Student", render: s => <PersonCell name={fullName(s.user)} sub={s.user.email} /> },
-                { key: "code", header: "Code", render: s => <span className="mono">{s.studentCode}</span> },
-                { key: "admissionNumber", header: "Admission no." }
-              ]}
-              empty={<EmptyState title="No student matches this search" />}
-            />
-          )}
-          {(students.data?.total ?? 0) > (students.data?.rows.length ?? 0) && (
-            <div className="small muted">Only the newest {students.data!.rows.length} of {students.data!.total} students can be searched here.</div>
-          )}
-        </div>
-      ) : (
-        <div className="stack">
-          <div className="row-between">
-            <PersonCell name={fullName(sibling.user)} sub={sibling.studentCode} />
-            <Button size="sm" variant="ghost" onClick={() => setSibling(null)}>
-              Change
-            </Button>
+      {/* Both steps of the dialog take the same height, so the centred dialog doesn't jump */}
+      <div style={{ minHeight: PICK_HEIGHT + 90 }}>
+        {!sibling ? (
+          <div className="stack-sm">
+            <SearchInput autoFocus placeholder="Search the sibling by name, student code or admission number" value={search} onChange={e => setSearch(e.target.value)} />
+            <div style={{ height: PICK_HEIGHT, overflowY: "auto", border: "1px solid var(--border)", borderRadius: 8 }}>
+              {students.isLoading ? (
+                <div style={{ padding: 14 }}>
+                  <SkeletonBlock lines={4} />
+                </div>
+              ) : students.error ? (
+                <ErrorState error={students.error} onRetry={() => void students.refetch()} />
+              ) : (
+                <DataTable
+                  rows={matches.slice(0, 50)}
+                  rowKey={s => s.id}
+                  onRowClick={s => {
+                    setSibling(s);
+                    setTicked(new Set());
+                  }}
+                  columns={[
+                    { key: "name", header: "Student", render: s => <PersonCell name={fullName(s.user)} sub={s.user.email} /> },
+                    { key: "code", header: "Code", render: s => <span className="mono">{s.studentCode}</span> },
+                    { key: "admissionNumber", header: "Admission no." }
+                  ]}
+                  empty={<EmptyState title="No student matches this search" />}
+                />
+              )}
+            </div>
+            {/* A reserved line for the notes about what can be searched */}
+            <div className="small muted" style={{ minHeight: 17 }}>
+              {matches.length > 50 && `Showing 50 of ${matches.length} matches. Type more to narrow it down. `}
+              {(students.data?.total ?? 0) > (students.data?.rows.length ?? 0) &&
+                `Only the newest ${students.data!.rows.length} of ${students.data!.total} students can be searched here.`}
+            </div>
           </div>
-          {links.isLoading && <SkeletonBlock lines={3} />}
-          {links.error && <ErrorState error={links.error} onRetry={() => void links.refetch()} />}
-          {links.rows && available.length === 0 && (
-            <EmptyState title={links.rows.length ? "These parents are already on the form" : "This student has no linked parents"} />
-          )}
-          {available.map(l => (
-            <Checkbox
-              key={l.parentId}
-              checked={ticked.has(l.parentId)}
-              onChange={() =>
-                setTicked(t => {
-                  const next = new Set(t);
-                  if (next.has(l.parentId)) next.delete(l.parentId);
-                  else next.add(l.parentId);
-                  return next;
-                })
-              }
-              label={
-                <span>
-                  <strong>{fullName(l.parent.user)}</strong> · {enumLabel(l.relation)}
-                  {l.isPrimaryContact && " · primary contact"} <span className="muted">({l.parent.user.email})</span>
-                </span>
-              }
-            />
-          ))}
-          {tooMany && <Alert tone="warning">Only {room} more parent{room === 1 ? "" : "s"} can be added.</Alert>}
-        </div>
-      )}
+        ) : (
+          <div className="stack">
+            <div className="row-between">
+              <PersonCell name={fullName(sibling.user)} sub={sibling.studentCode} />
+              <Button size="sm" variant="ghost" onClick={() => setSibling(null)}>
+                Change
+              </Button>
+            </div>
+            {links.isLoading && <SkeletonBlock lines={3} />}
+            {links.error && <ErrorState error={links.error} onRetry={() => void links.refetch()} />}
+            {links.rows && available.length === 0 && (
+              <EmptyState title={links.rows.length ? "These parents are already on the form" : "This student has no linked parents"} />
+            )}
+            {available.map(l => (
+              <Checkbox
+                key={l.parentId}
+                checked={ticked.has(l.parentId)}
+                onChange={() =>
+                  setTicked(t => {
+                    const next = new Set(t);
+                    if (next.has(l.parentId)) next.delete(l.parentId);
+                    else next.add(l.parentId);
+                    return next;
+                  })
+                }
+                label={
+                  <span>
+                    <strong>{fullName(l.parent.user)}</strong> · {enumLabel(l.relation)}
+                    {l.isPrimaryContact && " · primary contact"} <span className="muted">({l.parent.user.email})</span>
+                  </span>
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </Dialog>
   );
 }

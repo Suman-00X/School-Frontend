@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Info, Play, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, Play, XCircle } from "lucide-react";
 import { isApiError } from "@/common/api";
 import { Alert, Badge, Button, Card, DataTable, useConfirm, useToast } from "@/common/ui";
 import { useCancelImport, useStartImport, useUpdateMapping, type ImportView, type MappingColumn } from "../api/imports";
@@ -61,25 +61,28 @@ export function MappingStep({ job, canEdit, onStale }: { job: ImportView; canEdi
   const ignored = columns.filter(c => !c.mapped);
   const samplesOf = (header: string | null) => columns.find(c => c.header === header)?.samples.filter(Boolean) ?? [];
   const okRows = job.preview?.filter(p => p.ok).length ?? 0;
+  const statusLine = missing.length
+    ? `Pick a column for: ${missing.map(f => f.label).join(", ")}`
+    : (summary ?? "Every required field has a column.");
+  const mappedTo = (header: string) => fields.find(f => f.column === header)?.label;
 
   return (
     <div className="stack">
-      {missing.length > 0 && (
-        <Alert tone="warning" title="Some required fields have no column">
-          Pick a column for: {missing.map(f => f.label).join(", ")}.
-        </Alert>
-      )}
-
       <Card
         title="Match columns"
         subtitle={`${job.totalRows} row(s) in ${job.fileName}. Pick the column of the file that holds each field.`}
       >
         <div className="stack">
-          {summary && (
-            <div className="small muted" role="status">
-              {summary}
-            </div>
-          )}
+          {/* One reserved line: what is still missing, else the API's summary of the last change */}
+          <div
+            className="small import-status"
+            role="status"
+            style={{ color: missing.length ? "var(--warning-text)" : "var(--text-3)" }}
+            title={statusLine}
+          >
+            {missing.length > 0 && <AlertTriangle size={14} />}
+            <span className="import-status-text">{statusLine}</span>
+          </div>
           {fields.map(f => (
             <div key={f.field} className="import-map-row">
               <div>
@@ -103,26 +106,26 @@ export function MappingStep({ job, canEdit, onStale }: { job: ImportView; canEdi
                     </option>
                   ))}
                 </select>
-                {f.column && samplesOf(f.column).length > 0 && (
-                  <div className="small muted" style={{ marginTop: 4 }}>
-                    e.g. {samplesOf(f.column).slice(0, 3).join(", ")}
-                  </div>
-                )}
+                {/* Always one line, so choosing a column never makes the row taller */}
+                <div className="small muted import-sample">
+                  {f.column && samplesOf(f.column).length > 0 ? `e.g. ${samplesOf(f.column).slice(0, 3).join(", ")}` : "\u00a0"}
+                </div>
               </div>
             </div>
           ))}
-          {ignored.length > 0 && (
-            <div>
-              <div className="section-title" style={{ marginBottom: 6 }}>
-                Ignored columns
-              </div>
-              <div className="row">
-                {ignored.map(c => (
-                  <Badge key={c.header}>{c.header}</Badge>
-                ))}
-              </div>
+          {/* Every column of the file, always: matching only recolours them, so the list never reflows */}
+          <div>
+            <div className="section-title" style={{ marginBottom: 6 }}>
+              Columns in the file <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>· {ignored.length} ignored</span>
             </div>
-          )}
+            <div className="row">
+              {columns.map(c => (
+                <Badge key={c.header} tone={c.mapped ? "success" : "neutral"}>
+                  <span title={c.mapped ? `Used for ${mappedTo(c.header) ?? "a field"}` : "Ignored"}>{c.header}</span>
+                </Badge>
+              ))}
+            </div>
+          </div>
           <Alert tone="info" title="How parents are matched">
             A parent email that already belongs to a parent links that parent (for siblings). An email that belongs to an
             account that is not a parent fails that row.
@@ -151,8 +154,9 @@ export function MappingStep({ job, canEdit, onStale }: { job: ImportView; canEdi
                     <CheckCircle2 size={15} /> OK
                   </span>
                 ) : (
-                  <span className="row" style={{ color: "var(--danger-text)", alignItems: "flex-start", flexWrap: "nowrap" }}>
-                    <XCircle size={15} style={{ flexShrink: 0, marginTop: 2 }} /> {p.message}
+                  /* One line (full text on hover): a row's height doesn't change as the matching changes */
+                  <span className="row import-problem" style={{ color: "var(--danger-text)", flexWrap: "nowrap" }} title={p.message}>
+                    <XCircle size={15} style={{ flexShrink: 0 }} /> <span className="import-problem-text">{p.message}</span>
                   </span>
                 )
             }
@@ -164,7 +168,7 @@ export function MappingStep({ job, canEdit, onStale }: { job: ImportView; canEdi
       </Card>
 
       {canEdit && (
-        <div className="form-actions">
+        <div className="form-actions-bar" style={{ justifyContent: "flex-end" }}>
           <Button onClick={() => void cancelImport()} disabled={busy} loading={cancel.isPending}>
             Cancel import
           </Button>

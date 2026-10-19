@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Pencil, ShieldPlus, UserX } from "lucide-react";
+import { ExternalLink, Mail, Pencil, Phone, ShieldPlus, UserX } from "lucide-react";
 import { isApiError, type Account } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { ActivityLog } from "@/common/components/activity-log";
 import { useApiMutation, useForm } from "@/common/hooks";
 import {
-  Alert,
-  Avatar,
   Button,
   ButtonLink,
   Card,
@@ -16,20 +14,21 @@ import {
   Drawer,
   ErrorState,
   Page,
-  PageHeader,
-  PageLoader,
   RoleBadge,
+  SkeletonBlock,
   StatusBadge,
-  Tabs,
   useConfirm,
   useTabParam,
   useToast
 } from "@/common/ui";
 import { enumLabel, formatDate, formatDateTime, fullName } from "@/common/utils/format";
+import { DrillHeader } from "@/common/layout/ShellHeader";
 import { InviteButton } from "@/modules/auth";
 import {
+  DrillName,
   EffectiveAccess,
   PERSON_TEXT_KEYS,
+  RecordHeader,
   PersonFields,
   patchFrom,
   personFromAccount,
@@ -37,7 +36,7 @@ import {
 } from "@/modules/users/shared";
 import { deactivateAccount, updateAccount, useAccount, useRoleProfile } from "../api/accounts";
 
-/* AD-06 · One user account: Account, Access and Activity tabs */
+/* AD-06 · One user account: Account, Access and Activity tabs in the drill-in header */
 export default function AccountDetailPage() {
   const { userId = "" } = useParams();
   const { can, session } = useAuth();
@@ -58,17 +57,19 @@ export default function AccountDetailPage() {
   /* Invalidated by hand after leaving: refetching this page's account would only 404 */
   const deactivate = useApiMutation(() => deactivateAccount(userId));
 
-  if (account.isLoading) return <PageLoader />;
-  if (account.error || !account.data)
+  const a = account.data;
+  const name = a ? fullName(a) : "";
+  const isSelf = session?.user.id === userId;
+  /* The drill-in header is there from the first frame; only its title waits for the record */
+  const header = <DrillHeader back="/users" backLabel="Back to accounts" title={<DrillName name={name} />} tabs={tabs} value={tab} onChange={setTab} />;
+
+  if (account.error || (!account.isLoading && !a))
     return (
       <Page>
+        {header}
         <ErrorState error={account.error} onRetry={() => void account.refetch()} />
       </Page>
     );
-
-  const a = account.data;
-  const name = fullName(a);
-  const isSelf = session?.user.id === a.id;
 
   const onDeactivate = async () => {
     const ok = await confirm({
@@ -90,51 +91,69 @@ export default function AccountDetailPage() {
 
   return (
     <Page>
-      <PageHeader
-        breadcrumbs={[{ label: "User accounts", to: "/users" }, { label: name }]}
-        title={
-          <span className="row" style={{ gap: 12 }}>
-            <Avatar name={name} size="lg" />
-            <span>
-              {name} <RoleBadge role={a.role} /> <StatusBadge status={a.status} />
-              <span className="small muted" style={{ display: "block", fontWeight: 400 }}>
-                {a.email}
+      {header}
+      <RecordHeader
+        loading={!a}
+        name={name}
+        facts={
+          a && (
+            <>
+              <RoleBadge role={a.role} />
+              <StatusBadge status={a.status} />
+            </>
+          )
+        }
+        contact={
+          a && (
+            <>
+              <span className="row" style={{ gap: 4 }}>
+                <Mail size={14} /> {a.email}
               </span>
-            </span>
-          </span>
+              {a.phone && (
+                <span className="row" style={{ gap: 4 }}>
+                  <Phone size={14} /> {a.phone}
+                </span>
+              )}
+            </>
+          )
         }
         actions={
           <>
-            <InviteButton userIds={[a.id]} names={{ [a.id]: name }} />
+            <InviteButton userIds={[userId]} names={{ [userId]: name }} disabled={!a} />
             {can("users.accounts.update") && (
-              <Button icon={<Pencil />} onClick={() => setEditing(true)}>
+              <Button icon={<Pencil />} disabled={!a} onClick={() => setEditing(true)}>
                 Edit
               </Button>
             )}
             {can("users.accounts.deactivate") && !isSelf && (
-              <Button variant="danger" icon={<UserX />} loading={deactivate.isPending} onClick={() => void onDeactivate()}>
+              <Button variant="danger" icon={<UserX />} disabled={!a} loading={deactivate.isPending} onClick={() => void onDeactivate()}>
                 Deactivate
               </Button>
             )}
           </>
         }
       />
-      <Tabs tabs={tabs} value={tab} onChange={setTab} />
-      {tab === "account" && <AccountTab account={a} />}
-      {tab === "access" && (
-        <EffectiveAccess
-          userId={a.id}
-          actions={
-            can("administration.access.manage") && (
-              <ButtonLink size="sm" icon={<ShieldPlus />} to={`/administration/access/assignments?userId=${a.id}&add=operator`}>
-                Add operator role
-              </ButtonLink>
-            )
-          }
-        />
+      {!a ? (
+        <SkeletonBlock lines={8} />
+      ) : (
+        <>
+          {tab === "account" && <AccountTab account={a} />}
+          {tab === "access" && (
+            <EffectiveAccess
+              userId={a.id}
+              actions={
+                can("administration.access.manage") && (
+                  <ButtonLink size="sm" icon={<ShieldPlus />} to={`/administration/access/assignments?userId=${a.id}&add=operator`}>
+                    Add operator role
+                  </ButtonLink>
+                )
+              }
+            />
+          )}
+          {tab === "activity" && <ActivityLog basePath="/administration/audit-logs" fixed={{ userId: a.id }} compact title={`What ${a.firstName} did`} />}
+          <EditAccountDrawer account={a} open={editing} onClose={() => setEditing(false)} />
+        </>
       )}
-      {tab === "activity" && <ActivityLog basePath="/administration/audit-logs" fixed={{ userId: a.id }} compact title={`What ${a.firstName} did`} />}
-      <EditAccountDrawer account={a} open={editing} onClose={() => setEditing(false)} />
     </Page>
   );
 }
@@ -174,6 +193,8 @@ function AccountTab({ account: a }: { account: Account }) {
           />
         </Card>
         <Card title="Profile">
+          {/* One line high whether it is looking up, found or not found */}
+          <div className="row" style={{ minHeight: 36 }}>
           {profile.to ? (
             <ButtonLink to={profile.to} icon={<ExternalLink />}>
               Open {label?.toLowerCase()}
@@ -188,6 +209,7 @@ function AccountTab({ account: a }: { account: Account }) {
           ) : (
             <span className="muted">You can't open this person's profile.</span>
           )}
+          </div>
         </Card>
       </div>
     </div>
@@ -232,6 +254,7 @@ function EditAccountDrawer({ account, open, onClose }: { account: Account; open:
       onClose={close}
       title={`Edit ${fullName(account)}`}
       subtitle="Personal details on the account"
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={close}>Cancel</Button>
@@ -248,13 +271,11 @@ function EditAccountDrawer({ account, open, onClose }: { account: Account; open:
           void submit();
         }}
       >
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
-        {emailChanged && (
-          <Alert tone="warning" title="Changing the email">
-            Changing the email signs this person out everywhere, cancels their open links and tells the old address.
-          </Alert>
-        )}
-        <PersonFields form={form} />
+        {/* The email warning is the email field's hint (its line is reserved), not a banner that pushes the form down */}
+        <PersonFields form={form} emailHint={emailChanged ? "Saving a new email signs them out everywhere" : undefined} />
+        <div className="small muted">
+          Changing the email signs this person out everywhere, cancels their open links and tells the old address.
+        </div>
       </form>
     </Drawer>
   );

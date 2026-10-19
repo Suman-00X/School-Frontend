@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/common/auth";
 import { compact, useForm } from "@/common/hooks";
-import { Alert, Button, Drawer, Select, TextInput, Textarea, useToast } from "@/common/ui";
+import { Button, Drawer, Select, TextInput, Textarea, useToast } from "@/common/ui";
 import { todayIso } from "@/common/utils/format";
 import {
   useAssignments,
@@ -105,6 +105,7 @@ function FormDrawer({ kind, onClose, prefill }: { kind: AssignmentKind; onClose:
       open
       onClose={onClose}
       title={title}
+      footerStatus={form.formError}
       subtitle={
         kind === "OWNER"
           ? "An owner runs the module like its built-in manager: its setup, operators and activity."
@@ -162,7 +163,6 @@ function FormDrawer({ kind, onClose, prefill }: { kind: AssignmentKind; onClose:
           <TextInput label="Until" type="date" hint="Inclusive. Blank: no end date" min={values.validFrom > todayIso() ? values.validFrom : todayIso()} {...form.text("validTo")} />
         </div>
         <Textarea label="Note" rows={2} maxLength={500} placeholder="e.g. Covering the front desk this term" {...form.text("note")} />
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
       </form>
     </Drawer>
   );

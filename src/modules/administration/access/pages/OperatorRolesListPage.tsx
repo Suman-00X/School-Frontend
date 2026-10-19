@@ -3,16 +3,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { KeyRound, Plus } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useDebounce, useListParams } from "@/common/hooks";
-import { Badge, ButtonLink, Card, DataTable, EmptyState, Page, PageHeader, SearchInput, Select, type Column } from "@/common/ui";
+import { Badge, Button, ButtonLink, Card, DataTable, EmptyState, PageHeader, SearchInput, Select, type Column } from "@/common/ui";
 import { formatDate } from "@/common/utils/format";
 import { useManagedModules, useOperatorRoles, type OperatorRole } from "../api/access";
+import { ASSIGNMENTS_PATH, ROLES_PATH, rolePath } from "../utils/paths";
 
-/* AD-04 */
+/* AD-04 (a section of the Access control area) */
 export default function OperatorRolesListPage() {
   const { can } = useAuth();
   const navigate = useNavigate();
-  const { modules } = useManagedModules();
-  const canManage = can("administration.access.manage") && modules.length > 0;
+  const { modules, isLoading: modulesLoading } = useManagedModules();
+  /* The button is there from the start (no header change when the modules arrive) */
+  const canManage = can("administration.access.manage");
+  const noModules = !modulesLoading && modules.length === 0;
   const { params, setParam, setPage } = useListParams({ module: "", search: "" });
   const [searchText, setSearchText] = useState(params.search);
   const search = useDebounce(searchText, 300);
@@ -42,7 +45,7 @@ export default function OperatorRolesListPage() {
       align: "right",
       render: r =>
         r.holders ? (
-          <Link to={`/administration/access/assignments?operatorRoleId=${r.id}&module=${r.module}`} onClick={e => e.stopPropagation()}>
+          <Link to={`${ASSIGNMENTS_PATH}?operatorRoleId=${r.id}&module=${r.module}`} onClick={e => e.stopPropagation()}>
             {r.holders}
           </Link>
         ) : (
@@ -53,34 +56,36 @@ export default function OperatorRolesListPage() {
   ];
 
   return (
-    <Page>
+    <div className="stack">
       <PageHeader
         title="Operator roles"
         subtitle="Named sets of permissions you give staff in the add-on modules"
         actions={
           canManage && (
-            <ButtonLink
-              variant="primary"
-              icon={<Plus />}
-              to={`/administration/access/operator-roles/new${params.module ? `?module=${params.module}` : ""}`}
-            >
-              New role
-            </ButtonLink>
+            noModules ? (
+              <Button variant="primary" icon={<Plus />} disabled title="Operator roles belong to an add-on module you administer">
+                New role
+              </Button>
+            ) : (
+              <ButtonLink variant="primary" icon={<Plus />} to={`${ROLES_PATH}/new${params.module ? `?module=${params.module}` : ""}`}>
+                New role
+              </ButtonLink>
+            )
           )
         }
       />
       <Card flush>
         <div className="filter-bar">
-          {modules.length > 1 && (
-            <Select
-              label="Module"
-              className="select-sm"
-              value={params.module}
-              onChange={e => setParam("module", e.target.value)}
-              placeholder="All my modules"
-              options={modules}
-            />
-          )}
+          {/* Always in the bar, so the bar doesn't change when the modules arrive */}
+          <Select
+            label="Module"
+            className="select-sm"
+            value={params.module}
+            onChange={e => setParam("module", e.target.value)}
+            placeholder="All my modules"
+            options={modules}
+            disabled={modules.length < 2 && !params.module}
+          />
           <div className="field" style={{ flex: 1, minWidth: 220 }}>
             <span className="field-label">Search</span>
             <SearchInput placeholder="Role name" value={searchText} onChange={e => setSearchText(e.target.value)} />
@@ -95,7 +100,7 @@ export default function OperatorRolesListPage() {
           onRetry={() => void list.refetch()}
           meta={list.meta}
           onPageChange={setPage}
-          onRowClick={r => navigate(`/administration/access/operator-roles/${r.id}`)}
+          onRowClick={r => navigate(rolePath(r.id))}
           empty={
             <EmptyState
               icon={<KeyRound />}
@@ -109,6 +114,6 @@ export default function OperatorRolesListPage() {
           }
         />
       </Card>
-    </Page>
+    </div>
   );
 }

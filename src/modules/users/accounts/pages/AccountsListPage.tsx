@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import { ROLES, type Account } from "@/common/api";
 import { useAuth } from "@/common/auth";
-import { ActivityLog } from "@/common/components/activity-log";
 import { useApiList, useListParams } from "@/common/hooks";
 import {
   Badge,
@@ -16,30 +15,26 @@ import {
   RoleBadge,
   Select,
   StatusBadge,
-  Tabs,
   roleLabel,
-  useTabParam,
   type Column
 } from "@/common/ui";
-import { enumOptions, formatDateTime, fullName, relativeTime } from "@/common/utils/format";
+import { formatDateTime, fullName, relativeTime } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
 
-const STATUSES = ["ACTIVE", "INACTIVE", "BLOCKED"];
+/* Deactivated accounts (INACTIVE) drop out of every list: the API doesn't list them yet (gap).
+   The option says so, and so does the empty state; nothing is added under the filter. */
+const STATUS_OPTIONS = [
+  { value: "ACTIVE", label: "Active" },
+  { value: "INACTIVE", label: "Inactive (not listed yet)" },
+  { value: "BLOCKED", label: "Blocked" }
+];
 
-/* AD-06 · User accounts */
+/* AD-06 · User accounts (the module's activity log is its own header tab) */
 export default function AccountsListPage() {
-  const { can } = useAuth();
-  const tabs = [
-    { id: "accounts", label: "Accounts" },
-    { id: "activity", label: "Users activity", hidden: !can("users.activity.read") }
-  ];
-  const [tab, setTab] = useTabParam(tabs);
-
   return (
     <Page>
-      <PageHeader title="User accounts" subtitle="Every sign-in account in the school, whatever its role." />
-      <Tabs tabs={tabs} value={tab} onChange={setTab} />
-      {tab === "activity" ? <ActivityLog basePath="/users/activity" module="users" /> : <AccountsTable />}
+      <PageHeader title="Accounts" subtitle="Every sign-in account in the school, whatever its role." />
+      <AccountsTable />
     </Page>
   );
 }
@@ -100,8 +95,7 @@ function AccountsTable() {
           value={params.status}
           onChange={e => setParam("status", e.target.value)}
           placeholder="Any status"
-          options={enumOptions(STATUSES)}
-          hint={params.status && params.status !== "ACTIVE" ? "Deactivated accounts are not listed yet" : undefined}
+          options={STATUS_OPTIONS}
         />
       </div>
       <DataTable
@@ -116,7 +110,17 @@ function AccountsTable() {
         onRowClick={a => navigate(`/users/${a.id}`)}
         selection={canInvite ? { selected, onChange: select } : undefined}
         bulkActions={<InviteButton size="sm" variant="primary" userIds={[...selected]} names={names} onDone={() => setSelected(new Set())} />}
-        empty={<EmptyState icon={<Users />} title="No accounts match these filters." />}
+        empty={
+          params.status === "INACTIVE" ? (
+            <EmptyState
+              icon={<Users />}
+              title="Deactivated accounts are not listed yet"
+              message="Deactivating an account removes it from the lists. Choose another status to see accounts."
+            />
+          ) : (
+            <EmptyState icon={<Users />} title="No accounts match these filters." />
+          )
+        }
       />
     </Card>
   );

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { CalendarDays, ExternalLink, Pencil, BookOpen } from "lucide-react";
+import { BookOpen, CalendarDays, ExternalLink, Mail, Pencil, Phone } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useApiGet, useApiList, useApiMutation, useForm } from "@/common/hooks";
+import { DrillHeader } from "@/common/layout/ShellHeader";
 import {
-  Alert,
-  Avatar,
   Badge,
   Button,
   ButtonLink,
@@ -16,15 +15,15 @@ import {
   EmptyState,
   ErrorState,
   Page,
-  PageHeader,
-  PageLoader,
   SkeletonBlock,
   TextInput,
-  useToast
+  useTabParam,
+  useToast,
+  type TabItem
 } from "@/common/ui";
 import { enumLabel, formatDate, fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
-import { EMPLOYMENT_KEYS, EMPLOYMENT_TEXT_KEYS, EmploymentFields, employmentFrom, patchFrom } from "@/modules/users/shared";
+import { DrillName, EMPLOYMENT_KEYS, EMPLOYMENT_TEXT_KEYS, EmploymentFields, RecordHeader, employmentFrom, patchFrom } from "@/modules/users/shared";
 import {
   updateTeacher,
   useTeacher,
@@ -35,80 +34,111 @@ import {
 } from "../api/teachers";
 import { experienceError } from "../utils/teacher";
 
-/* PE-05 · Teacher detail: profile, teaching assignments and the week's timetable */
+/* PE-05 · Teacher detail: drill-in header (name, Profile / Assignments / Timetable), a header
+   card with the key facts and actions, then the open tab */
 export default function TeacherDetailPage() {
   const { teacherId = "" } = useParams();
   const { can } = useAuth();
   const teacher = useTeacher(teacherId);
   const [editing, setEditing] = useState(false);
 
-  if (teacher.isLoading) return <PageLoader />;
-  if (teacher.error || !teacher.data)
+  const tabs: TabItem[] = [
+    { id: "profile", label: "Profile" },
+    { id: "assignments", label: "Assignments", hidden: !can("academics.teacherAssignments.read") },
+    { id: "timetable", label: "Timetable", hidden: !can("academics.timetable.read") }
+  ];
+  const [tab, setTab] = useTabParam(tabs);
+
+  const t = teacher.data;
+  const name = t ? fullName(t.user) : "";
+  const header = <DrillHeader back="/users/teachers" backLabel="Back to teachers" title={<DrillName name={name} />} tabs={tabs} value={tab} onChange={setTab} />;
+
+  if (teacher.error || (!teacher.isLoading && !t))
     return (
       <Page>
+        {header}
         <ErrorState error={teacher.error} onRetry={() => void teacher.refetch()} />
       </Page>
     );
 
-  const t = teacher.data;
-  const name = fullName(t.user);
-
   return (
     <Page>
-      <PageHeader
-        breadcrumbs={[{ label: "Teachers", to: "/users/teachers" }, { label: name }]}
-        title={
-          <span className="row" style={{ gap: 12 }}>
-            <Avatar name={name} size="lg" />
-            <span>
-              {name}
-              <span className="small muted mono" style={{ display: "block", fontWeight: 400 }}>
-                {t.employeeCode}
+      {header}
+      <RecordHeader
+        loading={!t}
+        name={name}
+        facts={
+          t && (
+            <>
+              <Badge tone="primary">
+                <span className="mono">{t.employeeCode}</span>
+              </Badge>
+              {t.employmentType && <Badge>{enumLabel(t.employmentType)}</Badge>}
+            </>
+          )
+        }
+        contact={
+          t && (
+            <>
+              <span className="row" style={{ gap: 4 }}>
+                <Mail size={14} /> {t.user.email}
               </span>
-            </span>
-          </span>
+              {t.user.phone && (
+                <span className="row" style={{ gap: 4 }}>
+                  <Phone size={14} /> {t.user.phone}
+                </span>
+              )}
+            </>
+          )
         }
         actions={
           <>
-            <InviteButton userIds={[t.user.id]} names={{ [t.user.id]: name }} />
+            <InviteButton userIds={t ? [t.user.id] : []} names={t ? { [t.user.id]: name } : {}} />
             {can("users.accounts.read") && (
-              <ButtonLink icon={<ExternalLink />} to={`/users/${t.user.id}`}>
+              <ButtonLink icon={<ExternalLink />} to={t ? `/users/${t.user.id}` : "#"}>
                 Account
               </ButtonLink>
             )}
             {can("users.teachers.update") && (
-              <Button icon={<Pencil />} onClick={() => setEditing(true)}>
+              <Button icon={<Pencil />} disabled={!t} onClick={() => setEditing(true)}>
                 Edit profile
               </Button>
             )}
           </>
         }
       />
-      <div className="grid-2">
-        <Card title="Profile">
-          <DescriptionList
-            items={[
-              { label: "Employee code", value: <span className="mono">{t.employeeCode}</span> },
-              { label: "Email", value: t.user.email },
-              { label: "Phone", value: t.user.phone },
-              { label: "Qualification", value: t.qualification },
-              { label: "Experience", value: t.experienceYears !== null ? `${t.experienceYears} year${t.experienceYears === 1 ? "" : "s"}` : null },
-              { label: "Joined", value: formatDate(t.joiningDate) },
-              { label: "Employment type", value: enumLabel(t.employmentType) },
-              { label: "Blood group", value: t.bloodGroup },
-              { label: "Notes", value: t.description, wide: true }
-            ]}
-          />
-          {can("users.accounts.update") && (
-            <div className="small muted" style={{ marginTop: 12 }}>
-              Name, email and phone are on the account: edit them from <ButtonLink variant="link" to={`/users/${t.user.id}`}>the account page</ButtonLink>.
-            </div>
+      {!t ? (
+        <SkeletonBlock lines={8} />
+      ) : (
+        <>
+          {tab === "profile" && (
+            <Card title="Profile">
+              <DescriptionList
+                columns={3}
+                items={[
+                  { label: "Employee code", value: <span className="mono">{t.employeeCode}</span> },
+                  { label: "Email", value: t.user.email },
+                  { label: "Phone", value: t.user.phone },
+                  { label: "Qualification", value: t.qualification },
+                  { label: "Experience", value: t.experienceYears !== null ? `${t.experienceYears} year${t.experienceYears === 1 ? "" : "s"}` : null },
+                  { label: "Joined", value: formatDate(t.joiningDate) },
+                  { label: "Employment type", value: enumLabel(t.employmentType) },
+                  { label: "Blood group", value: t.bloodGroup },
+                  { label: "Notes", value: t.description, wide: true }
+                ]}
+              />
+              {can("users.accounts.update") && (
+                <div className="small muted" style={{ marginTop: 12 }}>
+                  Name, email and phone are on the account: edit them from <ButtonLink variant="link" to={`/users/${t.user.id}`}>the account page</ButtonLink>.
+                </div>
+              )}
+            </Card>
           )}
-        </Card>
-        {can("academics.teacherAssignments.read") && <AssignmentsPanel teacherId={t.id} />}
-      </div>
-      {can("academics.timetable.read") && <TimetablePanel teacherId={t.id} />}
-      <EditTeacherDrawer teacher={t} open={editing} onClose={() => setEditing(false)} />
+          {tab === "assignments" && <AssignmentsPanel teacherId={t.id} />}
+          {tab === "timetable" && <TimetablePanel teacherId={t.id} />}
+          <EditTeacherDrawer teacher={t} open={editing} onClose={() => setEditing(false)} />
+        </>
+      )}
     </Page>
   );
 }
@@ -284,6 +314,7 @@ function EditTeacherDrawer({ teacher, open, onClose }: { teacher: Teacher; open:
       onClose={close}
       title="Edit profile"
       subtitle={`${fullName(teacher.user)} · ${teacher.employeeCode}`}
+      footerStatus={form.formError}
       footer={
         <>
           <Button onClick={close}>Cancel</Button>
@@ -300,7 +331,6 @@ function EditTeacherDrawer({ teacher, open, onClose }: { teacher: Teacher; open:
           void submit();
         }}
       >
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
         <EmploymentFields form={form} />
         <div className="form-grid">
           <TextInput label="Experience (years)" type="number" min={0} max={60} step={1} {...form.text("experienceYears")} />

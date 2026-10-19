@@ -4,7 +4,7 @@ import { Link2, Star, Unlink, UserPlus, UsersRound } from "lucide-react";
 import { isApiError } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, Card, DataTable, Dialog, Drawer, EmptyState, Select, Switch, useConfirm, useToast, type Column } from "@/common/ui";
+import { Button, Card, DataTable, Dialog, Drawer, EmptyState, Select, Switch, useConfirm, useToast, type Column } from "@/common/ui";
 import { enumLabel, enumOptions, fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
 import { PARENT_RELATIONS, PERSON_KEYS, PersonFields, emptyPerson, nestedFieldMap, personPayload, useSchoolCurrency, validatePerson } from "@/modules/users/shared";
@@ -90,9 +90,20 @@ export function ParentsTab({ student }: { student: Student }) {
     <Card
       flush
       title="Parents and guardians"
+      /* Always one line: the missing-primary note takes the place of the usual text, not a banner above the table */
+      subtitle={
+        links.rows && rows.length > 0 && !hasPrimary ? (
+          <span style={{ color: "var(--warning-text)" }}>No primary contact: links can't be edited, so unlink a parent and link them again as primary.</span>
+        ) : (
+          "The primary contact is called first."
+        )
+      }
       actions={
         <>
-          {rows.length > 1 && <InviteButton size="sm" label="Invite all" userIds={rows.map(l => l.parent.user.id)} names={names} />}
+          {/* Kept in place (hidden) with fewer than two parents, so the other buttons don't move */}
+          <span style={{ visibility: rows.length > 1 ? undefined : "hidden" }}>
+            <InviteButton size="sm" label="Invite all" userIds={rows.map(l => l.parent.user.id)} names={names} />
+          </span>
           {canManage && can("users.parents.read") && (
             <Button size="sm" icon={<Link2 />} onClick={() => setDialog("link")}>
               Link existing parent
@@ -106,11 +117,6 @@ export function ParentsTab({ student }: { student: Student }) {
         </>
       }
     >
-      {rows.length > 0 && !hasPrimary && (
-        <div style={{ padding: "10px 14px 0" }}>
-          <Alert tone="warning">No primary contact is set. A link can't be edited: unlink the parent and link again as primary contact.</Alert>
-        </div>
-      )}
       <DataTable
         columns={columns}
         rows={links.rows}
@@ -179,6 +185,7 @@ function LinkParentDialog({ student, linkedIds, hasPrimary, onClose }: { student
       wide
       onClose={onClose}
       title={`Link a parent to ${fullName(student.user)}`}
+      footerStatus={error}
       footer={
         <>
           <Button onClick={onClose}>Cancel</Button>
@@ -189,7 +196,6 @@ function LinkParentDialog({ student, linkedIds, hasPrimary, onClose }: { student
       }
     >
       <div className="stack">
-        {error && <Alert tone="danger">{error}</Alert>}
         <ParentPicker value={parent} onChange={p => {
             setParent(p);
             setError(null);
@@ -264,6 +270,7 @@ function AddParentDrawer({ student, hasPrimary, onClose }: { student: Student; h
       onClose={onClose}
       title="Add a new parent"
       subtitle={`Linked to ${fullName(student.user)}`}
+      footerStatus={person.formError}
       footer={
         <>
           <Button onClick={onClose} disabled={busy}>
@@ -276,7 +283,6 @@ function AddParentDrawer({ student, hasPrimary, onClose }: { student: Student; h
       }
     >
       <form id="add-parent" className="stack" onSubmit={submit} noValidate>
-        {person.formError && <Alert tone="danger">{person.formError}</Alert>}
         <div className="section-title">Personal details</div>
         <PersonFields form={person} disabled={busy || !!created} />
         <div className="section-title">Profile</div>

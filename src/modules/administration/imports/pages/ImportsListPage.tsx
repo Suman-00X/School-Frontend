@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Download, FileUp } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useListParams } from "@/common/hooks";
-import { Button, Card, DataTable, EmptyState, Page, PageHeader, Select, StatusBadge, useToast, type Column } from "@/common/ui";
+import { Button, Card, DataTable, EmptyState, Page, Select, StatusBadge, useToast, type Column } from "@/common/ui";
 import { enumOptions, formatDateTime, relativeTime } from "@/common/utils/format";
 import { IMPORT_STATUSES, downloadTemplate, useImports, type ImportJob } from "../api/imports";
 import { UploadDialog } from "../components/UploadDialog";
+import { PageIntro } from "../../shared/components/PageIntro";
 
 /* AD-02 */
 export default function ImportsListPage() {
@@ -72,9 +73,8 @@ export default function ImportsListPage() {
 
   return (
     <Page>
-      <PageHeader
-        title="Imports"
-        subtitle="Admit many students at once from a CSV file"
+      {/* The header tab already says "Imports": no title, just what it is for */}
+      <PageIntro
         actions={
           canCreate && (
             <>
@@ -87,7 +87,9 @@ export default function ImportsListPage() {
             </>
           )
         }
-      />
+      >
+        Admit many students at once from a CSV file.
+      </PageIntro>
       <Card flush>
         <div className="filter-bar">
           <Select

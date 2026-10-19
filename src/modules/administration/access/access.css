@@ -87,3 +87,33 @@
 .perm-item .check input {
   margin-top: 2px;
 }
+
+/* Person picker: one 36px slot (search box or the chosen person); matches float under it */
+.picker-combo {
+  position: relative;
+}
+.picker-float {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+.picker-selected {
+  height: 36px;
+  padding: 0 4px 0 12px;
+  background: var(--surface);
+}
+.picker-selected-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Handover wizard: the steps share one card of a steady height */
+.handover-step .card-body {
+  min-height: 320px;
+}

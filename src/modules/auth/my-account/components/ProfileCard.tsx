@@ -1,6 +1,6 @@
-import type { Me } from "@/common/auth";
+import { useAuth, type Me } from "@/common/auth";
 import { useApiGet } from "@/common/hooks";
-import { Card, DescriptionList, ErrorState, RoleBadge, SkeletonBlock, type DLItem } from "@/common/ui";
+import { Card, DescriptionList, ErrorState, RoleBadge, type DLItem } from "@/common/ui";
 import { enumLabel, formatDate, formatDateTime, fullName } from "@/common/utils/format";
 
 const str = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v) : null);
@@ -35,12 +35,26 @@ function profileItems(role: string, p: Record<string, unknown> | null): DLItem[]
   }
 }
 
+/* While loading: the same list with grey values (the role from sign-in tells which profile fields come) */
+function loadingItems(role: string | undefined): DLItem[] {
+  /* Inline, so it sits on a text line: each value keeps the height of a loaded one */
+  const bar = <span className="skeleton" style={{ display: "inline-block", verticalAlign: "middle", width: "60%", height: "0.8em" }} />;
+  const own = profileItems(role ?? "", role === "STUDENT" || role === "PARENT" || role === "TEACHER" ? {} : { employeeCode: "" });
+  return [
+    ...["Name", "Role", "Email", "Phone", "Gender", "Date of birth"].map(label => ({ label, value: bar })),
+    { label: "Address", value: bar, wide: true },
+    ...own.map(i => ({ label: i.label, value: bar })),
+    { label: "Last sign-in", value: bar }
+  ];
+}
+
 export function ProfileCard() {
+  const { session } = useAuth();
   const { data, isLoading, error, refetch } = useApiGet<Me>("/me");
 
   let body;
   if (error) body = <ErrorState error={error} onRetry={() => void refetch()} />;
-  else if (isLoading || !data) body = <SkeletonBlock lines={6} />;
+  else if (isLoading || !data) body = <DescriptionList items={loadingItems(session?.user.role)} />;
   else {
     const a = data.account;
     body = (

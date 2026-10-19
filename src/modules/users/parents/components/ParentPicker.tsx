@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import { Button, DataTable, EmptyState, ErrorState, PersonCell, SearchInput, SkeletonBlock } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
 import { matchesSearch } from "@/modules/users/shared";
 import { useAllParents, type Parent } from "../api/parents";
 
-const SHOWN = 8;
+const SHOWN = 50;
+/* The result box has one height whatever the search finds, so typing or picking never moves
+   what comes after the picker (or resizes a centred dialog) */
+const RESULTS_HEIGHT = 280;
 
 /* Pick an existing parent by name, email, phone or code. The API has no parent search,
-   so up to 500 parents are loaded once and filtered here. */
+   so up to 500 parents are loaded once and filtered here. The chosen parent is named in a
+   line above the search and ticked in the list; the picker keeps its shape either way. */
 export function ParentPicker({
   value,
   onChange,
@@ -20,7 +25,7 @@ export function ParentPicker({
   exclude?: string[];
 }) {
   const [search, setSearch] = useState("");
-  const all = useAllParents(!value);
+  const all = useAllParents();
 
   const matches = useMemo(() => {
     const rows = (all.data?.rows ?? []).filter(p => !exclude.includes(p.id));
@@ -29,36 +34,55 @@ export function ParentPicker({
       : rows;
   }, [all.data, search, exclude]);
 
-  if (value)
-    return (
-      <div className="row-between" style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "8px 12px" }}>
-        <PersonCell name={fullName(value.user)} sub={[value.parentCode, value.user.email, value.user.phone].filter(Boolean).join(" · ")} />
-        <Button size="sm" variant="ghost" onClick={() => onChange(null)}>
-          Change
-        </Button>
-      </div>
-    );
-
-  if (all.isLoading) return <SkeletonBlock lines={3} />;
-  if (all.error) return <ErrorState error={all.error} onRetry={() => void all.refetch()} />;
-
   const total = all.data?.total ?? 0;
   const loaded = all.data?.rows.length ?? 0;
   return (
     <div className="stack-sm">
-      <SearchInput autoFocus placeholder="Search by name, email, phone or parent code" value={search} onChange={e => setSearch(e.target.value)} />
-      <DataTable
-        rows={matches.slice(0, SHOWN)}
-        rowKey={p => p.id}
-        onRowClick={p => onChange(p)}
-        columns={[
-          { key: "name", header: "Parent", render: p => <PersonCell name={fullName(p.user)} sub={p.user.email} /> },
-          { key: "phone", header: "Phone", render: p => p.user.phone ?? <span className="muted">—</span> },
-          { key: "parentCode", header: "Code", render: p => <span className="mono">{p.parentCode}</span> }
-        ]}
-        empty={<EmptyState title={search ? "No parent matches this search" : "No parents yet"} />}
-      />
-      <div className="small muted">
+      <div className="row-between" style={{ minHeight: 30, flexWrap: "nowrap" }}>
+        <div className="small" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {value ? (
+            <>
+              Chosen: <strong>{fullName(value.user)}</strong>{" "}
+              <span className="muted">{[value.parentCode, value.user.email].filter(Boolean).join(" · ")}</span>
+            </>
+          ) : (
+            <span className="muted">No parent chosen yet: pick one from the list.</span>
+          )}
+        </div>
+        <Button size="sm" variant="ghost" style={{ visibility: value ? undefined : "hidden" }} onClick={() => onChange(null)}>
+          Clear
+        </Button>
+      </div>
+      <SearchInput autoFocus={!value} placeholder="Search by name, email, phone or parent code" value={search} onChange={e => setSearch(e.target.value)} />
+      <div style={{ height: RESULTS_HEIGHT, overflowY: "auto", border: "1px solid var(--border)", borderRadius: 8 }}>
+        {all.isLoading ? (
+          <div style={{ padding: 14 }}>
+            <SkeletonBlock lines={4} />
+          </div>
+        ) : all.error ? (
+          <ErrorState error={all.error} onRetry={() => void all.refetch()} />
+        ) : (
+          <DataTable
+            rows={matches.slice(0, SHOWN)}
+            rowKey={p => p.id}
+            onRowClick={p => onChange(p)}
+            columns={[
+              {
+                key: "chosen",
+                header: "",
+                width: 36,
+                render: p => (p.id === value?.id ? <Check size={16} aria-label="Chosen" style={{ color: "var(--primary)" }} /> : null)
+              },
+              { key: "name", header: "Parent", render: p => <PersonCell name={fullName(p.user)} sub={p.user.email} /> },
+              { key: "phone", header: "Phone", render: p => p.user.phone ?? <span className="muted">—</span> },
+              { key: "parentCode", header: "Code", render: p => <span className="mono">{p.parentCode}</span> }
+            ]}
+            empty={<EmptyState title={search ? "No parent matches this search" : "No parents yet"} />}
+          />
+        )}
+      </div>
+      {/* A reserved line for the notes about what can be searched */}
+      <div className="small muted" style={{ minHeight: 17 }}>
         {matches.length > SHOWN && `Showing ${SHOWN} of ${matches.length} matches. Type more to narrow it down. `}
         {total > loaded && `Only the newest ${loaded} of ${total} parents can be searched here.`}
       </div>

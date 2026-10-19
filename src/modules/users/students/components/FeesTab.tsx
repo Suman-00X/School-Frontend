@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
-import { Card, DataTable, EmptyState, ErrorState, Kpi, Select, SkeletonBlock, StatusBadge } from "@/common/ui";
+import { Card, DataTable, EmptyState, Kpi, Select, SkeletonBlock, StatusBadge } from "@/common/ui";
 import { enumLabel, formatDate, formatDateTime, formatMoney } from "@/common/utils/format";
 import { useSchoolCurrency } from "@/modules/users/shared";
 import { useStatement } from "../api/records";
-import { useHideOnForbidden } from "./useHideOnForbidden";
+import { TabError } from "./TabError";
 
 /* Read-only fee statement for one year (FI-11 has the full account) */
-export function FeesTab({ studentId, onForbidden }: { studentId: string; onForbidden?: () => void }) {
+export function FeesTab({ studentId }: { studentId: string }) {
   const { years, selected } = useAcademicYear();
   const [yearId, setYearId] = useState(selected?.id ?? "");
   const statement = useStatement(studentId, yearId);
   const currency = useSchoolCurrency();
   const money = (n: number) => formatMoney(n, currency);
-  useHideOnForbidden(statement.error, onForbidden);
 
   const s = statement.data;
   return (
@@ -33,7 +32,7 @@ export function FeesTab({ studentId, onForbidden }: { studentId: string; onForbi
         )}
       </div>
       {statement.isLoading && <SkeletonBlock lines={6} />}
-      {statement.error && <ErrorState error={statement.error} onRetry={() => void statement.refetch()} />}
+      {statement.error && <TabError error={statement.error} what="fees" onRetry={() => void statement.refetch()} />}
       {s && (
         <>
           <div className="kpis">

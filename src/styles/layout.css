@@ -503,3 +503,57 @@ html[data-text-size="large"] .dialog {
   font-size: 13px;
   flex-wrap: wrap;
 }
+.auth-status {
+  min-height: 38px;
+  font-size: 13px;
+  line-height: 19px;
+}
+.auth-status-danger {
+  color: var(--danger);
+}
+.auth-status-warning {
+  color: var(--warning-text);
+}
+.school-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.school-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.school-option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.school-option:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+.school-option[aria-busy="true"] {
+  border-color: var(--primary);
+}
+.school-option-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.school-option-name {
+  font-weight: 600;
+  color: var(--text);
+}
+.school-option-meta {
+  font-size: 12.5px;
+  color: var(--text-3);
+}

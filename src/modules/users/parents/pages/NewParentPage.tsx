@@ -2,7 +2,8 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, ButtonLink, Card, Page, PageHeader, useToast } from "@/common/ui";
+import { DrillHeader } from "@/common/layout/ShellHeader";
+import { Button, ButtonLink, Card, FormActions, Page, useToast } from "@/common/ui";
 import { PERSON_KEYS, PersonFields, emptyPerson, nestedFieldMap, personPayload, useSchoolCurrency, validatePerson } from "@/modules/users/shared";
 import { createParent } from "../api/parents";
 import { ParentProfileFields } from "../components/ParentProfileFields";
@@ -46,25 +47,20 @@ export default function NewParentPage() {
 
   return (
     <Page>
-      <PageHeader
-        title="New parent"
-        breadcrumbs={[{ label: "Parents", to: "/users/parents" }, { label: "New parent" }]}
-        subtitle="Creates the parent's account. Send an invitation afterwards so they can set a password."
-      />
+      <DrillHeader back="/users/parents" backLabel="Back to parents" title="New parent" />
       <form className="stack" onSubmit={submit} noValidate style={{ maxWidth: 820 }}>
-        {person.formError && <Alert tone="danger">{person.formError}</Alert>}
-        <Card title="Personal details">
+        <Card title="Personal details" subtitle="Creates the parent's account. Send an invitation afterwards so they can set a password.">
           <PersonFields form={person} disabled={create.isPending} emailHint="Used to sign in and for invitations" />
         </Card>
         <Card title="Profile">
           <ParentProfileFields form={profile} currency={currency} disabled={create.isPending} />
         </Card>
-        <div className="form-actions">
+        <FormActions error={person.formError}>
           <ButtonLink to="/users/parents">Cancel</ButtonLink>
           <Button type="submit" variant="primary" loading={create.isPending}>
             Create parent
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Page>
   );

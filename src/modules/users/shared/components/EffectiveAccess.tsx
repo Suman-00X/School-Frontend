@@ -49,15 +49,19 @@ export function EffectiveAccess({ userId, title = "Effective access", actions }:
       subtitle={
         data
           ? `As of ${formatDate(data.asOf)}${can("administration.access.readAll") ? "" : " · only the modules you own are shown"}`
-          : undefined
+          : "Loading…"
       }
       actions={
         <>
-          {modules.length > 0 && (
-            <Button size="sm" variant="ghost" onClick={() => setOpen(allOpen ? new Set() : new Set(modules.map(m => m.module)))}>
-              {allOpen ? "Collapse all" : "Expand all"}
-            </Button>
-          )}
+          {/* Kept in place (hidden) until there are modules, so the other actions don't move */}
+          <Button
+            size="sm"
+            variant="ghost"
+            style={{ visibility: modules.length > 0 ? undefined : "hidden" }}
+            onClick={() => setOpen(allOpen ? new Set() : new Set(modules.map(m => m.module)))}
+          >
+            {allOpen ? "Collapse all" : "Expand all"}
+          </Button>
           {actions}
         </>
       }

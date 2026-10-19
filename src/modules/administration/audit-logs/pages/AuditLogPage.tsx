@@ -1,9 +1,11 @@
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/common/auth";
 import { ActivityLog } from "@/common/components/activity-log";
-import { Page, PageHeader, Tabs, useTabParam, type TabItem } from "@/common/ui";
+import { Page, Tabs, useTabParam, type TabItem } from "@/common/ui";
+import { PageIntro } from "../../shared/components/PageIntro";
 
-/* AD-03 */
+/* AD-03. Two views of one log, so two in-page tabs (a side list would be heavier for two items).
+   The header tab already says "Audit log": no title. */
 export default function AuditLogPage() {
   const { can } = useAuth();
   const [, setSearch] = useSearchParams();
@@ -19,7 +21,7 @@ export default function AuditLogPage() {
 
   return (
     <Page>
-      <PageHeader title="Audit log" subtitle="Every change made in the school, newest first. Nothing here can be edited." />
+      <PageIntro>Every change made in the school, newest first. Nothing here can be edited.</PageIntro>
       <Tabs tabs={tabs} value={tab} onChange={switchTab} />
       {tab === "all" ? (
         <ActivityLog key="all" basePath="/administration/audit-logs" showModuleFilter />

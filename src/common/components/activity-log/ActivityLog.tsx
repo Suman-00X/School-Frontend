@@ -204,24 +204,22 @@ export function ActivityLog({
                 onClear={() => setParam("entityId", "")}
               />
             )}
-            {actionOptions.length > 0 ? (
-              <Select
-                label="Action"
-                className="select-sm"
-                value={params.permission}
-                onChange={e => setParam("permission", e.target.value)}
-                placeholder="Any action"
-                options={actionOptions}
-              />
-            ) : (
-              <TextInput
-                label="Permission"
-                className="input-sm"
-                placeholder="e.g. users. or users.accounts.update"
-                value={params.permission}
-                onChange={e => setParam("permission", e.target.value.trim())}
-              />
-            )}
+            {/* Always the same control, so loading the catalogue never moves the filters */}
+            <Select
+              label="Action"
+              className="select-sm"
+              fieldClassName="filter-wide"
+              value={params.permission}
+              onChange={e => setParam("permission", e.target.value)}
+              placeholder={catalogueModule ? (catalogue.isLoading ? "Loading actions…" : "Any action") : "Pick a module first"}
+              disabled={actionOptions.length === 0}
+              options={
+                /* A permission from a link that isn't in the catalogue still shows */
+                params.permission && !actionOptions.some(o => o.value === params.permission)
+                  ? [{ value: params.permission, label: params.permission }, ...actionOptions]
+                  : actionOptions
+              }
+            />
             <Select
               label="Method"
               className="select-sm"

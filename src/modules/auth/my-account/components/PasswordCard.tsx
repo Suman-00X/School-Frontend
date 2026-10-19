@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import { isApiError } from "@/common/api";
 import { useApiMutation, useForm } from "@/common/hooks";
-import { Alert, Button, Card, PasswordChecklist, PasswordInput, passwordOk, useToast } from "@/common/ui";
+import { Button, Card, FormActions, PasswordChecklist, PasswordInput, passwordOk, useToast } from "@/common/ui";
 import { formatWait, retryAfterSeconds, useCooldown } from "../../shared/hooks/useCooldown";
 import { changePassword } from "../../credentials/api/passwords";
 import { SESSIONS_PATH } from "../../sessions/api/sessions";
@@ -12,21 +12,18 @@ export function PasswordCard() {
   const toast = useToast();
   const form = useForm(EMPTY);
   const cooldown = useCooldown();
-  const [saved, setSaved] = useState<string | null>(null);
   const mutation = useApiMutation(changePassword, { invalidate: [SESSIONS_PATH] });
   const { currentPassword, newPassword, confirm } = form.values;
   const mismatch = confirm.length > 0 && confirm !== newPassword;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    setSaved(null);
     form.setFormError(null);
     mutation.mutate(
       { currentPassword, newPassword },
       {
         onSuccess: res => {
           toast.success(res.message);
-          setSaved(res.message);
           form.reset(EMPTY);
         },
         onError: err => {
@@ -47,8 +44,6 @@ export function PasswordCard() {
   return (
     <Card title="Password" subtitle="Changing it signs out your other devices.">
       <form className="stack" onSubmit={submit} noValidate>
-        {saved && <Alert tone="success">{saved}</Alert>}
-        {form.formError && <Alert tone="danger">{form.formError}</Alert>}
         <PasswordInput label="Current password" required maxLength={128} autoComplete="current-password" {...form.text("currentPassword")} />
         <div className="stack-sm">
           <PasswordInput label="New password" required maxLength={128} autoComplete="new-password" {...form.text("newPassword")} />
@@ -62,7 +57,8 @@ export function PasswordCard() {
           {...form.text("confirm")}
           error={mismatch ? "The passwords don't match" : undefined}
         />
-        <div className="form-actions">
+        {/* Success is a toast; an error takes the start of this bar (nothing is inserted above the form) */}
+        <FormActions error={form.formError}>
           <Button
             type="submit"
             variant="primary"
@@ -71,7 +67,7 @@ export function PasswordCard() {
           >
             {waiting ? `Try again in ${formatWait(cooldown.secondsLeft)}` : "Change password"}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Card>
   );

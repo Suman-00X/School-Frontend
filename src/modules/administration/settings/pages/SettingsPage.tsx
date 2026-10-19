@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useAuth } from "@/common/auth";
 import { changedFields, useForm } from "@/common/hooks";
-import { Alert, Button, Card, ErrorState, Page, PageHeader, Select, SkeletonBlock, TextInput, Textarea, useToast } from "@/common/ui";
+import { Alert, Button, Card, ErrorState, FormActions, Page, Select, TextInput, Textarea, useToast } from "@/common/ui";
 import { relativeTime } from "@/common/utils/format";
 import { useSettings, useUpdateSettings, type SchoolSettings, type SettingsChanges } from "../api/settings";
 import { LogoCard } from "../components/LogoCard";
+import { PageIntro } from "../../shared/components/PageIntro";
 import { countryOptions, currencyOptions, timeZones } from "../utils/regions";
 import "../settings.css";
 
@@ -30,34 +31,44 @@ const toValues = (s: SchoolSettings): Values => ({
   country: s.country ?? ""
 });
 
-/* AD-01 */
+/* Shown (disabled, empty) until the settings arrive: the same form, so nothing moves when they do */
+const LOADING: SchoolSettings = {
+  id: "",
+  name: "",
+  code: "",
+  address: null,
+  contactEmail: null,
+  contactPhone: null,
+  description: null,
+  timezone: "",
+  currency: "",
+  country: "",
+  updatedAt: "",
+  logoUrl: null
+};
+
+/* AD-01. One page, one Save: the school's profile and region on the left, the logo (its own
+   upload) on the right. Three short cards read better side by side than as side-nav sections. */
 export default function SettingsPage() {
   const { can } = useAuth();
   const canEdit = can("administration.settings.update");
   const settings = useSettings();
+  const loading = !settings.data;
 
   return (
     <Page>
-      <PageHeader
-        title="School settings"
-        subtitle={settings.data ? `Last updated ${relativeTime(settings.data.updatedAt)}` : "The school's profile, region and logo"}
-      />
+      {/* The header tab already says "School settings": no title */}
+      <PageIntro>
+        {settings.data ? `The school's profile, region and logo · last updated ${relativeTime(settings.data.updatedAt)}` : "The school's profile, region and logo"}
+      </PageIntro>
+      {!canEdit && <Alert tone="info">Only an administrator can change the school's settings.</Alert>}
       {settings.error ? (
         <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />
-      ) : !settings.data ? (
-        <div className="settings-layout">
-          <Card title="School">
-            <SkeletonBlock lines={6} />
-          </Card>
-          <Card title="Logo">
-            <SkeletonBlock lines={3} />
-          </Card>
-        </div>
       ) : (
         <div className="settings-layout">
-          <SettingsForm settings={settings.data} canEdit={canEdit} />
+          <SettingsForm settings={settings.data ?? LOADING} canEdit={canEdit} loading={loading} />
           <div>
-            <LogoCard settings={settings.data} canEdit={canEdit} onExpired={() => void settings.refetch()} />
+            <LogoCard settings={settings.data ?? LOADING} canEdit={canEdit} loading={loading} onExpired={() => void settings.refetch()} />
           </div>
         </div>
       )}
@@ -65,7 +76,7 @@ export default function SettingsPage() {
   );
 }
 
-function SettingsForm({ settings, canEdit }: { settings: SchoolSettings; canEdit: boolean }) {
+function SettingsForm({ settings, canEdit, loading }: { settings: SchoolSettings; canEdit: boolean; loading: boolean }) {
   const toast = useToast();
   const update = useUpdateSettings();
   const original = useMemo(() => toValues(settings), [settings]);
@@ -107,11 +118,10 @@ function SettingsForm({ settings, canEdit }: { settings: SchoolSettings; canEdit
     });
   };
 
-  const field = (key: keyof Values) => ({ ...form.text(key), disabled: !canEdit || update.isPending });
+  const field = (key: keyof Values) => ({ ...form.text(key), disabled: !canEdit || loading || update.isPending });
 
   return (
     <form className="stack" onSubmit={submit} noValidate>
-      {!canEdit && <Alert tone="info">Only an administrator can change the school's settings.</Alert>}
       <Card title="School" subtitle="How the school appears on documents and messages">
         <div className="form-grid">
           <TextInput label="School name" required maxLength={150} {...field("name")} />
@@ -140,16 +150,15 @@ function SettingsForm({ settings, canEdit }: { settings: SchoolSettings; canEdit
           <Select label="Country" options={countryOptions(values.country)} {...field("country")} />
         </div>
       </Card>
-      {form.formError && <Alert tone="danger">{form.formError}</Alert>}
       {canEdit && (
-        <div className="form-actions">
+        <FormActions error={form.formError}>
           <Button onClick={() => form.reset(original)} disabled={!dirty || update.isPending}>
             Discard changes
           </Button>
           <Button type="submit" variant="primary" loading={update.isPending} disabled={!dirty}>
             Save changes
           </Button>
-        </div>
+        </FormActions>
       )}
     </form>
   );

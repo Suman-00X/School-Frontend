@@ -1221,3 +1221,12 @@ button.step {
   top: 0;
   right: calc(100% + 8px);
 }
+.dropzone-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 19px;
+}
+.filter-bar .filter-wide {
+  min-width: 220px;
+}

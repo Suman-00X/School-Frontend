@@ -1,7 +1,8 @@
 import { api } from "@/common/api";
 
-/* Public: always 202 with the same message, whether or not the account exists */
-export const requestPasswordReset = (body: { schoolCode: string; email: string }) =>
+/* Public: always 202 with the same message, whether or not the account exists.
+   Without a school code, every school with this email sends its own link. */
+export const requestPasswordReset = (body: { email: string; schoolCode?: string }) =>
   api.post<null>("/auth/password-reset-requests", body, { auth: false });
 
 /* Public: spends a reset or invitation link (the token says which) */

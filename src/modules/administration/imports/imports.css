@@ -12,3 +12,38 @@
     gap: 6px;
   }
 }
+
+/* Mapping: one-line slots, so changing a column never changes a row's height */
+.import-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 19px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.import-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.import-status svg {
+  flex-shrink: 0;
+}
+.import-sample {
+  margin-top: 4px;
+  min-height: 19px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.import-problem {
+  min-width: 0;
+}
+.import-problem-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 60ch;
+}

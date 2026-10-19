@@ -1,12 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageIcon, Upload } from "lucide-react";
 import { errorMessage } from "@/common/api";
-import { Alert, Button, Card, FileDrop, useToast } from "@/common/ui";
+import { Button, Card, FileDrop, Skeleton, useToast } from "@/common/ui";
 import { useUploadLogo, type SchoolSettings } from "../api/settings";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
-export function LogoCard({ settings, canEdit, onExpired }: { settings: SchoolSettings; canEdit: boolean; onExpired: () => void }) {
+/* Its own upload (a separate call from the settings' Save). The preview note, the error and the
+   buttons all have fixed places: choosing a file or failing an upload moves nothing. */
+export function LogoCard({
+  settings,
+  canEdit,
+  loading,
+  onExpired
+}: {
+  settings: SchoolSettings;
+  canEdit: boolean;
+  loading?: boolean;
+  onExpired: () => void;
+}) {
   const toast = useToast();
   const upload = useUploadLogo();
   const [file, setFile] = useState<File | null>(null);
@@ -46,10 +58,18 @@ export function LogoCard({ settings, canEdit, onExpired }: { settings: SchoolSet
             placeItems: "center",
             border: "1px solid var(--border)",
             borderRadius: "var(--radius-lg)",
-            background: "var(--surface-hover)"
+            background: "var(--surface-hover)",
+            position: "relative"
           }}
         >
-          {shown ? (
+          {preview && (
+            <span className="badge badge-info" style={{ position: "absolute", top: 8, left: 8 }} title="It replaces the current logo when you upload it">
+              Preview
+            </span>
+          )}
+          {loading ? (
+            <Skeleton width={120} height={80} />
+          ) : shown ? (
             <img
               src={shown}
               alt={`${settings.name} logo`}
@@ -68,7 +88,6 @@ export function LogoCard({ settings, canEdit, onExpired }: { settings: SchoolSet
             </div>
           )}
         </div>
-        {preview && <div className="small muted">Preview of the new logo. It replaces the current one when you upload it.</div>}
 
         {canEdit && (
           <>
@@ -83,17 +102,20 @@ export function LogoCard({ settings, canEdit, onExpired }: { settings: SchoolSet
               onReject={setError}
               hint="PNG, JPEG or WebP, up to 2 MB"
             />
-            {error && <Alert tone="danger">{error}</Alert>}
-            {file && (
+            {/* The card is narrow: the error has its own reserved line rather than a footer status */}
+            <div className="stack-sm">
+              <div className="field-message field-error" role={error ? "alert" : undefined} title={error ?? undefined}>
+                {error}
+              </div>
               <div className="form-actions">
-                <Button onClick={() => setFile(null)} disabled={upload.isPending}>
+                <Button onClick={() => setFile(null)} disabled={!file || upload.isPending}>
                   Cancel
                 </Button>
-                <Button variant="primary" icon={<Upload />} loading={upload.isPending} onClick={save}>
-                  {settings.logoUrl ? "Upload new logo" : "Upload logo"}
+                <Button variant="primary" icon={<Upload />} loading={upload.isPending} onClick={save} disabled={!file}>
+                  Upload logo
                 </Button>
               </div>
-            )}
+            </div>
           </>
         )}
       </div>

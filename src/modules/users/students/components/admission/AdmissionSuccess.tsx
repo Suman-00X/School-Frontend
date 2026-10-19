@@ -12,6 +12,8 @@ export function AdmissionSuccess({ result, onAnother }: { result: AdmissionResul
   const names: Record<string, string> = { [result.userId]: name };
   for (const l of links.rows ?? []) names[l.parent.user.id] = fullName(l.parent.user);
   const userIds = [result.userId, ...(links.rows ?? []).map(l => l.parent.user.id)];
+  /* Counted from the admission itself, so the label (and the button's width) is right before the links load */
+  const invitations = 1 + result.parents.length;
 
   return (
     <Card>
@@ -33,7 +35,7 @@ export function AdmissionSuccess({ result, onAnother }: { result: AdmissionResul
               userIds={userIds}
               names={names}
               disabled={links.isLoading}
-              label={userIds.length > 1 ? `Send ${userIds.length} invitations` : "Send invitation"}
+              label={invitations > 1 ? `Send ${invitations} invitations` : "Send invitation"}
             />
             <Button icon={<UserPlus />} onClick={onAnother}>
               Admit another

@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/common/api";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { api, type Query } from "@/common/api";
 import { useApiGet } from "@/common/hooks";
 
 /* Read-only records of a student kept by other modules (files, finance, academics) */
@@ -118,8 +118,18 @@ export type Statement = {
   refunds: StatementRefund[];
 };
 
+/* A read whose filters change on the page (year, dates): the previous result stays on screen
+   while the next one loads, so the panels don't collapse into skeletons and back */
+function useKeptGet<T>(path: string, query: Query) {
+  return useQuery({
+    queryKey: [path, query],
+    placeholderData: keepPreviousData,
+    queryFn: async ({ signal }) => (await api.get<T>(path, query, { signal })).data
+  });
+}
+
 export const useStatement = (studentId: string, academicYearId: string) =>
-  useApiGet<Statement>(`/finance/students/${studentId}/statement`, { academicYearId: academicYearId || undefined });
+  useKeptGet<Statement>(`/finance/students/${studentId}/statement`, { academicYearId: academicYearId || undefined });
 
 /* ---- attendance ---- */
 
@@ -141,7 +151,7 @@ export type AttendanceSummary = {
 };
 
 export const useStudentAttendance = (studentId: string, from: string, to: string) =>
-  useApiGet<AttendanceSummary>(`/academics/attendance/students/${studentId}`, { from: from || undefined, to: to || undefined });
+  useKeptGet<AttendanceSummary>(`/academics/attendance/students/${studentId}`, { from: from || undefined, to: to || undefined });
 
 /* ---- report cards ---- */
 
