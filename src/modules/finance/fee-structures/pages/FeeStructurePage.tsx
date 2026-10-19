@@ -286,9 +286,9 @@ function StructureEditor({ structure }: { structure: FeeStructure | null }) {
             </span>
             {frozen && <Badge tone="warning">Invoices issued</Badge>}
             <span style={{ marginLeft: "auto" }} className="row">
-              {can("finance.invoices.issue") && !archived && (
-                <ButtonLink icon={<Receipt />} to={`/finance/invoices?generate=${structure.id}`}>
-                  Generate invoices
+              {can("finance.invoices.read") && (
+                <ButtonLink icon={<Receipt />} to={`/finance/invoices?feeStructureId=${structure.id}`}>
+                  Invoices
                 </ButtonLink>
               )}
               {canEdit && (
