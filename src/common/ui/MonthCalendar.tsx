@@ -136,8 +136,13 @@ export function MonthCalendar({
           <span className="cal-summary">{summary}</span>
         </div>
         <div className="row cal-actions">
-          {onMonthChange && monthOf(todayIso) !== month && (
-            <Button size="sm" onClick={() => onMonthChange(monthOf(todayIso))}>
+          {/* Always there (disabled on this month), so the toolbar never shifts */}
+          {onMonthChange && (
+            <Button
+              size="sm"
+              disabled={monthOf(todayIso) === month || (!!minMonth && monthOf(todayIso) < minMonth) || (!!maxMonth && monthOf(todayIso) > maxMonth)}
+              onClick={() => onMonthChange(monthOf(todayIso))}
+            >
               Today
             </Button>
           )}
