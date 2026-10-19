@@ -197,7 +197,7 @@ export function IssueDesk({ onLog }: { onLog: (e: Omit<LogEntry, "id" | "at">) =
               onChange={e => setBorrower(e.target.value)}
               placeholder="Search by name"
               known={a ? [{ userId: a.borrower.id, name: a.borrower.name, role: a.borrower.role }] : []}
-              hint="Students and staff. Parents borrow through their children"
+              hint="Students and staff; parents can't borrow"
             />
             {canRead ? (
               <>

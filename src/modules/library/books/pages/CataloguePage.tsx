@@ -1,6 +1,7 @@
 /* LB-03 · Catalogue (browse view): search the library and see what is on the shelf. Read-only. */
 import { Link } from "react-router-dom";
 import { LibraryBig } from "lucide-react";
+import { useAuth } from "@/common/auth";
 import { useApiList, useListParams } from "@/common/hooks";
 import { Badge, Card, EmptyState, ErrorState, Field, Page, Pagination, SearchInput, Select, Skeleton, Switch } from "@/common/ui";
 import type { CatalogueEntry } from "../../shared/api/types";
@@ -15,6 +16,7 @@ export const availabilityLine = (a: CatalogueEntry["availability"]) =>
   [a.total ? `${a.available} of ${a.total} available` : "No copies yet", a.holdsWaiting ? `${a.holdsWaiting} waiting` : ""].filter(Boolean).join(" · ");
 
 export default function CataloguePage() {
+  const { can } = useAuth();
   const { params, setParam, setParams, setPage } = useListParams({ q: "", category: "", subjectId: "", itemType: "", available: "" }, { limit: 24 });
   const [search, setSearch] = useSearchBox(params.q, q => setParam("q", q));
   const list = useApiList<CatalogueEntry>(CATALOGUE_PATH, params);
@@ -38,7 +40,9 @@ export default function CataloguePage() {
             placeholder="All categories"
             options={categories.map(c => ({ value: c, label: c }))}
           />
-          <Select label="Subject" className="select-sm" value={params.subjectId} onChange={e => setParam("subjectId", e.target.value)} placeholder="All subjects" options={subjects} />
+          {can("academics.subjects.read") && (
+            <Select label="Subject" className="select-sm" value={params.subjectId} onChange={e => setParam("subjectId", e.target.value)} placeholder="All subjects" options={subjects} />
+          )}
           <Select
             label="Type"
             className="select-sm"

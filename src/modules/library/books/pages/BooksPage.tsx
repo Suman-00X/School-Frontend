@@ -117,7 +117,9 @@ export default function BooksPage() {
             placeholder="All categories"
             options={categories.map(c => ({ value: c, label: c }))}
           />
-          <Select label="Subject" className="select-sm" value={params.subjectId} onChange={e => setParam("subjectId", e.target.value)} placeholder="All subjects" options={subjects} />
+          {can("academics.subjects.read") && (
+            <Select label="Subject" className="select-sm" value={params.subjectId} onChange={e => setParam("subjectId", e.target.value)} placeholder="All subjects" options={subjects} />
+          )}
           <Select
             label="Type"
             className="select-sm"
