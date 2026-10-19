@@ -1,0 +1,33 @@
+/* FL-01 documents */
+.list-tabs > .tabs {
+  padding: 0 14px;
+}
+.file-name-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  max-width: 360px;
+}
+.file-name-cell svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.file-name-cell .file-name,
+.file-name-cell .file-desc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-name-cell .file-name {
+  font-weight: 550;
+}
+.file-checksum {
+  word-break: break-all;
+}
+.btn.file-delete {
+  color: var(--danger);
+}
+.btn.file-delete:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
