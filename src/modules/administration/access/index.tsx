@@ -10,6 +10,7 @@ import HandoverWizardPage from "./pages/HandoverWizardPage";
 export const routes: RouteObject[] = [
   { path: "/administration/access/operator-roles", element: <RequirePermission permission="administration.access.read"><OperatorRolesListPage /></RequirePermission> },
   { path: "/administration/access/operator-roles/new", element: <RequirePermission permission="administration.access.manage"><OperatorRoleEditorPage /></RequirePermission> },
+  { path: "/administration/access/operator-roles/:operatorRoleId/edit", element: <RequirePermission permission="administration.access.manage"><OperatorRoleEditorPage /></RequirePermission> },
   { path: "/administration/access/operator-roles/:operatorRoleId", element: <RequirePermission permission="administration.access.read"><OperatorRoleDetailPage /></RequirePermission> },
   { path: "/administration/access/assignments", element: <RequirePermission permission="administration.access.read"><AssignmentsPage /></RequirePermission> },
   { path: "/administration/access/handovers/new", element: <RequirePermission permission="administration.access.handOver"><HandoverWizardPage /></RequirePermission> }

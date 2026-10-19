@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api, endSession, onClientEvent, sessionStore, type Account, type AccessView, type Session } from "@/common/api";
+import { api, endSession, isApiError, onClientEvent, sessionStore, type Account, type AccessView, type Session } from "@/common/api";
 
 export type Me = { role: string; account: Account; profile: Record<string, unknown> | null };
 
@@ -13,7 +13,8 @@ export type LoginResult = {
   school: Session["school"];
 };
 
-type Status = "loading" | "signedOut" | "ready";
+/* "error": signed in, but the profile could not be loaded (network or server error) */
+type Status = "loading" | "signedOut" | "ready" | "error";
 
 export type AuthContextValue = {
   status: Status;
@@ -22,6 +23,9 @@ export type AuthContextValue = {
   access: AccessView | null;
   /* Why the last session ended (shown on the sign-in page) */
   endedMessage: string | null;
+  bootError: unknown;
+  /* Load the profile and access again (after a boot error) */
+  retryBoot: () => void;
   can: (key: string) => boolean;
   canAny: (...keys: string[]) => boolean;
   isOwner: (module: string) => boolean;
@@ -42,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [access, setAccess] = useState<AccessView | null>(null);
   const [endedMessage, setEndedMessage] = useState<string | null>(null);
+  const [bootError, setBootError] = useState<unknown>(null);
   const lastAccessFetch = useRef(0);
 
   const loadAccess = useCallback(async () => {
@@ -57,14 +62,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const boot = useCallback(async () => {
     setStatus("loading");
+    setBootError(null);
     try {
       await Promise.all([loadMe(), loadAccess()]);
       setSession(sessionStore.get());
       setStatus(sessionStore.get() ? "ready" : "signedOut");
-    } catch {
-      /* A 401 has already ended the session; anything else leaves us signed out too */
+    } catch (e) {
+      /* A 401 has already ended the session. Any other refusal (e.g. "School not found")
+         means this session can't be used either; a network or server error can be retried. */
       if (!sessionStore.get()) setStatus("signedOut");
-      else setStatus("ready");
+      else if (isApiError(e) && e.status < 500) endSession(e.message);
+      else {
+        setBootError(e);
+        setStatus("error");
+      }
     }
   }, [loadAccess, loadMe]);
 
@@ -164,6 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       me,
       access,
       endedMessage,
+      bootError,
+      retryBoot: () => void boot(),
       can: key => keys.has(key),
       canAny: (...k) => k.some(key => keys.has(key)),
       isOwner: module => owners.has(module),
@@ -172,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       reloadAccess: loadAccess,
       reloadMe: loadMe
     }),
-    [status, session, me, access, endedMessage, keys, owners, signIn, signOut, loadAccess, loadMe]
+    [status, session, me, access, endedMessage, bootError, boot, keys, owners, signIn, signOut, loadAccess, loadMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

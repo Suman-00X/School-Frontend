@@ -55,6 +55,10 @@ type CatalogueModule = {
 
 type Fixed = { userId?: string; entityId?: string };
 
+/* Sign-in events have no catalogue label */
+const EVENT_LABELS: Record<string, string> = { "auth.login": "Signed in", "auth.login.failed": "Failed sign-in" };
+const actionLabel = (e: AuditEntry) => e.action ?? EVENT_LABELS[e.permission] ?? <span className="mono">{e.permission}</span>;
+
 export function ActivityLog({
   basePath,
   module,
@@ -147,14 +151,14 @@ export function ActivityLog({
       key: "actor",
       header: "Who",
       render: e => (
-        <div className="stack-sm" style={{ gap: 2 }}>
-          <span style={{ fontWeight: 550 }}>{e.actor?.name ?? <span className="muted">Unknown</span>}</span>
+        <div className="row nowrap" style={{ gap: 6, flexWrap: "nowrap" }}>
+          <span style={{ fontWeight: 550 }}>{e.actor?.name ?? <span className="muted">Someone</span>}</span>
           <RoleBadge role={e.actor?.role ?? e.role} />
         </div>
       )
     },
     ...(showModuleFilter ? [{ key: "module", header: "Module", render: (e: AuditEntry) => <span className="badge">{e.module}</span> }] : []),
-    { key: "action", header: "Action", render: e => e.action ?? <span className="mono">{e.permission}</span> },
+    { key: "action", header: "Action", render: e => actionLabel(e) },
     { key: "summary", header: "What happened", render: e => e.summary ?? <span className="muted">—</span> },
     { key: "method", header: "", width: 90, render: e => <MethodBadge method={e.method} /> }
   ];
@@ -287,7 +291,7 @@ function EntryDrawer({
             items={[
               { label: "Who", value: e.actor?.name ? <span className="row">{e.actor.name} <RoleBadge role={e.actor.role ?? e.role} /></span> : null },
               { label: "Module", value: e.module },
-              { label: "Action", value: e.action },
+              { label: "Action", value: actionLabel(e) },
               { label: "Permission", value: <span className="mono">{e.permission}</span> },
               { label: "Record", value: e.entityId ? <span className="mono">{e.entityId}</span> : null, wide: true }
             ]}

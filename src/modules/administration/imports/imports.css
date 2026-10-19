@@ -1,0 +1,14 @@
+.import-map-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .import-map-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

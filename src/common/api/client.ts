@@ -48,6 +48,8 @@ export const setAcademicYearHeader = (id: string | null) => {
 
 /* ---- token refresh: one at a time across every tab ---- */
 
+const SESSION_ENDED = "Your session has ended. Please sign in again.";
+
 let inflight: Promise<boolean> | null = null;
 
 const withLock = <T,>(fn: () => Promise<T>): Promise<T> =>
@@ -87,8 +89,9 @@ function refreshSession(staleRefreshToken: string): Promise<boolean> {
       const latest = sessionStore.get();
       return !!latest && latest.refreshToken !== current.refreshToken;
     }
-    if (res.status === 401 || res.status === 403) {
-      endSession(message);
+    if (res.status >= 400 && res.status < 500) {
+      /* 401/403 explain why (signed out elsewhere, password changed); anything else is just a dead token */
+      endSession(res.status === 401 || res.status === 403 ? message : SESSION_ENDED);
       return false;
     }
     throw toApiError(res, json);
@@ -136,11 +139,13 @@ async function send(method: string, path: string, opts: RequestOptions): Promise
   if (!auth) return doFetch();
 
   await ensureFresh();
+  /* The refresh just ended the session (and said why): don't send a call without a token */
+  if (!sessionStore.get()) throw new ApiError({ status: 401, code: "UNAUTHORIZED", message: SESSION_ENDED });
   let res = await doFetch();
   if (res.status === 401) {
     const session = sessionStore.get();
     if (!session) {
-      endSession();
+      endSession(SESSION_ENDED);
       return res;
     }
     if (await refreshSession(session.refreshToken)) {

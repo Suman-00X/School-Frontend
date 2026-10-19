@@ -190,10 +190,10 @@ export function Switch({
   );
 }
 
-/* The backend's password policy: 8–128 characters, a letter and a digit */
+/* The backend's password policy: 8–128 characters, a Latin letter and a digit */
 export const passwordChecks = (pw: string) => [
   { label: "8 to 128 characters", ok: pw.length >= 8 && pw.length <= 128 },
-  { label: "At least one letter", ok: /\p{L}/u.test(pw) },
+  { label: "At least one letter (A–Z)", ok: /[A-Za-z]/.test(pw) },
   { label: "At least one digit", ok: /\d/.test(pw) }
 ];
 

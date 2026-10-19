@@ -8,12 +8,15 @@ The page specs are in `../School-Backend/docs/FRONTEND_PAGES.md` (page ids such 
 
 ```sh
 # 1. Backend with throwaway databases and a demo school (in ../School-Backend)
-npm run dev:memory          # API on :3000. Sign in: school DEMO, admin@demo.school / Admin12345
+APP_URL=http://localhost:5173 npm run dev:memory
+                            # API on :3000. Sign in: school DEMO, admin@demo.school / Admin12345
 
 # 2. This app
 npm install
 npm run dev                 # http://localhost:5173 (proxies /api to :3000)
 ```
+
+`APP_URL` makes the backend's signed file links (logo, documents) point at this dev server, which proxies `/files/signed` to the backend. Without it, the browser refuses to show uploaded images, because the backend sends `Cross-Origin-Resource-Policy: same-origin`. Production with S3 storage is not affected.
 
 `npm run build` type-checks and builds. Set `VITE_API_PROXY` to point the dev proxy at another backend.
 
