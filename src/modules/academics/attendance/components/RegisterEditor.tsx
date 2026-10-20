@@ -17,16 +17,21 @@ import {
   type RegisterDay,
   type RegisterKind
 } from "../api/attendance";
+import { SESSION_LABELS, useOnLeave, type OnLeave } from "../../student-leaves";
 import "./attendance.css";
 
 type Mark = { status: AttendanceStatus | null; remarks: string };
 
 const studentName = (s: { firstName?: string; lastName?: string }) => [s.firstName, s.lastName].filter(Boolean).join(" ") || "Student";
 
+/* A full-day leave covers every register of the day; a half day, its own session */
+const leaveCovers = (leave: OnLeave, kind: RegisterKind) => leave.session === "FULL_DAY" || leave.session === kind;
+
 /* AC-09 one register: the section's students with one-tap statuses (keyboard: P A L H E),
    a remark each, "Mark all present", and Save. Locked registers are read-only, except for
    the policy's override roles, who must give a reason. Period registers carry the subject
-   taught (the timetable's unless a substitute taught another). */
+   taught (the timetable's unless a substitute taught another). Students with leave their
+   parents asked for show it; "Mark all present" marks those on approved leave excused. */
 export function RegisterEditor({
   sectionId,
   date,
@@ -52,10 +57,11 @@ export function RegisterEditor({
   onSaved?: () => void;
 }) {
   const toast = useToast();
-  const { session } = useAuth();
+  const { session, can } = useAuth();
   const lock = useLockRules();
   const query = { sectionId, date, kind, ...(kind === "PERIOD" && { periodNumber }) };
   const reg = useApiGet<RegisterDay>(REGISTER_PATH, query);
+  const leaves = useOnLeave(sectionId, date, can("academics.studentLeaves.read"));
   const save = useApiMutation(recordAttendance, { invalidate: [...ATTENDANCE_INVALIDATE, "/academics/attendance/cover"] });
   const [marks, setMarks] = useState<Record<string, Mark>>({});
   const [dirty, setDirty] = useState(false);
@@ -104,8 +110,18 @@ export function RegisterEditor({
     setMarks(m => ({ ...m, [studentId]: { status: m[studentId]?.status ?? null, remarks } }));
     setDirty(true);
   };
+  const leaveOf = useMemo(() => new Map((leaves.data ?? []).filter(l => leaveCovers(l, kind)).map(l => [l.studentId, l])), [leaves.data, kind]);
   const markRestPresent = () => {
-    setMarks(m => Object.fromEntries(students.map(s => [s.studentId, { remarks: m[s.studentId]?.remarks ?? "", status: m[s.studentId]?.status ?? "PRESENT" }])));
+    setMarks(m =>
+      Object.fromEntries(
+        students.map(s => {
+          const own = m[s.studentId];
+          if (own?.status) return [s.studentId, own];
+          const excused = leaveOf.get(s.studentId)?.status === "APPROVED";
+          return [s.studentId, { status: excused ? "EXCUSED" : "PRESENT", remarks: own?.remarks || (excused ? "On approved leave" : "") }];
+        })
+      )
+    );
     setDirty(true);
   };
 
@@ -181,12 +197,26 @@ export function RegisterEditor({
     </span>
   );
 
-  const rows: GridRow[] = students.map(s => ({
-    id: s.studentId,
-    label: studentName(s),
-    sub: s.rollNumber ? `Roll ${s.rollNumber}` : "No roll number",
-    error: rowErrors[s.studentId]
-  }));
+  const rows: GridRow[] = students.map(s => {
+    const roll = s.rollNumber ? `Roll ${s.rollNumber}` : "No roll number";
+    const leave = leaveOf.get(s.studentId);
+    return {
+      id: s.studentId,
+      label: studentName(s),
+      sub: leave ? (
+        <span className="row" style={{ gap: 6 }}>
+          {roll}
+          <Badge tone={leave.status === "APPROVED" ? "info" : "warning"}>
+            {leave.status === "APPROVED" ? "On leave" : "Leave requested"}
+            {leave.session !== "FULL_DAY" && ` (${SESSION_LABELS[leave.session].toLowerCase()})`}
+          </Badge>
+        </span>
+      ) : (
+        roll
+      ),
+      error: rowErrors[s.studentId]
+    };
+  });
 
   return (
     <Card

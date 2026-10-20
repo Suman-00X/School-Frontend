@@ -6,6 +6,7 @@ import { childRoutes as learningChildren, routes as learningRoutes } from "./lea
 import { childRoutes as homeworkChildren, routes as homeworkRoutes } from "./homework";
 import { childRoutes as behaviourChildren } from "./behaviour";
 import { childRoutes as certificateChildren } from "./certificates";
+import { childRoutes as leaveChildren } from "./leave";
 import { childRoutes as feesChildren, routes as feesRoutes } from "./fees";
 import { childRoutes as transportHostelChildren } from "./transport-hostel";
 import { routes as libraryRoutes } from "./library";
@@ -18,7 +19,7 @@ export const routes: RouteObject[] = [
   {
     path: "/me/students/:studentId",
     element: createElement(RequirePermission, { permission: "portal.learning.students", children: createElement(PortalLayout) }),
-    children: [...learningChildren, ...homeworkChildren, ...feesChildren, ...transportHostelChildren]
+    children: [...learningChildren, ...homeworkChildren, ...diaryChildren, ...behaviourChildren, ...certificateChildren, ...leaveChildren, ...feesChildren, ...transportHostelChildren]
   },
   ...homeworkRoutes,
   ...feesRoutes,

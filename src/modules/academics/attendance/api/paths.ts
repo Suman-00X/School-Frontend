@@ -2,7 +2,8 @@
 export const ATTENDANCE_PAGES = {
   register: "/academics/attendance",
   cover: "/academics/attendance/cover",
-  missing: "/academics/attendance/missing-registers"
+  missing: "/academics/attendance/missing-registers",
+  leave: "/academics/attendance/leave-requests"
 } as const;
 
 /* The register page opened on one section, date and register ("DAY", "FN", "P3") */

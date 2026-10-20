@@ -15,7 +15,7 @@ export type PortalContext = { student: PortalStudent; students: PortalStudent[] 
 /* The selected child, for pages inside the layout */
 export const usePortalStudent = () => useOutletContext<PortalContext>();
 
-/* My school › Student: the child switcher and the side list of the child's pages (PO-01…PO-08).
+/* My school › Student: the child switcher and the side list of the child's pages (PO-01…PO-14).
    The child is in the URL (/me/students/:studentId/…), so reloads and shared links keep it. */
 export function PortalLayout() {
   const { studentId = "" } = useParams();
@@ -35,6 +35,7 @@ export function PortalLayout() {
         { label: "Overview", to: base, end: true },
         { label: "Timetable", to: `${base}/timetable` },
         { label: "Attendance", to: `${base}/attendance` },
+        { label: "Leave", to: `${base}/leave`, hidden: !can("portal.leaveRequests.read") },
         { label: "Homework", to: `${base}/homework`, hidden: !can("portal.homework.read") },
         { label: "Results", to: `${base}/results` },
         { label: "Behaviour", to: `${base}/behaviour`, hidden: !can("portal.behaviour.read") },
