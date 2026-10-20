@@ -12,6 +12,7 @@ type Values = {
   /* The school */
   name: string;
   code: string;
+  studentCount: string;
   contactEmail: string;
   contactPhone: string;
   address: string;
@@ -30,6 +31,7 @@ type Values = {
 const INITIAL: Values = {
   name: "",
   code: "",
+  studentCount: "",
   contactEmail: "",
   contactPhone: "",
   address: "",
@@ -44,14 +46,14 @@ const INITIAL: Values = {
   phone: ""
 };
 
-const REQUIRED: (keyof Values)[] = ["name", "code", "contactEmail", "contactPhone", "address", "firstName", "lastName", "email"];
+const REQUIRED: (keyof Values)[] = ["name", "code", "studentCount", "contactEmail", "contactPhone", "address", "firstName", "lastName", "email"];
 
 const CODE = /^[A-Z0-9-]{2,20}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /* Server errors name the nested field ("school.code", "admin.email"); the form's are flat */
 const FIELD_MAP: Record<string, string> = Object.fromEntries([
-  ...["name", "code", "contactEmail", "contactPhone", "address", "description", "timezone", "currency", "country"].map(k => [`school.${k}`, k]),
+  ...["name", "code", "studentCount", "contactEmail", "contactPhone", "address", "description", "timezone", "currency", "country"].map(k => [`school.${k}`, k]),
   ...["firstName", "middleName", "lastName", "email", "phone"].map(k => [`admin.${k}`, k])
 ]);
 
@@ -74,7 +76,7 @@ export default function OnboardSchoolPage() {
   const toast = useToast();
   const form = useForm<Values>(INITIAL);
   const { values } = form;
-  /* Every add-on module starts switched on; the operator switches off what the school doesn't buy */
+  /* Every add-on module starts switched on; the system admin switches off what the school doesn't buy */
   const [picked, setModules] = useState<string[] | null>(null);
   const modules = picked ?? (catalogue.data ? catalogue.data.filter(m => !m.core).map(m => m.key) : null);
   const [codeTouched, setCodeTouched] = useState(false);
@@ -89,6 +91,10 @@ export default function OnboardSchoolPage() {
     for (const key of REQUIRED) if (!values[key].trim()) errors[key] = "is required";
     if (values.code.trim() && !CODE.test(values.code.trim())) errors.code = "2-20 letters, digits or dashes";
     if (code.state === "taken") errors.code = "is already taken";
+    const students = Number(values.studentCount);
+    if (values.studentCount.trim() && !(Number.isInteger(students) && students >= 1 && students <= 1_000_000)) {
+      errors.studentCount = "a whole number from 1 to 1,000,000";
+    }
     for (const key of ["contactEmail", "email"] as const) if (values[key].trim() && !EMAIL.test(values[key].trim())) errors[key] = "is not an email address";
     if (Object.keys(errors).length) {
       form.setErrors(errors);
@@ -103,6 +109,7 @@ export default function OnboardSchoolPage() {
           ...compact({ description: v.description }),
           name: v.name,
           code: v.code,
+          studentCount: Number(v.studentCount),
           address: v.address,
           contactEmail: v.contactEmail,
           contactPhone: v.contactPhone,
@@ -132,7 +139,7 @@ export default function OnboardSchoolPage() {
       <PageHeader
         title="Onboard a school"
         subtitle="The school gets its own databases. Its administrator is emailed a link to set a password and sign in."
-        breadcrumbs={[{ label: "Schools", to: "/platform" }, { label: "Onboard a school" }]}
+        breadcrumbs={[{ label: "Tenants", to: "/adminConsole" }, { label: "Onboard a school" }]}
       />
       <form className="onboard-layout" onSubmit={submit} noValidate>
         <div className="stack">
@@ -160,6 +167,19 @@ export default function OnboardSchoolPage() {
                   form.set("code", e.target.value.toUpperCase().replace(/\s+/g, ""));
                 }}
               />
+              <TextInput
+                label="Number of students"
+                type="number"
+                inputMode="numeric"
+                required
+                min={1}
+                max={1000000}
+                step={1}
+                placeholder="850"
+                hint="The students the school is onboarded and charged for."
+                {...field("studentCount")}
+              />
+              <span aria-hidden />
               <TextInput label="Contact email" type="email" required maxLength={254} placeholder="office@school.edu" {...field("contactEmail")} />
               <TextInput label="Contact phone" type="tel" required placeholder="+91 98765 43210" {...field("contactPhone")} />
               <Textarea label="Address" required rows={2} maxLength={500} fieldClassName="span-2" {...field("address")} />
@@ -192,7 +212,7 @@ export default function OnboardSchoolPage() {
             )}
           </Card>
           <FormActions error={busy ? "Creating the school's databases… this can take a minute." : form.formError}>
-            <ButtonLink to="/platform">Cancel</ButtonLink>
+            <ButtonLink to="/adminConsole">Cancel</ButtonLink>
             <Button type="submit" variant="primary" loading={busy} disabled={modules === null}>
               Onboard school
             </Button>
@@ -253,16 +273,18 @@ function Onboarded({ school, invitation, email, onAnother }: { school: SchoolDet
   const addOns = school.moduleStates.filter(m => !m.core && m.enabled);
   return (
     <Page>
-      <PageHeader title={`${school.name} is ready`} subtitle={<span className="mono">{school.code}</span>} breadcrumbs={[{ label: "Schools", to: "/platform" }, { label: school.name }]} />
+      <PageHeader title={`${school.name} is ready`} subtitle={<span className="mono">{school.code}</span>} breadcrumbs={[{ label: "Tenants", to: "/adminConsole" }, { label: school.name }]} />
       <div className="stack" style={{ maxWidth: 760 }}>
         <Card title="Administrator invitation">
           <InvitationPanel invitation={invitation} email={email} />
         </Card>
-        <Card title="Modules switched on">
-          <p className="muted">{addOns.length ? addOns.map(m => m.label).join(", ") : "Core modules only"}, plus the core modules.</p>
+        <Card title="Plan">
+          <p className="muted">
+            {school.studentCount?.toLocaleString()} students · {addOns.length ? addOns.map(m => m.label).join(", ") : "No add-on modules"}, plus the core modules.
+          </p>
         </Card>
         <div className="row">
-          <Button variant="primary" onClick={() => navigate(`/platform/schools/${school.id}`)}>
+          <Button variant="primary" onClick={() => navigate(`/adminConsole/tenants/${school.id}`)}>
             Open the school
           </Button>
           <Button onClick={onAnother}>Onboard another school</Button>

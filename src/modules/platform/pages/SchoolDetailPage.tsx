@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Ban, MailPlus, RotateCcw } from "lucide-react";
+import { Ban, MailPlus, Pencil, RotateCcw } from "lucide-react";
 import { errorMessage } from "@/common/api";
 import {
   Alert,
@@ -14,11 +14,21 @@ import {
   PageHeader,
   PageLoader,
   StatusBadge,
+  TextInput,
   useConfirm,
   useToast
 } from "@/common/ui";
 import { formatDate, formatDateTime, fullName } from "@/common/utils/format";
-import { useInviteAdmin, useModuleCatalogue, useSchool, useSetModules, useSetStatus, type Invitation, type SchoolDetail } from "../api/schools";
+import {
+  useInviteAdmin,
+  useModuleCatalogue,
+  useSchool,
+  useSetModules,
+  useSetStatus,
+  useSetStudentCount,
+  type Invitation,
+  type SchoolDetail
+} from "../api/schools";
 import { InvitationPanel } from "../components/InvitationPanel";
 import { ModuleSwitchboard } from "../components/ModuleSwitchboard";
 
@@ -40,14 +50,15 @@ export default function SchoolDetailPage() {
             <span className="mono">{s.code}</span> · onboarded {formatDate(s.createdAt)} <StatusBadge status={s.status} />
           </span>
         }
-        breadcrumbs={[{ label: "Schools", to: "/platform" }, { label: s.name }]}
+        breadcrumbs={[{ label: "Tenants", to: "/adminConsole" }, { label: s.name }]}
       />
       <div className="detail-layout">
         <div className="stack">
-          {/* A new answer from the server (a save, another operator's change) starts the switches afresh */}
+          {/* A new answer from the server (a save, another system admin's change) starts the switches afresh */}
           <ModulesCard key={s.modules.join(",")} school={s} />
         </div>
         <div className="stack">
+          <StudentsCard key={s.studentCount ?? "none"} school={s} />
           <ProfileCard school={s} />
           <AdminsCard school={s} />
           <StatusCard school={s} />
@@ -94,6 +105,78 @@ function ModulesCard({ school }: { school: SchoolDetail }) {
               Save modules
             </Button>
           </FormActions>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* What the school is charged for, and how many students it has on its roll now */
+function StudentsCard({ school }: { school: SchoolDetail }) {
+  const save = useSetStudentCount(school.id);
+  const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(school.studentCount?.toString() ?? "");
+  const n = Number(value);
+  const valid = Number.isInteger(n) && n >= 1 && n <= 1_000_000;
+  const over = school.studentCount !== null && school.enrolledStudents !== null && school.enrolledStudents > school.studentCount;
+
+  return (
+    <Card
+      title="Students"
+      actions={
+        !editing && (
+          <Button size="sm" variant="ghost" icon={<Pencil size={14} />} onClick={() => setEditing(true)}>
+            Change
+          </Button>
+        )
+      }
+    >
+      {editing ? (
+        <form
+          className="stack-sm"
+          onSubmit={e => {
+            e.preventDefault();
+            if (!valid) return;
+            save.mutate(n, { onSuccess: res => toast.success(res.message), onError: err => toast.error(err) });
+          }}
+        >
+          <TextInput
+            label="Number of students"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={1000000}
+            step={1}
+            autoFocus
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            error={value && !valid ? "a whole number from 1 to 1,000,000" : undefined}
+            hint="What the school is charged for."
+          />
+          <div className="row">
+            <Button onClick={() => setEditing(false)} disabled={save.isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={save.isPending} disabled={!valid || n === school.studentCount}>
+              Save
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="stack-sm">
+          <div className="student-figures">
+            <div>
+              <div className="student-figure">{school.studentCount?.toLocaleString() ?? "—"}</div>
+              <div className="small muted">Charged for</div>
+            </div>
+            <div>
+              <div className="student-figure">{school.enrolledStudents?.toLocaleString() ?? "—"}</div>
+              <div className="small muted">On the roll now</div>
+            </div>
+          </div>
+          {school.studentCount === null && <p className="small muted">Onboarded before the number of students was asked. Set it with Change.</p>}
+          {over && <Alert tone="warning">The school has more students on its roll than it is charged for.</Alert>}
         </div>
       )}
     </Card>

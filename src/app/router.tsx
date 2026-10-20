@@ -32,7 +32,7 @@ export const router = createBrowserRouter([
     children: authPublicRoutes
   },
   ...authLinkRoutes,
-  /* The onboarding portal (operators): its own sign-in and frame */
+  /* The admin console (system admins): its own sign-in and frame */
   ...platformRoutes,
   {
     element: <RequireAuth />,
