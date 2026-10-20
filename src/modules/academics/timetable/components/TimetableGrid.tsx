@@ -16,13 +16,15 @@ export const cellKey = (weekday: number, periodId: string) => `${weekday}|${peri
    - show "section": cells show subject, section and room (a teacher's week)
    - onCellClick makes lesson cells clickable (empty ones too, for adding)
    - errors: messages by cellKey(weekday, periodId), shown in the cell word for word
-   - highlightNow: today's column and the period running now */
+   - highlightNow: today's column and the period running now
+   - slotClassName: an extra class for a lesson's cell (e.g. a draft's new lessons) */
 export function TimetableGrid({
   grid,
   show,
   onCellClick,
   errors,
   highlightNow,
+  slotClassName,
   "aria-label": ariaLabel
 }: {
   grid: TimetableGridData;
@@ -30,6 +32,7 @@ export function TimetableGrid({
   onCellClick?: (day: GridDay, period: GridPeriod, slot: GridSlot | null) => void;
   errors?: Record<string, string>;
   highlightNow?: boolean;
+  slotClassName?: (slot: GridSlot) => string | undefined;
   "aria-label"?: string;
 }) {
   const now = highlightNow ? nowParts() : null;
@@ -75,7 +78,7 @@ export function TimetableGrid({
                   const slot = d.slots.find(s => s.period.id === p.id) ?? null;
                   const error = errors?.[cellKey(d.weekday, p.id)];
                   const second = slot ? [show === "teacher" ? slot.teacher?.name : slot.section?.name, slot.room].filter(Boolean).join(" · ") : "";
-                  const classes = ["tt-cell", slot ? "has-lesson" : "is-empty", error && "has-error", isNow(d, p) && "is-now", onCellClick && "is-clickable"]
+                  const classes = ["tt-cell", slot ? "has-lesson" : "is-empty", error && "has-error", isNow(d, p) && "is-now", onCellClick && "is-clickable", slot && slotClassName?.(slot)]
                     .filter(Boolean)
                     .join(" ");
                   const body = (

@@ -15,6 +15,7 @@ import { SETUP_PATHS } from "../../shared/utils/paths";
 import { MY_TIMETABLE_PATH, sectionGridPath, teacherGridPath, type SectionTimetable, type TeacherTimetable } from "../api/timetable";
 import { LessonDialog, type LessonTarget } from "../components/LessonDialog";
 import { TimetableGrid } from "../components/TimetableGrid";
+import { GenerateTimetableLink } from "../../scheduling";
 
 const lessons = (n: number) => `${n} lesson${n === 1 ? "" : "s"} a week`;
 
@@ -43,7 +44,7 @@ export default function TimetablePage() {
 
   return (
     <Page>
-      <PageIntro>{intro}</PageIntro>
+      <PageHeader title="Timetables" subtitle={intro} actions={<GenerateTimetableLink />} />
       <Tabs tabs={tabs} value={tab} onChange={switchTab} />
       {tab === "mine" && <MyWeek />}
       {tab === "section" && <SectionView />}
