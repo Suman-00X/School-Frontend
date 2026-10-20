@@ -29,6 +29,8 @@ export type AuthContextValue = {
   can: (key: string) => boolean;
   canAny: (...keys: string[]) => boolean;
   isOwner: (module: string) => boolean;
+  /* Is this module part of the school's plan? (core modules always are) */
+  moduleOn: (module: string) => boolean;
   signIn: (result: LoginResult) => Promise<void>;
   signOut: () => Promise<void>;
   reloadAccess: () => Promise<void>;
@@ -38,6 +40,9 @@ export type AuthContextValue = {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 const ACCESS_REFETCH_MS = 2 * 60_000;
+
+/* The modules a school can be without (the platform switches them on per school) */
+const ADD_ON_MODULES = ["finance", "communication", "reports", "files", "library", "transport", "hostel", "hr", "inventory"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -168,6 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [access]
   );
 
+  const enabledModules = access?.enabledModules ?? null;
+
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
@@ -180,12 +187,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       can: key => keys.has(key),
       canAny: (...k) => k.some(key => keys.has(key)),
       isOwner: module => owners.has(module),
+      moduleOn: module => !enabledModules || !ADD_ON_MODULES.includes(module) || enabledModules.includes(module),
       signIn,
       signOut,
       reloadAccess: loadAccess,
       reloadMe: loadMe
     }),
-    [status, session, me, access, endedMessage, bootError, boot, keys, owners, signIn, signOut, loadAccess, loadMe]
+    [status, session, me, access, endedMessage, bootError, boot, keys, owners, enabledModules, signIn, signOut, loadAccess, loadMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

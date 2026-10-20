@@ -1,5 +1,5 @@
-import { createBrowserRouter, Outlet } from "react-router-dom";
-import { PublicOnly, RequireAuth } from "@/common/auth";
+import { createBrowserRouter, Outlet, type RouteObject } from "react-router-dom";
+import { PublicOnly, RequireAuth, RequireModule } from "@/common/auth";
 import { AppShell } from "@/common/layout/AppShell";
 import { NotFound, Page } from "@/common/ui";
 import { linkRoutes as authLinkRoutes, publicRoutes as authPublicRoutes, routes as authRoutes } from "@/modules/auth";
@@ -17,6 +17,10 @@ import { routes as hrRoutes } from "@/modules/hr";
 import { routes as inventoryRoutes } from "@/modules/inventory";
 import { routes as reportsRoutes } from "@/modules/reports";
 import { routes as filesRoutes } from "@/modules/files";
+import { routes as platformRoutes } from "@/modules/platform";
+
+/* An add-on module's pages exist only when the module is switched on for the school */
+const addOn = (module: string, children: RouteObject[]): RouteObject => ({ element: <RequireModule module={module} />, children });
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +32,8 @@ export const router = createBrowserRouter([
     children: authPublicRoutes
   },
   ...authLinkRoutes,
+  /* The onboarding portal (operators): its own sign-in and frame */
+  ...platformRoutes,
   {
     element: <RequireAuth />,
     children: [
@@ -41,15 +47,15 @@ export const router = createBrowserRouter([
           ...userRoutes,
           ...academicsRoutes,
           ...portalRoutes,
-          ...financeRoutes,
-          ...communicationRoutes,
-          ...libraryRoutes,
-          ...transportRoutes,
-          ...hostelRoutes,
-          ...hrRoutes,
-          ...inventoryRoutes,
-          ...reportsRoutes,
-          ...filesRoutes,
+          addOn("finance", financeRoutes),
+          addOn("communication", communicationRoutes),
+          addOn("library", libraryRoutes),
+          addOn("transport", transportRoutes),
+          addOn("hostel", hostelRoutes),
+          addOn("hr", hrRoutes),
+          addOn("inventory", inventoryRoutes),
+          addOn("reports", reportsRoutes),
+          addOn("files", filesRoutes),
           ...administrationRoutes,
           {
             path: "*",

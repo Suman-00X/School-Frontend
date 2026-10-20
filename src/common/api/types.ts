@@ -83,6 +83,8 @@ export type AccessView = {
   asOf: string;
   modules: AccessModule[];
   assignments: AccessAssignment[];
+  /* The add-on modules switched on for the school (null: every module). Only in /me/access. */
+  enabledModules?: string[] | null;
 };
 
 /* Audit log / module activity entry */

@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { PageLoader } from "@/common/ui/Spinner";
-import { ErrorState, NoAccess } from "@/common/ui/ErrorState";
+import { ErrorState, NoAccess, NotFound } from "@/common/ui/ErrorState";
+import { Page } from "@/common/ui/PageHeader";
 import { useAuth } from "./useAuth";
 
 /* Signed-in area: sends everyone else to sign-in, remembering where they were going */
@@ -34,4 +35,17 @@ export function RequirePermission({ permission, children }: { permission: string
   const keys = Array.isArray(permission) ? permission : [permission];
   if (!canAny(...keys)) return <NoAccess />;
   return <>{children}</>;
+}
+
+/* A module's pages: only when the module is switched on for the school; otherwise the pages
+   do not exist (the navigation never links to them either) */
+export function RequireModule({ module }: { module: string }) {
+  const { moduleOn } = useAuth();
+  if (!moduleOn(module))
+    return (
+      <Page>
+        <NotFound message="This page does not exist." />
+      </Page>
+    );
+  return <Outlet />;
 }

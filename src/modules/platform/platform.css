@@ -1,0 +1,253 @@
+/* The onboarding portal (operators): its own frame, no school navigation */
+.platform-shell {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.platform-header {
+  height: var(--header-height);
+  background: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.platform-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.platform-brand:hover {
+  text-decoration: none;
+}
+.platform-brand-sub {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--header-text-muted);
+}
+.platform-nav {
+  display: flex;
+  gap: 4px;
+  height: 100%;
+}
+.platform-nav a {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--header-text-muted);
+  font-size: 14px;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.platform-nav a:hover {
+  color: var(--header-text);
+  text-decoration: none;
+}
+.platform-nav a.active {
+  color: var(--header-text);
+  border-bottom-color: var(--header-text);
+}
+.platform-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.platform-user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.platform-user-email {
+  color: var(--header-text-muted);
+  font-size: 12px;
+}
+.platform-user .btn-ghost {
+  color: var(--header-text);
+}
+.platform-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+@media (max-width: 720px) {
+  .platform-header {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .platform-nav,
+  .platform-user-text,
+  .platform-brand-sub {
+    display: none;
+  }
+}
+
+.platform-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.platform-toolbar .tabs {
+  border-bottom: 0;
+}
+.school-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.school-cell-name {
+  font-weight: 600;
+}
+.module-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.inline-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-ok {
+  color: var(--success);
+}
+.code-taken {
+  color: var(--danger);
+}
+.form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 860px) {
+  .form-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+.onboard-layout {
+  max-width: 920px;
+}
+
+/* Module switches */
+.module-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.module-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 30px;
+}
+.module-section-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+.module-tile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.module-tile:hover {
+  border-color: var(--border-strong);
+}
+.module-tile.is-on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.module-tile.is-core {
+  cursor: default;
+  background: var(--surface-2);
+}
+.module-tile.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.module-tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.module-tile-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.module-tile-desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+.invite-link {
+  display: flex;
+  gap: 8px;
+}
+.invite-link .input {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+/* School detail */
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.admin-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-row:last-of-type {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.admin-row-end {
+  align-items: flex-end;
+}
