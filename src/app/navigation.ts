@@ -144,6 +144,8 @@ export const MODULES: NavModule[] = [
       },
       { label: "Homework", to: "/academics/homework", permissions: ["academics.homework.read"] },
       { label: "Behaviour", to: "/academics/behaviour", permissions: ["academics.behaviourRemarks.read"] },
+      /* Issued certificates and their formats (?tab=formats) */
+      { label: "Certificates", to: "/academics/certificates", permissions: ["academics.certificates.read", "academics.certificateFormats.read"] },
       { label: "Activity", to: "/academics/activity", permissions: ["academics.activity.read"] }
     ]
   },

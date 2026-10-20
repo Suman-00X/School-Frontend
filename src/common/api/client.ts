@@ -213,6 +213,13 @@ export const api = {
     const res = await send("GET", path, { query });
     if (!res.ok) throw await errorFromResponse(res);
     saveBlob(await res.blob(), fileNameOf(res, fallbackName));
+  },
+
+  /* A generated file to show rather than save (a PDF opened in a new tab); POST sends a body */
+  async blob(method: "GET" | "POST", path: string, opts: { query?: Query; body?: unknown } = {}) {
+    const res = await send(method, path, opts);
+    if (!res.ok) throw await errorFromResponse(res);
+    return { blob: await res.blob(), fileName: fileNameOf(res, "download") };
   }
 };
 
