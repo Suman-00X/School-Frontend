@@ -40,7 +40,7 @@ export function RollNumberRuleCard({ onAssignAll }: { onAssignAll: () => void })
   };
 
   return (
-    <Card title="Roll numbers" subtitle="School-wide rule for the order">
+    <Card title="Order" subtitle="One rule for every section in the school">
       <div className="roll-rule">
         {/* Two choices, both shown with what they mean. Disabled (not hidden) for those who can't change it. */}
         <RadioGroup

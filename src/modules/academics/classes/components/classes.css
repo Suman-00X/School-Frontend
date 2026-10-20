@@ -1,13 +1,7 @@
-.master-detail {
-  display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-@media (max-width: 860px) {
-  .master-detail {
-    grid-template-columns: 1fr;
-  }
+/* The classes as a tab strip above the sections. The placeholder strip has the same height. */
+.class-tabs .tab.is-placeholder {
+  height: 41px;
+  cursor: default;
 }
 .class-list {
   list-style: none;
@@ -190,7 +184,7 @@
   text-decoration-thickness: 1px;
 }
 
-/* The roll-number rule under the class list */
+/* The roll-number rule (Calendar & rules › Roll numbers) */
 .roll-rule {
   display: flex;
   flex-direction: column;

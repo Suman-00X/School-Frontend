@@ -4,17 +4,16 @@ import { ListPlus } from "lucide-react";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useApiList } from "@/common/hooks";
-import { Badge, Button, Card, EmptyState, ErrorState, Page, PageHeader, Skeleton, SkeletonBlock } from "@/common/ui";
+import { Badge, Button, Card, EmptyState, ErrorState, Page, PageHeader, Skeleton, SkeletonBlock, Tabs } from "@/common/ui";
 import { byClassOrder, CLASSES_PATH, useClassLevels, type SchoolClass } from "../api/classes";
 import { BulkClassesDialog } from "../components/BulkClassesDialog";
-import { RollNumberRuleCard } from "../components/RollNumberRuleCard";
-import { RollNumbersDialog } from "../components/RollNumbersDialog";
 import { ClassDrawer } from "../components/ClassDrawer";
 import { SectionsPanel } from "../components/SectionsPanel";
 import "../components/classes.css";
 
-/* AC-02: classes (school-wide levels) on the left, the selected class's sections for the header's
-   year on the right. While loading, both columns show placeholders of their final shape. */
+/* AC-02: classes (school-wide levels) as a tab strip under the header, the selected class's sections
+   for the header's year below it. While loading, both show placeholders of their final shape.
+   The roll-number rule has its own page (Calendar & rules › Roll numbers). */
 export default function ClassesPage() {
   const { can } = useAuth();
   const { selected: year } = useAcademicYear();
@@ -26,9 +25,6 @@ export default function ClassesPage() {
   const levels = useClassLevels();
   const [editing, setEditing] = useState<SchoolClass | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [rollAll, setRollAll] = useState(false);
-  /* The roll-number rule sits under the class list, in loading and loaded states alike */
-  const ruleCard = can("academics.enrollments.readPolicy") && <RollNumberRuleCard onAssignAll={() => setRollAll(true)} />;
 
   const classes = [...(list.rows ?? [])].sort(byClassOrder);
   const selected = classes.find(c => c.id === search.get("class")) ?? classes[0] ?? null;
@@ -56,18 +52,13 @@ export default function ClassesPage() {
   if (list.error) body = <ErrorState error={list.error} onRetry={() => void list.refetch()} />;
   else if (list.isLoading)
     body = (
-      <div className="master-detail" aria-busy="true">
-        <div className="stack">
-          <Card flush title="Classes">
-            <ul className="class-list">
-              {Array.from({ length: 6 }, (_, i) => (
-                <li key={i} className="class-item is-placeholder">
-                  <Skeleton width="60%" />
-                </li>
-              ))}
-            </ul>
-          </Card>
-          {ruleCard}
+      <div className="stack" aria-busy="true">
+        <div className="tabs class-tabs">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="tab is-placeholder">
+              <Skeleton width={56} />
+            </div>
+          ))}
         </div>
         <Card title="Sections" subtitle={<Skeleton width={220} height={12} />}>
           <SkeletonBlock lines={5} />
@@ -92,26 +83,21 @@ export default function ClassesPage() {
     );
   else
     body = (
-      <div className="master-detail">
-        <div className="stack">
-          <Card flush title={`Classes (${classes.length})`}>
-            <ul className="class-list" aria-label="Classes">
-              {classes.map(c => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    className={`class-item${c.id === selected.id ? " active" : ""}`}
-                    aria-current={c.id === selected.id || undefined}
-                    onClick={() => select(c.id)}
-                  >
-                    <span className="class-name">{c.className}</span>
-                    {!c.level && <Badge tone="warning">Set level</Badge>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Card>
-          {ruleCard}
+      <div className="stack">
+        <div className="class-tabs">
+          <Tabs
+            tabs={classes.map(c => ({
+              id: c.id,
+              label: (
+                <>
+                  {c.className}
+                  {!c.level && <Badge tone="warning">Set level</Badge>}
+                </>
+              )
+            }))}
+            value={selected.id}
+            onChange={select}
+          />
         </div>
         <SectionsPanel
           key={selected.id}
@@ -132,9 +118,6 @@ export default function ClassesPage() {
       />
       {body}
       {editing && <ClassDrawer open klass={editing} levels={levels.data} onClose={() => setEditing(null)} onSaved={c => select(c.id)} />}
-      {rollAll && (
-        <RollNumbersDialog target={{ all: true }} label={`all of ${year?.yearName ?? "the year"}`} onClose={() => setRollAll(false)} />
-      )}
       {bulkOpen && <BulkClassesDialog open onClose={() => setBulkOpen(false)} levels={levels.data} />}
     </Page>
   );
