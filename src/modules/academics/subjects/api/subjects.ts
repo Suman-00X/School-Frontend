@@ -32,7 +32,8 @@ export type SubjectInput = {
 
 export const SUBJECTS_PATH = "/academics/subjects";
 
-export const SUBJECT_CODE = /^[A-Z][A-Z0-9-]{1,9}$/;
+/* Letters only: a class subject's code adds three digits (MA + 221, see Policy › Subject codes) */
+export const SUBJECT_CODE = /^[A-Z]{2,6}$/;
 
 export const SUBJECT_TYPES: { value: SubjectType; label: string; description: string }[] = [
   { value: "THEORY", label: "Theory", description: "Taught and examined in class" },
