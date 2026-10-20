@@ -5,7 +5,8 @@ import { useAuth } from "@/common/auth";
 import type { Option } from "@/common/ui";
 import { fetchAll } from "../../shared/api/fetchAll";
 
-/* A subject is school-wide (shared by every year); sections pick theirs (section subjects) */
+/* A subject is school-wide (shared by every year), added under School structure › Subjects;
+   classes and sections are given theirs under Curriculum (class and section subjects) */
 export type SubjectType = "THEORY" | "PRACTICAL";
 
 export type Subject = {
@@ -63,5 +64,5 @@ export function useSubjectOptions(enabled = true) {
     [subjects]
   );
   const byId = useMemo(() => new Map((subjects ?? []).map(s => [s.id, s])), [subjects]);
-  return { allowed, subjects: subjects ?? [], options, byId, isLoading: q.isLoading };
+  return { allowed, subjects: subjects ?? [], options, byId, isLoading: q.isLoading, error: q.error, refetch: q.refetch };
 }

@@ -75,17 +75,20 @@ export const MODULES: NavModule[] = [
     label: "Academics",
     icon: GraduationCap,
     tabs: [
-      /* Setup: a side list of the year's setup pages (academics/shared/components/SetupLayout).
-         The calendar is in it but doesn't open the tab on its own: families read it in the portal. */
+      /* Setup: a side list of the year's setup pages: Curriculum first, then three groups: school structure,
+         calendar (periods, timetables, school calendar) and policy (academics/shared/components/SetupLayout).
+         The school calendar is in it but doesn't open the tab on its own: families read it in the portal. */
       {
         label: "Setup",
-        to: "/academics/academic-years",
+        to: "/academics/curriculum",
         permissions: [
           "academics.academicYears.read",
           "academics.classes.read",
           "academics.subjects.read",
+          "academics.classSubjects.read",
           "academics.sectionSubjects.read",
           "academics.teacherAssignments.read",
+          "academics.timetable.read",
           "academics.gradeScales.read",
           "academics.resultPolicies.read",
           "academics.assessmentSchemes.read"
@@ -93,7 +96,8 @@ export const MODULES: NavModule[] = [
         match: [
           "/academics/classes",
           "/academics/subjects",
-          "/academics/teacher-assignments",
+          "/academics/periods",
+          "/academics/timetable",
           "/academics/calendar",
           "/academics/grading",
           "/academics/attendance/policy"
@@ -102,12 +106,11 @@ export const MODULES: NavModule[] = [
           { to: "/academics/academic-years", permission: "academics.academicYears.read" },
           { to: "/academics/classes", permission: "academics.classes.read" },
           { to: "/academics/subjects", permission: "academics.subjects.read" },
-          { to: "/academics/teacher-assignments", permission: "academics.teacherAssignments.read" },
+          { to: "/academics/timetable", permission: "academics.timetable.read" },
           { to: "/academics/grading", permission: "academics.gradeScales.read" }
         ]
       },
       { label: "Enrollments", to: "/academics/enrollments", permissions: ["academics.enrollments.read"] },
-      { label: "Timetable", to: "/academics/timetable", permissions: ["academics.timetable.read"] },
       /* Attendance: a side list (register, cover & substitute, missing registers); the policy is under Setup */
       {
         label: "Attendance",

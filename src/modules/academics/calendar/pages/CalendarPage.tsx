@@ -21,7 +21,7 @@ import {
   Tabs
 } from "@/common/ui";
 import { todayIso } from "@/common/utils/format";
-import { closedReason, EVENT_TYPES, EVENTS_PATH, eventTone, eventTypeLabel, useEventsBetween, useWorkingDays, type CalendarEvent } from "../api/calendar";
+import { categoryLabel, closedReason, EVENT_TYPES, EVENTS_PATH, eventTone, eventTypeLabel, useEventsBetween, useWorkingDays, type CalendarEvent } from "../api/calendar";
 import { EventDrawer, eventDates } from "../components/EventDrawer";
 import "../../shared/components/setup.css";
 
@@ -233,11 +233,23 @@ function ListView({
             render: e => (
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 550 }}>{e.title}</div>
+                {(e.startTime || e.venue) && (
+                  <div className="small muted">{[e.startTime && `${e.startTime.slice(0, 5)}–${e.endTime?.slice(0, 5)}`, e.venue].filter(Boolean).join(" · ")}</div>
+                )}
                 {e.description && <div className="small muted">{e.description}</div>}
               </div>
             )
           },
-          { key: "type", header: "Type", render: e => <Badge tone={eventTone(e.eventType)}>{eventTypeLabel(e.eventType)}</Badge> },
+          {
+            key: "type",
+            header: "Type",
+            render: e => (
+              <div>
+                <Badge tone={eventTone(e.eventType)}>{eventTypeLabel(e.eventType)}</Badge>
+                {e.category && <div className="small muted">{categoryLabel(e.eventType, e.category)}</div>}
+              </div>
+            )
+          },
           { key: "closed", header: "School", render: e => (e.isHoliday ? <Badge tone="warning">Closed</Badge> : <span className="muted">Open</span>) }
         ]}
       />

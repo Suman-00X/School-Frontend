@@ -1,28 +1,19 @@
-/* AC-07 · Timetable builder: a section's week (edited cell by cell), a teacher's week, the
-   bell schedule, and for teachers their own week (GET /me/teaching/timetable) */
+/* AC-07 · Timetables (Academics › Setup › Calendar): a section's week (edited cell by cell), a
+   teacher's week, and for teachers their own week (GET /me/teaching/timetable). The periods
+   lessons are placed in are on the Periods page. */
 import { useState, type ReactNode } from "react";
-import { useSearchParams } from "react-router-dom";
-import { CalendarDays, Clock, Plus } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CalendarDays, Clock } from "lucide-react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useAuth } from "@/common/auth";
 import { useApiGet, useApiList } from "@/common/hooks";
 import { Badge, Button, Card, DataTable, EmptyState, ErrorState, Page, Select, SkeletonBlock, Tabs, useTabParam, type TabItem } from "@/common/ui";
 import { useTeacherOptions } from "../../classes/api/sections";
 import { useMyTeaching } from "../../shared/api/teaching";
-import { PageIntro } from "../../shared/components/PageIntro";
 import { useSectionOptions } from "../../shared/components/SectionSelect";
-import {
-  hhmm,
-  MY_TIMETABLE_PATH,
-  PERIODS_PATH,
-  sectionGridPath,
-  teacherGridPath,
-  type Period,
-  type SectionTimetable,
-  type TeacherTimetable
-} from "../api/timetable";
+import { SETUP_PATHS } from "../../shared/utils/paths";
+import { MY_TIMETABLE_PATH, sectionGridPath, teacherGridPath, type SectionTimetable, type TeacherTimetable } from "../api/timetable";
 import { LessonDialog, type LessonTarget } from "../components/LessonDialog";
-import { PeriodDrawer } from "../components/PeriodDrawer";
 import { TimetableGrid } from "../components/TimetableGrid";
 
 const lessons = (n: number) => `${n} lesson${n === 1 ? "" : "s"} a week`;
@@ -33,8 +24,7 @@ export default function TimetablePage() {
   const tabs: TabItem[] = [
     { id: "mine", label: "My week", hidden: !can("portal.learning.teaching") },
     { id: "section", label: "Section timetable" },
-    { id: "teacher", label: "Teacher timetable", hidden: !can("users.teachers.read") },
-    { id: "periods", label: "Bell schedule" }
+    { id: "teacher", label: "Teacher timetable", hidden: !can("users.teachers.read") }
   ];
   const [tab] = useTabParam(tabs);
   const [, setSearch] = useSearchParams();
@@ -48,8 +38,7 @@ export default function TimetablePage() {
       : can("academics.timetable.manage")
         ? "Click a cell to place a lesson, or a lesson to change or clear it. Clashes are shown on the cell."
         : "A section's week: subject, teacher and room for each period.",
-    teacher: "One teacher's week across their sections.",
-    periods: "The periods and breaks of the school day, for the year chosen in the header."
+    teacher: "One teacher's week across their sections."
   }[tab];
 
   return (
@@ -59,7 +48,6 @@ export default function TimetablePage() {
       {tab === "mine" && <MyWeek />}
       {tab === "section" && <SectionView />}
       {tab === "teacher" && <TeacherView />}
-      {tab === "periods" && <BellSchedule />}
     </Page>
   );
 }
@@ -173,7 +161,15 @@ function SectionView() {
     <GridCard toolbar={toolbar} subtitle={g && lessons(count)} loading={grid.isLoading} error={grid.error} onRetry={() => void grid.refetch()}>
       {g &&
         (g.periods.length === 0 ? (
-          <EmptyState icon={<Clock />} title="No bell schedule yet" message="Add the periods of the school day under Bell schedule first." />
+          <EmptyState
+            icon={<Clock />}
+            title="No periods yet"
+            message={
+              <>
+                Add the periods of the school day on <Link to={SETUP_PATHS.periods}>Periods</Link> first.
+              </>
+            }
+          />
         ) : (
           <TimetableGrid
             grid={g}
@@ -244,59 +240,5 @@ function TeacherView() {
           <TimetableGrid grid={g} show="section" aria-label="Teacher timetable" />
         ))}
     </GridCard>
-  );
-}
-
-function BellSchedule() {
-  const { can } = useAuth();
-  const { readOnly } = useAcademicYear();
-  const list = useApiList<Period>(PERIODS_PATH, { limit: 100 });
-  const [drawer, setDrawer] = useState<{ period: Period | null } | null>(null);
-  const canEdit = can("academics.timetable.manage") && !readOnly;
-  const rows = [...(list.rows ?? [])].sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-  const addButton = canEdit && (
-    <Button size="sm" variant="primary" icon={<Plus />} onClick={() => setDrawer({ period: null })}>
-      Add period
-    </Button>
-  );
-
-  return (
-    <Card flush title="Bell schedule" subtitle={list.rows ? `${rows.filter(p => !p.isBreak).length} lesson periods, ${rows.filter(p => p.isBreak).length} breaks` : " "} actions={addButton}>
-      <DataTable
-        rows={list.rows ? rows : undefined}
-        rowKey={p => p.id}
-        loading={list.isLoading}
-        error={list.error}
-        onRetry={() => void list.refetch()}
-        onRowClick={p => setDrawer({ period: p })}
-        empty={<EmptyState icon={<Clock />} title="No periods yet" message="Add the periods and breaks of the school day; lessons are placed in them." actions={addButton} />}
-        columns={[
-          { key: "periodNumber", header: "No.", width: 60, render: p => <span className="mono">{p.periodNumber}</span> },
-          {
-            key: "name",
-            header: "Name",
-            render: p => (
-              <span className="row">
-                <strong>{p.name}</strong>
-                {p.isBreak && <Badge>Break</Badge>}
-              </span>
-            )
-          },
-          { key: "time", header: "Time", render: p => <span className="nowrap">{hhmm(p.startTime)}–{hhmm(p.endTime)}</span> },
-          {
-            key: "length",
-            header: "Length",
-            align: "right",
-            render: p => {
-              const [sh, sm] = hhmm(p.startTime).split(":").map(Number);
-              const [eh, em] = hhmm(p.endTime).split(":").map(Number);
-              return `${eh! * 60 + em! - (sh! * 60 + sm!)} min`;
-            }
-          }
-        ]}
-      />
-      <PeriodDrawer open={!!drawer} period={drawer?.period ?? null} periods={list.rows ?? []} canEdit={canEdit} onClose={() => setDrawer(null)} />
-    </Card>
   );
 }

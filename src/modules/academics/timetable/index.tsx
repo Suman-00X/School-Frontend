@@ -1,8 +1,9 @@
 import type { RouteObject } from "react-router-dom";
 import { RequirePermission } from "@/common/auth";
+import PeriodsPage from "./pages/PeriodsPage";
 import TimetablePage from "./pages/TimetablePage";
 
-/* Routes inside the signed-in app shell */
+/* Inside Academics › Setup › Calendar (see shared/components/SetupLayout) */
 export const routes: RouteObject[] = [
   { path: "/academics/timetable", element: <RequirePermission permission="academics.timetable.read"><TimetablePage /></RequirePermission> }
 ];

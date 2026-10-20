@@ -6,6 +6,9 @@ import { createPeriod, deletePeriod, hhmm, TIMETABLE_INVALIDATE, updatePeriod, t
 
 type Values = { periodNumber: string; name: string; startTime: string; endTime: string; isBreak: boolean };
 
+/* "Period 3": the name until it is changed */
+const defaultName = (periodNumber: string) => (periodNumber.trim() ? `Period ${periodNumber.trim()}` : "");
+
 const toValues = (p: Period): Values => ({
   periodNumber: String(p.periodNumber),
   name: p.name,
@@ -44,7 +47,7 @@ export function PeriodDrawer({
     if (period) return form.reset(toValues(period));
     const last = [...periods].sort((a, b) => a.endTime.localeCompare(b.endTime)).at(-1);
     const next = Math.max(0, ...periods.map(p => p.periodNumber)) + 1;
-    form.reset({ periodNumber: String(next), name: "", startTime: last ? hhmm(last.endTime) : "", endTime: "", isBreak: false });
+    form.reset({ periodNumber: String(next), name: defaultName(String(next)), startTime: last ? hhmm(last.endTime) : "", endTime: "", isBreak: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, period?.id]);
 
@@ -53,7 +56,6 @@ export function PeriodDrawer({
     const n = Number(values.periodNumber);
     if (!values.periodNumber || !Number.isInteger(n) || n < 1 || n > 20) e.periodNumber = "A whole number from 1 to 20";
     else if (periods.some(p => p.periodNumber === n && p.id !== period?.id)) e.periodNumber = `Number ${n} is already used`;
-    if (!values.name.trim()) e.name = "Give it a name, e.g. Period 1 or Lunch";
     if (!values.startTime) e.startTime = "Pick the start time";
     if (!values.endTime) e.endTime = "Pick the end time";
     else if (values.startTime && values.endTime <= values.startTime) e.endTime = "Must be after the start";
@@ -75,7 +77,7 @@ export function PeriodDrawer({
     if (!validate()) return;
     const body: PeriodInput = {
       periodNumber: Number(values.periodNumber),
-      name: values.name.trim(),
+      name: values.name.trim() || defaultName(values.periodNumber),
       startTime: values.startTime,
       endTime: values.endTime,
       isBreak: values.isBreak
@@ -94,6 +96,13 @@ export function PeriodDrawer({
     if (body.isBreak !== period.isBreak) patch.isBreak = body.isBreak;
     if (!Object.keys(patch).length) return onClose();
     update.mutate({ id: period.id, ...patch }, { onSuccess: done, onError });
+  };
+
+  /* The name follows the number while it is still the default (or empty) */
+  const setNumber = (periodNumber: string) => {
+    const name = values.name.trim();
+    if (!name || name === defaultName(values.periodNumber)) form.set("name", defaultName(periodNumber));
+    form.set("periodNumber", periodNumber);
   };
 
   const askDelete = async () => {
@@ -154,8 +163,15 @@ export function PeriodDrawer({
     >
       <form id="period-form" className="stack" onSubmit={submit} noValidate>
         <div className="form-grid">
-          <TextInput label="Number" required type="number" min={1} max={20} {...form.text("periodNumber")} hint="Bell order, 1 to 20" />
-          <TextInput label="Name" required maxLength={50} {...form.text("name")} placeholder="Period 1" />
+          <TextInput label="Number" required type="number" min={1} max={20} {...form.text("periodNumber")} onChange={e => setNumber(e.target.value)} hint="Bell order, 1 to 20" />
+          <TextInput
+            label="Name"
+            required
+            maxLength={50}
+            {...form.text("name")}
+            placeholder={defaultName(values.periodNumber) || "Period 1"}
+            hint="Follows the number unless changed"
+          />
           <TextInput label="Starts" required type="time" {...form.text("startTime")} />
           <TextInput label="Ends" required type="time" {...form.text("endTime")} error={errors.endTime} />
         </div>

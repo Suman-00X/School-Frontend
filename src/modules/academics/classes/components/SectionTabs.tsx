@@ -222,7 +222,7 @@ export function SectionTimetableTab({ section }: { section: Section }) {
   if (grid.isLoading) body = <SkeletonBlock lines={6} />;
   else if (grid.error) body = <ErrorState error={grid.error} onRetry={() => void grid.refetch()} />;
   else if (!g || !g.periods.length)
-    body = <EmptyState icon={<Clock />} title="No bell schedule yet" message="Add the periods of the school day on the Timetable page, under Bell schedule." />;
+    body = <EmptyState icon={<Clock />} title="No bell schedule yet" message="Add the periods of the school day under Setup › Periods." />;
   else if (!lessons) body = <EmptyState icon={<CalendarDays />} title="No lessons yet" message="Place this section's lessons on the Timetable page." />;
   else body = <TimetableGrid grid={g} show="teacher" aria-label={`${g.section.name} timetable`} />;
   return (
