@@ -14,6 +14,8 @@ export function SetupLayout() {
     <Page>
       <SideNavLayout
         groups={[
+          /* A page of its own, first and shown as a heading: its tabs hold each section's subjects and teachers, and each teacher's */
+          { label: "Curriculum", to: P.curriculum, hidden: !canAny("academics.sectionSubjects.read", "academics.teacherAssignments.read"), items: [] },
           {
             label: "School structure",
             items: [

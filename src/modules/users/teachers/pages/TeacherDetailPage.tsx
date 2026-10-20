@@ -170,7 +170,7 @@ function AssignmentsPanel({ teacherId }: { teacherId: string }) {
       title="Assignments"
       subtitle="Subjects taught in the selected academic year"
       actions={
-        <ButtonLink size="sm" variant="ghost" icon={<ExternalLink />} to="/academics/teacher-assignments">
+        <ButtonLink size="sm" variant="ghost" icon={<ExternalLink />} to={`/academics/curriculum?tab=teacher&teacher=${teacherId}`}>
           Open in Academics
         </ButtonLink>
       }

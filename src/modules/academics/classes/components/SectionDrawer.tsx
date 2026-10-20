@@ -92,12 +92,12 @@ export function SectionDrawer({
   const tabFooter: Record<string, ReactNode> = {
     subjects: (
       <ButtonLink to={links.subjects} variant={manage("academics.sectionSubjects.create") ? "primary" : "default"}>
-        {manage("academics.sectionSubjects.create") ? "Add or remove subjects" : "Open in Subjects"}
+        {manage("academics.sectionSubjects.create") ? "Add or remove subjects" : "Open in Curriculum"}
       </ButtonLink>
     ),
     teachers: (
       <ButtonLink to={links.teachers} variant={manage("academics.teacherAssignments.create") ? "primary" : "default"}>
-        {manage("academics.teacherAssignments.create") ? "Assign teachers" : "Open in Teacher assignments"}
+        {manage("academics.teacherAssignments.create") ? "Assign teachers" : "Open in Curriculum"}
       </ButtonLink>
     ),
     students: (

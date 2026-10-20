@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { FileDown, History, UserRound } from "lucide-react";
+import { FileDown, History, Palette, UserRound } from "lucide-react";
+import { useAuth } from "@/common/auth";
 import { useApiGet } from "@/common/hooks";
-import { Button, Card, EmptyState, ErrorState, Select, SkeletonBlock, useToast } from "@/common/ui";
+import { Button, ButtonLink, Card, EmptyState, ErrorState, Select, SkeletonBlock, useToast } from "@/common/ui";
 import { downloadPdf, sourcePaths, studentFullName, type ResultSheet, type Source, type StudentCard } from "../api/reportCards";
 import { ReportCardView } from "./ReportCardView";
 
-/* AC-15 Student: one student's live report card for the source, with its PDF */
+/* AC-15 Student: one student's live report card for the source, with its PDF (printed from
+   the school's report card format, edited in Certificates › Formats) */
 export function StudentPanel({
   source,
   sectionId,
@@ -20,6 +22,7 @@ export function StudentPanel({
   onSnapshots?: (studentId: string) => void;
 }) {
   const toast = useToast();
+  const { can } = useAuth();
   const [downloading, setDownloading] = useState(false);
   const sheetQ = sourcePaths(source).sheet(sectionId);
   const sheet = useApiGet<ResultSheet>(sheetQ.path, sheetQ.query);

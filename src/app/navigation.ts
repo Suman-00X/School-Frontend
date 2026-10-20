@@ -94,6 +94,7 @@ export const MODULES: NavModule[] = [
           "academics.assessmentSchemes.read"
         ],
         match: [
+          "/academics/academic-years",
           "/academics/classes",
           "/academics/subjects",
           "/academics/periods",
@@ -103,6 +104,8 @@ export const MODULES: NavModule[] = [
           "/academics/attendance/policy"
         ],
         opens: [
+          { to: "/academics/curriculum", permission: "academics.sectionSubjects.read" },
+          { to: "/academics/curriculum", permission: "academics.teacherAssignments.read" },
           { to: "/academics/academic-years", permission: "academics.academicYears.read" },
           { to: "/academics/classes", permission: "academics.classes.read" },
           { to: "/academics/subjects", permission: "academics.subjects.read" },

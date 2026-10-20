@@ -6,10 +6,11 @@ import { ChevronDown } from "lucide-react";
    in the header), grouped and collapsible:
    <SideNavLayout groups={[{ label: "Customization", items: [{ label: "Cases status", to: "…" }] }]}>…</SideNavLayout>
    A group without a label is a plain list. Items can also be buttons (onClick + active).
-   A group with collapsed starts closed, unless it holds the page being shown. */
+   A group with collapsed starts closed, unless it holds the page being shown. A group with `to`
+   and no items is a page of its own, shown as a heading: { label: "Curriculum", to: "…", items: [] }. */
 
 export type SideNavItem = { label: string; to?: string; onClick?: () => void; active?: boolean; hidden?: boolean; end?: boolean };
-export type SideNavGroup = { label?: string; collapsed?: boolean; items: SideNavItem[] };
+export type SideNavGroup = { label?: string; collapsed?: boolean; items: SideNavItem[]; to?: string; end?: boolean; hidden?: boolean };
 
 export function SideNavLayout({ groups, children }: { groups: SideNavGroup[]; children: ReactNode }) {
   return (
@@ -21,7 +22,7 @@ export function SideNavLayout({ groups, children }: { groups: SideNavGroup[]; ch
 }
 
 export function SideNav({ groups }: { groups: SideNavGroup[] }) {
-  const visible = groups.map(g => ({ ...g, items: g.items.filter(i => !i.hidden) })).filter(g => g.items.length);
+  const visible = groups.map(g => ({ ...g, items: g.items.filter(i => !i.hidden) })).filter(g => (g.to ? !g.hidden : g.items.length));
   return (
     <nav className="sidenav" aria-label="Sections">
       {visible.map((g, i) => (
@@ -33,9 +34,19 @@ export function SideNav({ groups }: { groups: SideNavGroup[] }) {
 
 function Group({ group }: { group: SideNavGroup }) {
   const { pathname } = useLocation();
-  const holdsPage = group.items.some(i => (i.to ? !!matchPath({ path: i.to, end: !!i.end }, pathname) : i.active));
   /* undefined: the default (closed if collapsed, but open while one of its items is the page) */
   const [toggled, setToggled] = useState<boolean | undefined>(undefined);
+  /* A heading that is a page: no chevron, but a space for one so its name lines up with the others */
+  if (group.to)
+    return (
+      <div className="sidenav-group">
+        <NavLink to={group.to} end={group.end} className={({ isActive }) => `sidenav-group-label sidenav-group-link${isActive ? " active" : ""}`}>
+          <span className="sidenav-group-icon" aria-hidden />
+          {group.label}
+        </NavLink>
+      </div>
+    );
+  const holdsPage = group.items.some(i => (i.to ? !!matchPath({ path: i.to, end: !!i.end }, pathname) : i.active));
   const open = toggled ?? (!group.collapsed || holdsPage);
   const items = group.items.map(item =>
     item.to ? (
@@ -48,7 +59,8 @@ function Group({ group }: { group: SideNavGroup }) {
       </button>
     )
   );
-  if (!group.label) return <div className="sidenav-group">{items}</div>;
+  /* No heading: indented like a heading's items, so every side list lines up */
+  if (!group.label) return <div className="sidenav-group sidenav-group-plain">{items}</div>;
   return (
     <div className="sidenav-group">
       <button type="button" className="sidenav-group-label" aria-expanded={open} onClick={() => setToggled(!open)}>

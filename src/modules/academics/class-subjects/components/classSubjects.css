@@ -1,0 +1,7 @@
+/* AC-03 curriculum: the subject with its optional badge */
+.class-subject-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}

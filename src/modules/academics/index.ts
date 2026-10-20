@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import { routes as academicYearRoutes } from "./academic-years";
 import { routes as classRoutes } from "./classes";
 import { routes as subjectRoutes } from "./subjects";
+import { routes as curriculumRoutes } from "./class-subjects";
 import { routes as teacherAssignmentRoutes } from "./teacher-assignments";
 import { routes as calendarRoutes } from "./calendar";
 import { routes as attendancePolicyRoutes } from "./attendance-policy";

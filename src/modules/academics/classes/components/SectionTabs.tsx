@@ -20,8 +20,8 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 
 /* Where the full pages open on this section */
 export const sectionLinks = (sectionId: string) => ({
-  subjects: `/academics/subjects?tab=sections&section=${sectionId}`,
-  teachers: `/academics/teacher-assignments?section=${sectionId}`,
+  subjects: `/academics/curriculum?section=${sectionId}`,
+  teachers: `/academics/curriculum?section=${sectionId}`,
   roster: `/academics/enrollments?section=${sectionId}`,
   timetable: `/academics/timetable?tab=section&sectionId=${sectionId}`
 });
@@ -46,7 +46,7 @@ export function SectionSubjectsTab({ section }: { section: Section }) {
           error={list.error}
           onRetry={() => void list.refetch()}
           empty={
-            <EmptyState icon={<BookOpen />} title="No subjects yet" message="Add the subjects this section is taught on the Subjects page, under By section." />
+            <EmptyState icon={<BookOpen />} title="No subjects yet" message="Add the subjects this section is taught under Setup › Curriculum." />
           }
           columns={[
             {

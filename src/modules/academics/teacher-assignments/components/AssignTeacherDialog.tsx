@@ -58,7 +58,7 @@ export function AssignTeacherDialog({
     if (isApiError(err) && err.status === 422 && /not taught/i.test(err.message))
       setFormError(
         <>
-          {err.message} <Link to={`${SETUP_PATHS.subjects}?tab=sections&section=${sectionId}`}>Subjects</Link>
+          {err.message} <Link to={`${SETUP_PATHS.curriculum}?section=${sectionId}`}>Curriculum</Link>
         </>
       );
     else setFormError(isApiError(err) ? err.message : "Something went wrong. Please try again.");
