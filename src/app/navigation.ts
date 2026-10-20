@@ -143,6 +143,7 @@ export const MODULES: NavModule[] = [
         ]
       },
       { label: "Homework", to: "/academics/homework", permissions: ["academics.homework.read"] },
+      { label: "Diary", to: "/academics/diary", permissions: ["academics.diary.read"] },
       { label: "Behaviour", to: "/academics/behaviour", permissions: ["academics.behaviourRemarks.read"] },
       /* Issued certificates and their formats (?tab=formats) */
       { label: "Certificates", to: "/academics/certificates", permissions: ["academics.certificates.read", "academics.certificateFormats.read"] },

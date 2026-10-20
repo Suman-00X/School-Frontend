@@ -37,6 +37,7 @@ export function PortalLayout() {
         { label: "Attendance", to: `${base}/attendance` },
         { label: "Leave", to: `${base}/leave`, hidden: !can("portal.leaveRequests.read") },
         { label: "Homework", to: `${base}/homework`, hidden: !can("portal.homework.read") },
+        { label: "Diary", to: `${base}/diary`, hidden: !can("portal.diary.read") },
         { label: "Results", to: `${base}/results` },
         { label: "Behaviour", to: `${base}/behaviour`, hidden: !can("portal.behaviour.read") },
         { label: "Admit cards", to: `${base}/admit-cards` },

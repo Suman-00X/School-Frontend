@@ -5,6 +5,7 @@ import { PortalLayout, routes as sharedRoutes } from "./shared";
 import { childRoutes as learningChildren, routes as learningRoutes } from "./learning";
 import { childRoutes as homeworkChildren, routes as homeworkRoutes } from "./homework";
 import { childRoutes as behaviourChildren } from "./behaviour";
+import { childRoutes as diaryChildren } from "./diary";
 import { childRoutes as certificateChildren } from "./certificates";
 import { childRoutes as leaveChildren } from "./leave";
 import { childRoutes as feesChildren, routes as feesRoutes } from "./fees";

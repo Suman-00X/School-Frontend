@@ -16,6 +16,7 @@ import { routes as timetableRoutes } from "./timetable";
 import { routes as attendanceRoutes } from "./attendance";
 import { routes as homeworkRoutes } from "./homework";
 import { routes as behaviourRoutes } from "./behaviour";
+import { routes as diaryRoutes } from "./diary";
 import { routes as certificateRoutes } from "./certificates";
 import { areaRoutes as examAreaRoutes, routes as examRoutes, resultsArea } from "./exams";
 import { areaRoutes as marksAreaRoutes } from "./marks";
@@ -24,7 +25,7 @@ import { areaRoutes as assessmentAreaRoutes, routes as assessmentRoutes } from "
 import { routes as activityRoutes } from "./activity";
 
 /* Setup pages share the Setup side list (setupArea); the other areas are header tabs of their own */
-export const routes: RouteObject[] = [setupArea([...academicYearRoutes, ...classRoutes, ...subjectRoutes, ...teacherAssignmentRoutes, ...calendarRoutes, ...gradingRoutes, ...attendancePolicyRoutes]), ...enrollmentRoutes, ...timetableRoutes, ...attendanceRoutes, ...homeworkRoutes, resultsArea([...examAreaRoutes, ...marksAreaRoutes, ...resultsAreaRoutes]), ...examRoutes, ...activityRoutes];
+export const routes: RouteObject[] = [setupArea([...academicYearRoutes, ...classRoutes, ...subjectRoutes, ...curriculumRoutes, ...teacherAssignmentRoutes, ...timetableRoutes, ...calendarRoutes, ...gradingRoutes, ...attendancePolicyRoutes, ...examEligibilityRoutes, ...subjectCodeRoutes, ...nepPolicyRoutes]), ...enrollmentRoutes, ...attendanceRoutes, ...homeworkRoutes, ...diaryRoutes, ...behaviourRoutes, ...certificateRoutes, resultsArea([...examAreaRoutes, ...marksAreaRoutes, ...assessmentAreaRoutes, ...resultsAreaRoutes]), ...examRoutes, ...assessmentRoutes, ...activityRoutes];
 
 /* For other modules: pick and name a section of the header's year, list teachers */
 export { SectionSelect, useSectionOptions, sectionTitle } from "./shared/components/SectionSelect";
