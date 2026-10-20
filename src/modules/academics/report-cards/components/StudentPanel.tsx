@@ -102,6 +102,11 @@ export function StudentPanel({
                   Published copies
                 </Button>
               )}
+              {can("academics.certificateFormats.read") && (
+                <ButtonLink size="sm" icon={<Palette />} to="/academics/certificates?tab=formats&format=REPORT_CARD">
+                  PDF format
+                </ButtonLink>
+              )}
               <Button size="sm" icon={<FileDown />} loading={downloading} onClick={() => void pdf()}>
                 PDF
               </Button>
