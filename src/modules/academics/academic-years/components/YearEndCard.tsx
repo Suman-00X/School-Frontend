@@ -11,6 +11,7 @@ import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { Button, Card } from "@/common/ui";
 import { formatDate, todayIso } from "@/common/utils/format";
 import { PROMOTION_PAGE } from "../../shared/utils/paths";
+import { nextYearDates, yearNameFor } from "../utils/yearName";
 import "./yearEnd.css";
 
 /* The year to close: the latest one that has ended but is neither current nor archived, else the current year */
@@ -26,7 +27,8 @@ export function YearEndCard({
   onMakeCurrent,
   onArchive
 }: {
-  onNewYear?: () => void;
+  /* Opens the new-year form prefilled with the year after `closing` */
+  onNewYear?: (closing: AcademicYear) => void;
   onMakeCurrent: (year: AcademicYear) => void;
   onArchive: (year: AcademicYear) => void;
 }) {
@@ -44,6 +46,8 @@ export function YearEndCard({
   const next = years.filter(y => !y.archivedAt && y.startDate > closing.endDate).sort((a, b) => a.startDate.localeCompare(b.startDate))[0] ?? null;
   const ended = closing.endDate < today;
   const name = closing.yearName;
+  const nextDates = nextYearDates(closing.endDate);
+  const nextName = yearNameFor(nextDates.startDate, nextDates.endDate);
 
   /* The promotion wizard promotes from the header's year: switch it to the year being closed */
   const promote = () => {
@@ -63,11 +67,11 @@ export function YearEndCard({
           )
         }
       : {
-          title: "Create the next year, then promote each section into it",
-          hint: `Promotion moves ${name}'s students into the next year's sections, so that year and its sections come first.`,
+          title: `Create ${nextName}, then promote each section into it`,
+          hint: `Promotion moves ${name}'s students into ${nextName}'s sections, so that year and its sections come first.`,
           action: onNewYear && (
-            <Button size="sm" icon={<Plus />} onClick={onNewYear}>
-              New year
+            <Button size="sm" icon={<Plus />} onClick={() => onNewYear(closing)}>
+              Create {nextName}
             </Button>
           )
         },

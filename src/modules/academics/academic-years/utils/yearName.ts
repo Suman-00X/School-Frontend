@@ -55,3 +55,9 @@ export function yearDatesProblem(startDate: string, endDate: string, others: Aca
     return `Overlaps ${other.yearName} (${formatDate(other.startDate)} – ${formatDate(other.endDate)}). Academic years cannot overlap.`;
   return null;
 }
+
+/* The year right after one ending on `endDate`: from the next day, twelve months long */
+export const nextYearDates = (endDate: string) => {
+  const startDate = addDays(endDate, 1);
+  return { startDate, endDate: addDays(addMonths(startDate, 12), -1) };
+};

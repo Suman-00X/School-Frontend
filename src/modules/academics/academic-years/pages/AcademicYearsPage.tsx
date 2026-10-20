@@ -14,8 +14,9 @@ import {
   useAcademicYearMutation,
   type AcademicYearRecord
 } from "../api/academicYears";
-import { AcademicYearDrawer } from "../components/AcademicYearDrawer";
+import { AcademicYearDrawer, type AcademicYearDraft } from "../components/AcademicYearDrawer";
 import { YearEndCard } from "../components/YearEndCard";
+import { nextYearDates } from "../utils/yearName";
 
 const MONTH_MS = 30 * 86_400_000;
 
@@ -33,7 +34,7 @@ export default function AcademicYearsPage() {
   const confirm = useConfirm();
   const { params, setPage } = useListParams({});
   const list = useApiList<AcademicYearRecord>(ACADEMIC_YEARS_PATH, { page: params.page, limit: params.limit });
-  const [drawer, setDrawer] = useState<{ year: AcademicYearRecord | null } | null>(null);
+  const [drawer, setDrawer] = useState<{ year: AcademicYearRecord | null; draft?: AcademicYearDraft } | null>(null);
 
   const canCreate = can("academics.academicYears.create");
   const canUpdate = can("academics.academicYears.update");
@@ -45,6 +46,13 @@ export default function AcademicYearsPage() {
   const handlers = { onSuccess: (res: { message: string }) => toast.success(res.message), onError: (e: unknown) => toast.error(e) };
 
   const current = list.rows?.find(y => y.isCurrent);
+
+  /* The year after `closing`, with its weekly off days when that row is on this page */
+  const newYearAfter = (closing: AcademicYear) => {
+    const before = list.rows?.find(y => y.id === closing.id);
+    const offDays = before && { weeklyOffDays: before.weeklyOffDays, offSaturdays: before.offSaturdays ?? [] };
+    setDrawer({ year: null, draft: { ...nextYearDates(closing.endDate), ...offDays } });
+  };
 
   const askMakeCurrent = async (y: AcademicYear) => {
     const ok = await confirm({
@@ -184,11 +192,11 @@ export default function AcademicYearsPage() {
       </Card>
       {/* Below the table, so it never pushes the list down */}
       <YearEndCard
-        onNewYear={canCreate ? () => setDrawer({ year: null }) : undefined}
+        onNewYear={canCreate ? newYearAfter : undefined}
         onMakeCurrent={y => void askMakeCurrent(y)}
         onArchive={y => void askArchive(y)}
       />
-      <AcademicYearDrawer open={!!drawer} year={drawer?.year ?? null} canEdit={canUpdate} onClose={() => setDrawer(null)} />
+      <AcademicYearDrawer open={!!drawer} year={drawer?.year ?? null} draft={drawer?.draft} canEdit={canUpdate} onClose={() => setDrawer(null)} />
     </Page>
   );
 }

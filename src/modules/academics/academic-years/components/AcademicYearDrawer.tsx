@@ -27,6 +27,9 @@ type Values = {
   isCurrent: boolean;
 };
 
+/* What a new year can start from, e.g. the year after the one being closed */
+export type AcademicYearDraft = Partial<Pick<Values, "startDate" | "endDate" | "weeklyOffDays" | "offSaturdays">>;
+
 const EMPTY: Values = { startDate: "", endDate: "", weeklyOffDays: [0], offSaturdays: [], description: "", isCurrent: false };
 
 const toValues = (y: AcademicYearRecord): Values => ({
@@ -60,16 +63,18 @@ const isDatesError = (err: unknown) =>
 
 const RULES = `A year lasts at most ${MAX_YEAR_MONTHS} months, spans at most two calendar years and may not overlap another year.`;
 
-/* AC-01 drawer. Create (year = null) or view/edit one year. No name field: the name comes from the
+/* AC-01 drawer. Create (year = null, prefilled from `draft`) or view/edit one year. No name field: the name comes from the
    dates and is previewed live. Archived years and readers without update see it read-only. */
 export function AcademicYearDrawer({
   open,
   year,
+  draft,
   canEdit,
   onClose
 }: {
   open: boolean;
   year: AcademicYearRecord | null;
+  draft?: AcademicYearDraft;
   canEdit: boolean;
   onClose: () => void;
 }) {
@@ -82,7 +87,7 @@ export function AcademicYearDrawer({
   const { values, errors } = form;
 
   useEffect(() => {
-    if (open) form.reset(year ? toValues(year) : EMPTY);
+    if (open) form.reset(year ? toValues(year) : { ...EMPTY, ...draft });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, year?.id]);
 
