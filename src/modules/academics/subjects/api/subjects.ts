@@ -14,6 +14,7 @@ export type Subject = {
   /* 2–10 letters, digits or -, starting with a letter; stored upper-case */
   subjectCode: string;
   subjectType: SubjectType | null;
+  /* The default when a class is given it: optional subjects go only to the sections picked */
   isOptional: boolean;
   description: string | null;
   createdAt: string;

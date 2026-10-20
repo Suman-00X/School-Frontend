@@ -3,41 +3,6 @@
   min-width: 260px;
 }
 
-/* Add several subjects: a small grid of rows, each with a reserved error line */
-.bulk-subjects {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.bulk-subjects-head,
-.bulk-subjects-fields {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr) 130px 64px 34px;
-  gap: 8px;
-  align-items: center;
-}
-.bulk-subjects-head {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-3);
-  padding-bottom: 4px;
-}
-.bulk-subjects-fields .check {
-  justify-content: center;
-}
-@media (max-width: 640px) {
-  .bulk-subjects-head {
-    display: none;
-  }
-  .bulk-subjects-fields {
-    grid-template-columns: 90px minmax(0, 1fr) 34px;
-  }
-  .bulk-subjects-fields > :nth-child(3),
-  .bulk-subjects-fields > :nth-child(4) {
-    grid-column: span 1;
-  }
-}
-
 /* Attendance policy: two cards side by side on wide screens */
 .policy-layout {
   display: grid;
@@ -283,4 +248,44 @@
     min-width: 0;
     padding: 0 8px;
   }
+}
+
+/* Subjects › By section: a class's sections as tabs beside the class dropdown */
+.filter-bar .field.section-tabs-field {
+  min-width: 0;
+}
+.section-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.section-tab {
+  min-width: 40px;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.section-tab:hover:not(.active) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.section-tab.active {
+  background: var(--primary);
+  color: var(--text-inverse);
+  font-weight: 600;
+}
+.section-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
