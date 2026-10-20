@@ -177,13 +177,20 @@ function ModeCard({ policy, canEdit }: { policy?: AttendancePolicy; canEdit: boo
   );
 }
 
-type Rules = { editWindowDays: string; principalOverrides: boolean; periodPresenceThreshold: string };
+type Rules = { editWindowDays: string; principalOverrides: boolean; periodPresenceThreshold: string; lowAttendanceThreshold: string; lowAttendanceMinDays: string };
 
 const rulesOf = (p?: AttendancePolicy): Rules => ({
   editWindowDays: p ? String(p.editWindowDays) : "",
   principalOverrides: !!p?.overrideRoles.includes("PRINCIPAL"),
-  periodPresenceThreshold: p ? String(p.periodPresenceThreshold) : ""
+  periodPresenceThreshold: p ? String(p.periodPresenceThreshold) : "",
+  lowAttendanceThreshold: p ? String(p.lowAttendanceThreshold) : "",
+  lowAttendanceMinDays: p ? String(p.lowAttendanceMinDays) : ""
 });
+
+const wholeIn = (value: string, min: number, max: number) => {
+  const n = Number(value);
+  return value.trim() !== "" && Number.isInteger(n) && n >= min && n <= max;
+};
 
 function RulesCard({ policy, canEdit }: { policy?: AttendancePolicy; canEdit: boolean }) {
   const toast = useToast();
@@ -212,6 +219,8 @@ function RulesCard({ policy, canEdit }: { policy?: AttendancePolicy; canEdit: bo
     if (values.editWindowDays !== original.editWindowDays) changes.editWindowDays = Number(values.editWindowDays);
     if (values.principalOverrides !== original.principalOverrides) changes.overrideRoles = values.principalOverrides ? ["ADMIN", "PRINCIPAL"] : ["ADMIN"];
     if (values.periodPresenceThreshold !== original.periodPresenceThreshold) changes.periodPresenceThreshold = Number(values.periodPresenceThreshold);
+    if (values.lowAttendanceThreshold !== original.lowAttendanceThreshold) changes.lowAttendanceThreshold = Number(values.lowAttendanceThreshold);
+    if (values.lowAttendanceMinDays !== original.lowAttendanceMinDays) changes.lowAttendanceMinDays = Number(values.lowAttendanceMinDays);
   }
   const dirty = Object.keys(changes).length > 0;
 
@@ -227,6 +236,8 @@ function RulesCard({ policy, canEdit }: { policy?: AttendancePolicy; canEdit: bo
     if (values.editWindowDays.trim() === "" || !Number.isInteger(days) || days < 0 || days > 365) errs.editWindowDays = "A whole number of days from 0 to 365";
     const pct = Number(values.periodPresenceThreshold);
     if (values.periodPresenceThreshold.trim() === "" || !Number.isInteger(pct) || pct < 1 || pct > 100) errs.periodPresenceThreshold = "A whole number from 1 to 100";
+    if (!wholeIn(values.lowAttendanceThreshold, 1, 100)) errs.lowAttendanceThreshold = "A whole number from 1 to 100";
+    if (!wholeIn(values.lowAttendanceMinDays, 1, 365)) errs.lowAttendanceMinDays = "A whole number of days from 1 to 365";
     setErrors(errs);
     if (Object.keys(errs).length) {
       setFormError("Please correct the highlighted fields.");
@@ -283,6 +294,37 @@ function RulesCard({ policy, canEdit }: { policy?: AttendancePolicy; canEdit: bo
           error={errors.periodPresenceThreshold}
           onChange={e => set("periodPresenceThreshold", e.target.value)}
         />
+        <div className="section-title">Low attendance alert</div>
+        <div className="grid-2">
+          <TextInput
+            label="Alert below"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={100}
+            value={values.lowAttendanceThreshold}
+            disabled={disabled}
+            hint={
+              wholeIn(values.lowAttendanceThreshold, 1, 100)
+                ? `% of the year so far. Teachers see students under ${values.lowAttendanceThreshold}% on their home page, and parents are told once`
+                : "% of the year so far"
+            }
+            error={errors.lowAttendanceThreshold}
+            onChange={e => set("lowAttendanceThreshold", e.target.value)}
+          />
+          <TextInput
+            label="Starting after"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={365}
+            value={values.lowAttendanceMinDays}
+            disabled={disabled}
+            hint="School days of registers, so one absence in the first week is not an alert"
+            error={errors.lowAttendanceMinDays}
+            onChange={e => set("lowAttendanceMinDays", e.target.value)}
+          />
+        </div>
         {canEdit && (
           <FormActions error={formError}>
             <Button type="button" disabled={!dirty || save.isPending} onClick={() => setValues(original)}>

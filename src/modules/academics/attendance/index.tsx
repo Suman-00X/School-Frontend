@@ -24,3 +24,6 @@ export const routes: RouteObject[] = [
     ]
   }
 ];
+
+/* Home: students under the low-attendance threshold (teachers) */
+export { LowAttendanceHighlight } from "./components/LowAttendanceHighlight";

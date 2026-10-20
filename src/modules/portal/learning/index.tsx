@@ -25,3 +25,6 @@ export const routes: RouteObject[] = [
   { path: "/me/teaching/sections", element: <RequirePermission permission="portal.learning.teaching"><TeachingSectionsPage /></RequirePermission> },
   { path: "/me/teaching/timetable", element: <RequirePermission permission="portal.learning.teaching"><TeachingTimetablePage /></RequirePermission> }
 ];
+
+/* Home: the low-attendance warning for families */
+export { AttendanceWarning } from "./components/AttendanceWarning";

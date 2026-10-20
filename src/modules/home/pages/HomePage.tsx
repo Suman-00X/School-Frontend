@@ -1,5 +1,7 @@
 import { useAuth } from "@/common/auth";
 import { useApiGet } from "@/common/hooks";
+import { LowAttendanceHighlight, MyDutiesCard, SubstitutionHighlight } from "@/modules/academics";
+import { AttendanceWarning } from "@/modules/portal";
 import { Page, PageHeader } from "@/common/ui";
 import { todayIso } from "@/common/utils/format";
 import { OVERVIEW_PATH, type Overview } from "../api/overview";
@@ -38,7 +40,13 @@ export default function HomePage() {
     <Page>
       <PageHeader title={firstName ? `${greeting()}, ${firstName}` : greeting()} subtitle={longDate(overview.data?.today ?? todayIso())} />
       <div className="stack">
+        {/* Absent teachers' periods still to plan today (ADMIN, PRINCIPAL); gone once all are planned */}
+        <SubstitutionHighlight />
+        {/* Attendance for the year below the school's threshold: teachers' students, a family's children */}
+        <LowAttendanceHighlight />
+        <AttendanceWarning />
         {showOverview && <OverviewKpis />}
+        <MyDutiesCard />
         {canAny(...SETUP_PERMISSIONS) ? (
           <div className="grid-2" style={{ alignItems: "start" }}>
             <GetStartedCard />

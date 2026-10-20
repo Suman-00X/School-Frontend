@@ -12,6 +12,10 @@ export type AttendancePolicy = {
   overrideRoles: OverrideRole[];
   /* Period-wise: % of a day's periods to attend for the day to count as present */
   periodPresenceThreshold: number;
+  /* Low attendance (D-85): teachers and parents are alerted when a student's attendance for
+     the year falls under this %, once they have at least `lowAttendanceMinDays` countable days */
+  lowAttendanceThreshold: number;
+  lowAttendanceMinDays: number;
   /* In force today */
   mode: AttendanceMode;
   /* Changes still to come, in date order */
@@ -21,7 +25,7 @@ export type AttendancePolicy = {
   change?: { mode: AttendanceMode; effectiveFrom: string } | null;
 };
 
-export type AttendancePolicyChanges = Partial<Pick<AttendancePolicy, "editWindowDays" | "overrideRoles" | "periodPresenceThreshold">> & {
+export type AttendancePolicyChanges = Partial<Pick<AttendancePolicy, "editWindowDays" | "overrideRoles" | "periodPresenceThreshold" | "lowAttendanceThreshold" | "lowAttendanceMinDays">> & {
   mode?: AttendanceMode;
   /* With mode only; tomorrow at the earliest (the default) */
   modeEffectiveFrom?: string;

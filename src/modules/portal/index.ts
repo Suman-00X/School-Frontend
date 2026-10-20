@@ -28,3 +28,6 @@ export const routes: RouteObject[] = [
   ...libraryRoutes,
   ...hrRoutes
 ];
+
+/* Home: the low-attendance warning for families (D-85) */
+export { AttendanceWarning } from "./learning";

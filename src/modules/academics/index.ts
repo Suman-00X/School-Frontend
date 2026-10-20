@@ -36,3 +36,17 @@ export { TimetableGrid, MY_TIMETABLE_PATH, type TeacherTimetable, type Timetable
 
 /* The school calendar's data, for the portal's calendar (PO-09; the month grid is MonthCalendar in common/ui) */
 export { useEventsBetween, useWorkingDays, eventTone, eventTypeLabel, EVENT_TYPES, closedReason, type CalendarEvent } from "./calendar";
+
+/* Substitution planning (AC-12): the home page's highlight and its overlay, and a teacher's duties */
+export { SubstitutionHighlight, SubstitutionOverlay, MyDutiesCard } from "./substitutions";
+/* Low attendance (D-85): the teacher's home highlight */
+export { LowAttendanceHighlight } from "./attendance";
+
+/* Behaviour log books (AC-18): the student profile's tab and the portal's page (PO-12) */
+export { StudentBehaviourTab, BehaviourLog, BehaviourKpis, NoRemarks, type BehaviourRemark, type BehaviourSummary } from "./behaviour";
+/* Certificates (AC-19): the portal's page (PO-13) reuses the viewer */
+export { CertificatePreview, openPdf, TYPE_ORDER as CERTIFICATE_TYPE_ORDER, TYPE_SHORT as CERTIFICATE_TYPE_SHORT, type CertificateType } from "./certificates";
+/* Student leave (AC-09c): the portal's page (PO-14) applies and lists it */
+export { LEAVE_REASONS, ON_LEAVE_PATH, STUDENT_LEAVES_PATH, leaveDates, leaveDays, reasonLabel, type StudentLeave, type StudentLeaveSession } from "./student-leaves";
+/* Daily diary (AC-20): the portal's page (PO-15) reuses the day view */
+export { DiaryLines, DateNav, NoLines, dayLabel as diaryDayLabel, shiftDate, type DiaryEntry, type DiaryHomework, type DiarySignature } from "./diary";

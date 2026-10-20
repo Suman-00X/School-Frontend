@@ -241,3 +241,132 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ---------- Low attendance: the home highlight and its list ---------- */
+.low-att-highlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-lg);
+  background: var(--danger-soft);
+  color: var(--danger-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s;
+}
+.low-att-highlight:hover {
+  box-shadow: var(--shadow-md);
+}
+.low-att-highlight:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.low-att-count {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: var(--text-inverse);
+  font-size: 22px;
+  font-weight: 700;
+}
+.low-att-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.low-att-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.low-att-go svg {
+  width: 18px;
+  height: 18px;
+}
+.low-att-inline-icon {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+}
+.low-att-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.low-att-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.low-att-section-head > a {
+  margin-left: auto;
+}
+.low-att-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.low-att-list li + li {
+  border-top: 1px solid var(--border);
+}
+.low-att-list button {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 14px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.low-att-list button:hover {
+  background: var(--surface-hover);
+}
+.low-att-name {
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.low-att-recover {
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .low-att-list button {
+    grid-template-columns: minmax(0, 1fr) 120px;
+  }
+  .low-att-roll,
+  .low-att-recover {
+    display: none;
+  }
+}
+
+/* Portal home: a family's warning, one line per child below */
+.att-warning-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

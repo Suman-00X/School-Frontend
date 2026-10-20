@@ -65,6 +65,23 @@ export const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
 };
 export const ATTENDANCE_TONES = { PRESENT: "success", ABSENT: "danger", LATE: "warning", HALF_DAY: "info", EXCUSED: "neutral" } as const;
 
+/* ---- Home warning: children (or the student) under the school's low-attendance threshold (D-85) ---- */
+
+export type AttendanceAlert = {
+  studentId: string;
+  firstName: string;
+  lastName: string;
+  section: string;
+  percentage: number;
+  basis: "DAYS" | "PERIODS";
+  attendedDays: number;
+  countableDays: number;
+  /* Full days (or periods) in a row that bring the attendance back to the threshold */
+  toRecover: { unit: "DAYS" | "PERIODS"; count: number } | null;
+};
+export type AttendanceAlerts = { asOf: string; threshold: number; minDays: number; students: AttendanceAlert[] };
+export const ATTENDANCE_ALERTS_PATH = "/me/attendance-alerts";
+
 /* ---- PO-05 report cards ---- */
 
 export type ReportLine = {
@@ -90,7 +107,7 @@ export type ReportLine = {
 export type ReportCard = {
   kind: "EXAM" | "SCHEME";
   exam?: { id: string; examName: string; examType: string; startDate: string; endDate: string };
-  scheme?: { id: string; name: string; exams?: { examId: string; examName: string; weight: number }[] };
+  scheme?: { id: string; name: string; exams?: { examId: string; examName: string; weight: number; kind?: "BUCKET" }[] };
   policy: { id: string; name: string; gradingMode: string } | null;
   display: { marks: boolean; percentage: boolean; grades: boolean; gradePoints: boolean; rank: boolean; rankToStudents: boolean; sectionRank: boolean; classRank: boolean };
   subjects: ReportLine[];

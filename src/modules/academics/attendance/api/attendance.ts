@@ -273,3 +273,40 @@ export const CLOSURE_TEXT: Record<string, string> = {
   VACATION: "a vacation day",
   OUTSIDE_ACADEMIC_YEAR: "outside the academic year"
 };
+
+/* ---- Low attendance (D-85): students under the school's threshold for the year so far ---- */
+
+/* Full days (or periods, in a period-wise year) in a row that bring the student back to the threshold */
+export type ToRecover = { unit: "DAYS" | "PERIODS"; count: number } | null;
+
+export type LowAttendanceStudent = {
+  studentId: string;
+  rollNumber: string | null;
+  firstName: string;
+  lastName: string;
+  percentage: number;
+  basis: "DAYS" | "PERIODS";
+  attendedDays: number;
+  countableDays: number;
+  toRecover: ToRecover;
+};
+
+export type LowAttendance = {
+  academicYearId: string;
+  asOf: string;
+  threshold: number;
+  minDays: number;
+  total: number;
+  /* Only sections with someone below; the teacher's own (class teacher) sections first */
+  sections: {
+    section: { id: string; name: string };
+    /* null for school-wide roles */
+    role: "CLASS_TEACHER" | "DEPUTY" | "SUBJECT" | null;
+    students: LowAttendanceStudent[];
+  }[];
+};
+
+export const LOW_ATTENDANCE_PATH = "/academics/attendance/low-attendance";
+
+export const recoverText = (r: ToRecover) =>
+  r ? `${r.count} ${r.unit === "PERIODS" ? "period" : "school day"}${r.count === 1 ? "" : "s"}` : null;
