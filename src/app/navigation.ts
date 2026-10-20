@@ -101,7 +101,11 @@ export const MODULES: NavModule[] = [
           "/academics/timetable",
           "/academics/calendar",
           "/academics/grading",
-          "/academics/attendance/policy"
+          "/academics/attendance/policy",
+          "/academics/exam-eligibility",
+          "/academics/roll-numbers",
+          "/academics/subject-codes",
+          "/academics/nep-policy"
         ],
         opens: [
           { to: "/academics/curriculum", permission: "academics.sectionSubjects.read" },

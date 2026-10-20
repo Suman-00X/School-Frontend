@@ -16,6 +16,11 @@ export type Student = {
   bloodGroup: string | null;
   category: string | null;
   religion: string | null;
+  /* National ids (NEP 2020): UDISE+ PEN (11 digits), APAAR id (12 digits), the parents' consent date */
+  pen: string | null;
+  apaarId: string | null;
+  apaarConsentOn: string | null;
+  motherTongue: string | null;
   description: string | null;
   createdAt: string;
   user: UserSummary;
@@ -44,12 +49,28 @@ export type StudentProfileValues = {
   bloodGroup: string;
   category: string;
   religion: string;
+  motherTongue: string;
+  pen: string;
+  apaarId: string;
+  apaarConsentOn: string;
   description: string;
 };
 
-export const STUDENT_PROFILE_KEYS = ["admissionDate", "bloodGroup", "category", "religion", "description"];
-/* Fields that may be emptied on edit (dates can't be cleared once set) */
-export const STUDENT_PROFILE_TEXT_KEYS = ["bloodGroup", "category", "religion", "description"];
+export const STUDENT_PROFILE_KEYS = [
+  "admissionDate",
+  "bloodGroup",
+  "category",
+  "religion",
+  "motherTongue",
+  "pen",
+  "apaarId",
+  "apaarConsentOn",
+  "description"
+];
+/* Fields that may be emptied on edit (the admission date can't be cleared once set) */
+export const STUDENT_PROFILE_TEXT_KEYS = ["bloodGroup", "category", "religion", "motherTongue", "pen", "apaarId", "apaarConsentOn", "description"];
+/* Emptied by sending null (an id entered by mistake) */
+export const STUDENT_PROFILE_NULLABLE_KEYS = ["pen", "apaarId", "apaarConsentOn"];
 
 export const ADMISSION_TYPES = ["NEW", "PROMOTED", "REPEAT"] as const;
 
@@ -84,7 +105,7 @@ export const useAllStudents = (enabled = true) =>
 export const admitStudent = (body: AdmissionBody) => api.post<AdmissionResult>(STUDENTS_PATH, body);
 
 /* The row comes back without `user`; callers refetch */
-export const updateStudent = ({ studentId, ...body }: Partial<StudentProfileValues> & { studentId: string }) =>
+export const updateStudent = ({ studentId, ...body }: Partial<Record<keyof StudentProfileValues, string | null>> & { studentId: string }) =>
   api.patch<Student>(`${STUDENTS_PATH}/${studentId}`, body);
 
 export const linkParent = ({ studentId, ...body }: { studentId: string; parentId: string; relation: ParentRelation; isPrimaryContact: boolean }) =>
@@ -98,6 +119,10 @@ export const emptyStudentProfile = (): StudentProfileValues => ({
   bloodGroup: "",
   category: "",
   religion: "",
+  motherTongue: "",
+  pen: "",
+  apaarId: "",
+  apaarConsentOn: "",
   description: ""
 });
 
@@ -106,11 +131,17 @@ export const studentProfileFrom = (s: Partial<Student>): StudentProfileValues =>
   bloodGroup: s.bloodGroup ?? "",
   category: s.category ?? "",
   religion: s.religion ?? "",
+  motherTongue: s.motherTongue ?? "",
+  pen: s.pen ?? "",
+  apaarId: s.apaarId ?? "",
+  apaarConsentOn: s.apaarConsentOn ?? "",
   description: s.description ?? ""
 });
 
 export function validateStudentProfile(v: StudentProfileValues): Record<string, string> {
   const e: Record<string, string> = {};
   if (v.admissionDate && !/^\d{4}-\d{2}-\d{2}$/.test(v.admissionDate)) e.admissionDate = "must be a date (YYYY-MM-DD)";
+  if (v.pen.trim() && !/^\d{11}$/.test(v.pen.trim())) e.pen = "The PEN has 11 digits";
+  if (v.apaarId.trim() && !/^\d{12}$/.test(v.apaarId.trim())) e.apaarId = "The APAAR id has 12 digits";
   return e;
 }

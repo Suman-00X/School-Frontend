@@ -3,6 +3,7 @@ import { useApiMutation, useForm } from "@/common/hooks";
 import { Button, Drawer, useToast } from "@/common/ui";
 import { patchFrom } from "@/modules/users/shared";
 import {
+  STUDENT_PROFILE_NULLABLE_KEYS,
   STUDENT_PROFILE_TEXT_KEYS,
   studentProfileFrom,
   updateStudent,
@@ -25,8 +26,12 @@ export function EditStudentDrawer({ student, onClose }: { student: Student; onCl
     Object.assign(errors, clearErrors);
     if (Object.keys(errors).length) return form.setErrors(errors);
     if (!Object.keys(body).length) return onClose();
+    /* An emptied id is cleared with null ("" is not a valid PEN or APAAR id) */
+    const nulled = Object.fromEntries(
+      Object.entries(body).map(([k, v]) => [k, v === "" && STUDENT_PROFILE_NULLABLE_KEYS.includes(k) ? null : v])
+    );
     save.mutate(
-      { studentId: student.id, ...body },
+      { studentId: student.id, ...nulled },
       {
         onSuccess: res => {
           toast.success(res.message);

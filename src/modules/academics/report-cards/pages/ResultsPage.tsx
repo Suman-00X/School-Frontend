@@ -19,6 +19,9 @@ import { PreviewPanel } from "../components/PreviewPanel";
 import { PublicationPanel } from "../components/PublicationPanel";
 import { SnapshotsPanel } from "../components/SnapshotsPanel";
 import { StudentPanel } from "../components/StudentPanel";
+import { useNepPolicy } from "../../nep-policy/api/nepPolicy";
+import { HolisticProgressPanel } from "../../holistic-progress/components/HolisticProgressPanel";
+import { GovernmentExportsPanel } from "../../../reports/government-exports/components/GovernmentExportsPanel";
 import "../results.css";
 
 type Scheme = {
@@ -28,6 +31,7 @@ type Scheme = {
   policyId: string | null;
   resultsPublishedAt: string | null;
   exams: { examId: string; weight: number; exam: { id: string; examName: string } }[];
+  buckets?: { id: string; name: string; weight: number }[];
 };
 
 const SCHEMES_PATH = "/academics/assessment-schemes";
@@ -75,6 +79,9 @@ export default function ResultsPage() {
         ? { kind, id: scheme.id, name: scheme.name, publishedAt: scheme.resultsPublishedAt }
         : null;
   const perms = sourcePerms(kind, can);
+  const nep = useNepPolicy();
+  const hpcOn = !!nep?.holisticProgressCard && kind === "exam" && can("academics.holisticProgress.read");
+  const governmentOn = !!(nep?.udiseExport || nep?.apaarExport) && can("reports.governmentExports.read");
 
   /* Sections: those that sit the exam (any section for a scheme); a teacher only the ones they are class teacher of */
   const teaching = useTeachingSections();
@@ -95,7 +102,10 @@ export default function ResultsPage() {
     { id: "publication", label: "Publication", hidden: !perms.versions },
     { id: "changes", label: "Changes since publishing", hidden: !perms.versions },
     { id: "preview", label: "Preview rules", hidden: !perms.preview },
-    { id: "snapshots", label: "Published copies", hidden: !perms.snapshots }
+    { id: "snapshots", label: "Published copies", hidden: !perms.snapshots },
+    /* Only when the school's NEP policy opts in (Setup › Grading › NEP 2020) */
+    { id: "hpc", label: "Holistic progress", hidden: !hpcOn },
+    { id: "government", label: "UDISE+ / APAAR", hidden: !governmentOn }
   ];
   const visible = tabs.filter(t => !t.hidden);
   const tab = visible.some(t => t.id === get("tab")) ? get("tab") : (visible[0]?.id ?? "");
@@ -115,7 +125,7 @@ export default function ResultsPage() {
   );
 
   const pickSource = (k: SourceKind) => setQuery({ source: k === "exam" ? "" : "scheme", studentId: "", version: "" });
-  const needsSection = tab === "sheet" || tab === "student";
+  const needsSection = tab === "sheet" || tab === "student" || tab === "hpc";
   const noClassTeacher = teaching.teacher && !teaching.isLoading && !teaching.rows.some(r => r.isClassTeacher);
 
   const body = () => {
@@ -128,6 +138,16 @@ export default function ResultsPage() {
             message="You see a section's results here once you are its class teacher."
           />
         </Card>
+      );
+    /* The files need no exam; with one picked, the UDISE+ file can carry its result */
+    if (tab === "government")
+      return (
+        <GovernmentExportsPanel
+          sectionId={sectionId}
+          exam={source?.kind === "exam" ? { id: source.id, name: source.name } : null}
+          udise={!!nep?.udiseExport}
+          apaar={!!nep?.apaarExport}
+        />
       );
     if (!source)
       return (
@@ -186,6 +206,8 @@ export default function ResultsPage() {
         return (
           <PreviewPanel key={`${source.id}:${sectionId}`} source={source} sectionId={sectionId} initialPolicyId={get("policyId") || undefined} />
         );
+      case "hpc":
+        return <HolisticProgressPanel examId={source.id} sectionId={sectionId} studentId={get("card")} onOpen={id => setQuery({ card: id })} />;
       case "snapshots":
         return <SnapshotsPanel source={source} sectionId={sectionId} versions={versions.rows ?? []} />;
       default:
@@ -239,7 +261,7 @@ export default function ResultsPage() {
               options={(schemes.data ?? []).map(s => ({
                 value: s.id,
                 label: s.name,
-                description: s.exams.map(x => `${x.exam?.examName ?? "Exam"} ${x.weight}%`).join(" + ")
+                description: [...s.exams.map(x => `${x.exam?.examName ?? "Exam"} ${x.weight}%`), ...(s.buckets ?? []).map(b => `${b.name} ${b.weight}%`)].join(" + ")
               }))}
               onChange={e => setQuery({ schemeId: e.target.value, studentId: "", version: "" })}
             />

@@ -47,6 +47,10 @@ export function ReviewStep({
             { label: "Blood group", value: profile.bloodGroup },
             { label: "Category", value: profile.category },
             { label: "Religion", value: profile.religion },
+            { label: "Mother tongue", value: profile.motherTongue, hidden: !profile.motherTongue },
+            { label: "PEN (UDISE+)", value: profile.pen, hidden: !profile.pen },
+            { label: "APAAR id", value: profile.apaarId, hidden: !profile.apaarId },
+            { label: "APAAR consent given on", value: profile.apaarConsentOn, hidden: !profile.apaarConsentOn },
             { label: "Address", value: person.address, wide: true },
             { label: "Notes", value: profile.description, wide: true, hidden: !profile.description }
           ]}

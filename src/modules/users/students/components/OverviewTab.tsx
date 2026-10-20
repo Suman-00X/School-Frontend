@@ -25,6 +25,10 @@ export function OverviewTab({ student: s }: { student: Student }) {
             { label: "Blood group", value: s.bloodGroup },
             { label: "Category", value: s.category },
             { label: "Religion", value: s.religion },
+            { label: "Mother tongue", value: s.motherTongue },
+            { label: "PEN (UDISE+)", value: s.pen && <span className="mono">{s.pen}</span> },
+            { label: "APAAR id", value: s.apaarId && <span className="mono">{s.apaarId}</span> },
+            { label: "APAAR consent", value: s.apaarConsentOn ? formatDate(s.apaarConsentOn) : null },
             { label: "Notes", value: s.description, wide: true }
           ]}
         />

@@ -15,7 +15,8 @@ export const SETUP_PATHS = {
   attendancePolicy: "/academics/attendance/policy",
   examEligibility: "/academics/exam-eligibility",
   grading: "/academics/grading",
-  attendancePolicy: "/academics/attendance/policy"
+  subjectCodes: "/academics/subject-codes",
+  nepPolicy: "/academics/nep-policy"
 } as const;
 
 export const ENROLLMENTS_PAGE = "/academics/enrollments";

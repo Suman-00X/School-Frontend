@@ -1,0 +1,77 @@
+/* NEP 2020 · Holistic Progress Card and its policy */
+.nep-stages {
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+}
+.nep-code {
+  max-width: 440px;
+}
+
+/* Three levels as a segmented control; the chosen one filled, a second click clears it */
+.hpc-levels {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.hpc-levels button {
+  border: 0;
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: 64px;
+  cursor: pointer;
+}
+.hpc-levels button + button {
+  border-left: 1px solid var(--border);
+}
+.hpc-levels button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.hpc-levels button.is-on {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+  font-weight: 600;
+}
+.hpc-levels button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.hpc-levels button:disabled {
+  cursor: default;
+}
+
+/* Part B: one block per subject, its levels wrapping to the drawer's width */
+.hpc-subject-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+.hpc-subject {
+  font-weight: 600;
+}
+.hpc-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 8px 20px;
+}
+.hpc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hpc-after-dl {
+  margin-top: 12px;
+}
+.hpc-legend {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}

@@ -44,7 +44,7 @@ export function SetupLayout() {
                 to: P.grading,
                 hidden: !canAny("academics.gradeScales.read", "academics.resultPolicies.read", "academics.assessmentSchemes.read")
               },
-              { label: "Attendance policy", to: P.attendancePolicy, hidden: !can("academics.attendance.read") }
+              { label: "NEP 2020", to: P.nepPolicy, hidden: !can("academics.nepPolicy.read") }
             ]
           }
         ]}

@@ -6,6 +6,7 @@ import { DrillHeader } from "@/common/layout/ShellHeader";
 import { Badge, Button, ButtonLink, ErrorState, Page, SkeletonBlock, useTabParam, type TabItem } from "@/common/ui";
 import { fullName } from "@/common/utils/format";
 import { InviteButton } from "@/modules/auth";
+import { StudentBehaviourTab } from "@/modules/academics";
 import { StudentAccountLink } from "@/modules/finance";
 import { DrillName, RecordHeader } from "@/modules/users/shared";
 import { useStudent, type Student } from "../api/students";
@@ -32,7 +33,8 @@ export default function StudentProfilePage() {
     { id: "documents", label: "Documents", hidden: !can("files.documents.read") },
     { id: "fees", label: "Fees", hidden: !can("finance.invoices.read") },
     { id: "attendance", label: "Attendance", hidden: !can("academics.attendance.read") },
-    { id: "results", label: "Results", hidden: !can("academics.reportCards.read") }
+    { id: "results", label: "Results", hidden: !can("academics.reportCards.read") },
+    { id: "behaviour", label: "Behaviour", hidden: !can("academics.behaviourRemarks.read") }
   ];
   const [tab, setTab] = useTabParam(tabs);
 
@@ -63,6 +65,7 @@ export default function StudentProfilePage() {
           {tab === "fees" && <FeesTab studentId={s.id} />}
           {tab === "attendance" && <AttendanceTab studentId={s.id} />}
           {tab === "results" && <ResultsTab studentId={s.id} />}
+          {tab === "behaviour" && <StudentBehaviourTab studentId={s.id} studentName={fullName(s.user)} />}
         </>
       )}
     </Page>

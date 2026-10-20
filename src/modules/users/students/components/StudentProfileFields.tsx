@@ -25,6 +25,10 @@ export function StudentProfileFields({ form, disabled, admissionNumber }: { form
       <TextInput label="Blood group" maxLength={10} placeholder="e.g. O+" {...f("bloodGroup")} />
       <TextInput label="Category" maxLength={50} placeholder="e.g. General" {...f("category")} />
       <TextInput label="Religion" maxLength={50} {...f("religion")} />
+      <TextInput label="Mother tongue" maxLength={50} {...f("motherTongue")} />
+      <TextInput label="PEN (UDISE+)" inputMode="numeric" maxLength={11} className="mono" hint="11-digit Permanent Education Number" {...f("pen")} />
+      <TextInput label="APAAR id" inputMode="numeric" maxLength={12} className="mono" hint="12 digits, from the APAAR portal" {...f("apaarId")} />
+      <TextInput label="APAAR consent given on" type="date" hint="When the parents consented to the APAAR id" {...f("apaarConsentOn")} />
       <Textarea label="Notes" rows={2} maxLength={1000} fieldClassName="span-2" {...f("description")} />
     </div>
   );

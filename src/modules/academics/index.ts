@@ -9,6 +9,7 @@ import { routes as attendancePolicyRoutes } from "./attendance-policy";
 import { routes as examEligibilityRoutes } from "./exam-eligibility";
 import { routes as subjectCodeRoutes } from "./subject-codes";
 import { routes as gradingRoutes } from "./grading";
+import { routes as nepPolicyRoutes } from "./nep-policy";
 import { routes as enrollmentRoutes } from "./enrollments";
 import { setupArea } from "./shared/components/SetupLayout";
 import { routes as timetableRoutes } from "./timetable";
