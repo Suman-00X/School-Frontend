@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { CaseSensitive, LogOut, Menu as MenuIcon, Moon, Plus, Sun, UserRound } from "lucide-react";
+import { CaseSensitive, Ellipsis, LogOut, Menu as MenuIcon, Moon, Plus, Sun, UserRound } from "lucide-react";
 import { api } from "@/common/api";
 import { useAuth } from "@/common/auth";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
@@ -64,17 +64,47 @@ function useSchoolBrand() {
   return { name: settings.data?.name ?? session?.school.name ?? "", code: session?.school.code ?? "", logoUrl: settings.data?.logoUrl ?? null };
 }
 
+/* Module tiles take at most this share of the rail's height; the rest go under "More" */
+const RAIL_SHARE = 0.7;
+
 function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }) {
   const brand = useSchoolBrand();
   const { can } = useAuth();
   const Brand = BRAND_ICON;
+  const railRef = useRef<HTMLElement>(null);
+  const itemsRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState(modules.length);
+
+  /* How many tiles fit: measured from a rendered tile, so the larger text size is counted too */
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    const items = itemsRef.current;
+    if (!rail || !items) return;
+    const measure = () => {
+      const tile = items.querySelector<HTMLElement>(".rail-item");
+      if (!tile) return;
+      const gap = parseFloat(getComputedStyle(items).rowGap) || 0;
+      const step = tile.offsetHeight + gap;
+      setFit(Math.max(1, Math.floor((rail.clientHeight * RAIL_SHARE + gap) / step)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(rail);
+    observer.observe(items);
+    return () => observer.disconnect();
+  }, []);
+
+  const overflowing = modules.length > fit;
+  const shown = overflowing ? modules.slice(0, fit - 1) : modules;
+  const rest = overflowing ? modules.slice(fit - 1) : [];
+
   return (
-    <nav className="rail" aria-label="Modules">
+    <nav className="rail" aria-label="Modules" ref={railRef}>
       <NavLink to="/" className="rail-brand" title={`${brand.name} (${brand.code})`}>
         {brand.logoUrl ? <img src={brand.logoUrl} alt="" /> : <Brand size={20} />}
       </NavLink>
-      <div className="rail-items">
-        {modules.map(m => (
+      <div className="rail-items" ref={itemsRef}>
+        {shown.map(m => (
           <NavLink key={m.id} to={tabTarget(m.tabs[0]!, can)} className={() => `rail-item${m.id === activeId ? " active" : ""}`} aria-current={m.id === activeId ? "page" : undefined}>
             <span className="rail-icon">
               <m.icon />
@@ -82,8 +112,69 @@ function Rail({ modules, activeId }: { modules: NavModule[]; activeId?: string }
             <span className="rail-label">{m.label}</span>
           </NavLink>
         ))}
+        {rest.length > 0 && <RailMore modules={rest} activeId={activeId} />}
       </div>
     </nav>
+  );
+}
+
+/* The modules that don't fit in the rail, in a panel beside it */
+function RailMore({ modules, activeId }: { modules: NavModule[]; activeId?: string }) {
+  const { can } = useAuth();
+  const location = useLocation();
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const holdsActive = modules.some(m => m.id === activeId);
+
+  useEffect(() => setAnchor(null), [location.pathname]);
+  useEffect(() => {
+    if (!anchor) return;
+    const onDoc = (e: MouseEvent) => !wrapRef.current?.contains(e.target as Node) && setAnchor(null);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setAnchor(null);
+    const onResize = () => setAnchor(null);
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [anchor]);
+
+  return (
+    <div className="rail-more" ref={wrapRef}>
+      <button
+        type="button"
+        className={`rail-item${holdsActive || anchor ? " active" : ""}`}
+        aria-expanded={!!anchor}
+        aria-haspopup="menu"
+        onClick={e => setAnchor(anchor ? null : e.currentTarget.getBoundingClientRect())}
+      >
+        <span className="rail-icon">
+          <Ellipsis />
+        </span>
+        <span className="rail-label">More</span>
+      </button>
+      {anchor && (
+        /* Fixed, so the rail's scroll box doesn't clip it; it grows upward from the button's bottom edge */
+        <div className="rail-more-panel" role="menu" style={{ left: anchor.right + 8, bottom: Math.max(8, window.innerHeight - anchor.bottom) }}>
+          {modules.map(m => (
+            <NavLink
+              key={m.id}
+              role="menuitem"
+              to={tabTarget(m.tabs[0]!, can)}
+              className={() => `rail-more-item${m.id === activeId ? " active" : ""}`}
+              aria-current={m.id === activeId ? "page" : undefined}
+              onClick={() => setAnchor(null)}
+            >
+              <m.icon />
+              {m.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

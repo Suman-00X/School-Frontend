@@ -88,6 +88,54 @@
   background: #3b82f6;
   color: #fff;
 }
+button.rail-item {
+  width: 100%;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.rail-item[aria-expanded="true"] .rail-icon {
+  background: var(--sidebar-hover);
+}
+/* "More": the modules past the rail's share of the height */
+.rail-more-panel {
+  position: fixed;
+  z-index: 40;
+  min-width: 210px;
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+}
+.rail-more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13.5px;
+}
+.rail-more-item:hover {
+  background: var(--surface-hover);
+  text-decoration: none;
+}
+.rail-more-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-3);
+}
+.rail-more-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+.rail-more-item.active svg {
+  color: var(--primary);
+}
 
 /* Header: submodule tabs, or a page's drill-in header */
 .header {
