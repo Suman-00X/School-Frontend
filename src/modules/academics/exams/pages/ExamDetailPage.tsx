@@ -1,6 +1,6 @@
 /* AC-13 · Exams and papers: one exam, its papers by section and its date sheet */
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, FileSpreadsheet, MoreHorizontal, Pencil, PenLine, Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
@@ -44,8 +44,10 @@ import {
 import { useGradeScales } from "../api/grading";
 import { ExamDrawer } from "../components/ExamDrawer";
 import { PaperDrawer } from "../components/PaperDrawer";
-import { ResultsBadge } from "../components/ExamBits";
+import { ResultsBadge, useRemoveExam } from "../components/ExamBits";
 import { examDates } from "../utils/dates";
+import { GenerateExamTimetableButton } from "../../scheduling";
+import { AdmitCardsTab } from "../../admit-cards";
 
 const marksLink = (p: ExamPaper) => `/academics/marks?examId=${p.examId}&sectionId=${p.sectionId}&paperId=${p.id}`;
 
@@ -55,10 +57,13 @@ export default function ExamDetailPage() {
   const { readOnly } = useAcademicYear();
   const exam = useExam(examId);
   const [editing, setEditing] = useState(false);
+  const navigate = useNavigate();
+  const removeExam = useRemoveExam();
 
   const tabs: TabItem[] = [
     { id: "papers", label: "Papers" },
-    { id: "datesheet", label: "Date sheet" }
+    { id: "datesheet", label: "Date sheet" },
+    ...(can("academics.admitCards.read") ? [{ id: "admit-cards", label: "Admit cards" }] : [])
   ];
   const [tab, setTab] = useTabParam(tabs);
   const e = exam.data;
@@ -82,17 +87,22 @@ export default function ExamDetailPage() {
     );
 
   const canEdit = can("academics.exams.update") && !readOnly;
+  const canRemove = can("academics.exams.remove") && !readOnly;
   return (
     <Page>
       {header}
-      <ExamHeaderCard exam={e} onEdit={canEdit ? () => setEditing(true) : undefined} />
-      {!e ? <SkeletonBlock lines={8} /> : tab === "papers" ? <PapersTab exam={e} /> : <DateSheetTab exam={e} />}
+      <ExamHeaderCard
+        exam={e}
+        onEdit={canEdit ? () => setEditing(true) : undefined}
+        onRemove={canRemove && e ? () => void removeExam(e, { onRemoved: () => navigate(EXAMS_PATH, { replace: true }) }) : undefined}
+      />
+      {!e ? <SkeletonBlock lines={8} /> : tab === "papers" ? <PapersTab exam={e} /> : tab === "admit-cards" ? <AdmitCardsTab exam={e} /> : <DateSheetTab exam={e} />}
       {e && <ExamDrawer open={editing} exam={e} onClose={() => setEditing(false)} />}
     </Page>
   );
 }
 
-function ExamHeaderCard({ exam, onEdit }: { exam: Exam | undefined; onEdit?: () => void }) {
+function ExamHeaderCard({ exam, onEdit, onRemove }: { exam: Exam | undefined; onEdit?: () => void; onRemove?: () => void }) {
   const { can } = useAuth();
   const scales = useGradeScales();
   const scaleName = exam?.gradeScaleId ? scales.byId.get(exam.gradeScaleId)?.name : null;
@@ -137,6 +147,11 @@ function ExamHeaderCard({ exam, onEdit }: { exam: Exam | undefined; onEdit?: () 
           {onEdit && (
             <Button icon={<Pencil />} disabled={!exam} onClick={onEdit}>
               Edit exam
+            </Button>
+          )}
+          {onRemove && (
+            <Button icon={<Trash2 />} variant="danger" disabled={!exam} onClick={onRemove}>
+              Remove
             </Button>
           )}
         </div>
@@ -319,6 +334,7 @@ function PapersTab({ exam }: { exam: Exam }) {
             options={filterOptions}
           />
           <div style={{ flex: 1 }} />
+          <GenerateExamTimetableButton exam={exam} />
           {canManage && (
             <Button variant="primary" icon={<Plus />} onClick={() => setDrawer({ paper: null, sectionId: sectionId || undefined })}>
               Add paper

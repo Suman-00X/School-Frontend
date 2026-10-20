@@ -97,6 +97,8 @@ export const createExam = (body: ExamInput) => api.post<Exam>(EXAMS_PATH, body);
 /* All or nothing, at most 200; names must not repeat */
 export const createExams = (exams: ExamInput[]) => api.post<Exam[]>(`${EXAMS_PATH}/bulk`, { exams });
 export const updateExam = ({ id, ...body }: Partial<ExamInput> & { id: string }) => api.patch<Exam>(examPath(id), body);
+/* Refused (409) once results are published, marks are recorded or a scheme combines the exam; its papers go with it */
+export const deleteExam = (examId: string) => api.delete<null>(examPath(examId));
 
 export const createPaper = ({ examId, ...body }: PaperInput & { examId: string }) => api.post<ExamPaper>(papersPath(examId), body);
 export const updatePaper = ({ examId, paperId, ...body }: PaperPatch & { examId: string; paperId: string }) =>

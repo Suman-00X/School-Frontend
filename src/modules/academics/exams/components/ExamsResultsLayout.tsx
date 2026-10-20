@@ -4,8 +4,8 @@ import { SideNavLayout } from "@/common/layout/SideNav";
 import { Page } from "@/common/ui";
 import "../exams.css";
 
-/* Academics › Exams & results: exams and papers (AC-13), marks entry (AC-14), report cards and
-   publishing (AC-15). One exam's page is a drill-in page outside this area. */
+/* Academics › Exams & results: exams and papers (AC-13), marks entry (AC-14), teachers' own
+   assessments counted in scheme buckets, report cards and publishing (AC-15). One exam's page is a drill-in page outside this area. */
 export function ExamsResultsLayout() {
   const { can } = useAuth();
   return (
@@ -24,6 +24,11 @@ export function ExamsResultsLayout() {
                 label: "Marks entry",
                 to: "/academics/marks",
                 hidden: !can("academics.marks.record")
+              },
+              {
+                label: "Teacher assessments",
+                to: "/academics/assessments",
+                hidden: !can("academics.assessments.read")
               },
               {
                 label: "Report cards & publishing",

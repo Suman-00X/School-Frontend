@@ -1,16 +1,16 @@
 /* AC-13 · Exams and papers: the exams of the header's academic year */
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ClipboardList, ListPlus, Plus } from "lucide-react";
+import { ClipboardList, ListPlus, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAcademicYear } from "@/common/academic-year/AcademicYearProvider";
 import { useAuth } from "@/common/auth";
 import { useApiList, useListParams } from "@/common/hooks";
-import { Badge, Button, Card, DataTable, EmptyState, PageHeader, type Column } from "@/common/ui";
+import { Badge, Button, Card, DataTable, EmptyState, Menu, MenuItem, PageHeader, type Column } from "@/common/ui";
 import { EXAMS_PATH, EXAM_TYPE_LABELS, useAllExams, type Exam } from "../api/exams";
 import { useGradeScales } from "../api/grading";
 import { BulkExamsDialog } from "../components/BulkExamsDialog";
 import { ExamDrawer } from "../components/ExamDrawer";
-import { ResultsBadge } from "../components/ExamBits";
+import { ResultsBadge, useRemoveExam } from "../components/ExamBits";
 import { examDates } from "../utils/dates";
 
 export default function ExamsPage() {
@@ -25,9 +25,13 @@ export default function ExamsPage() {
   const scales = useGradeScales();
   const all = useAllExams();
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Exam | null>(null);
   const [planning, setPlanning] = useState(false);
+  const removeExam = useRemoveExam();
 
   const canCreate = can("academics.exams.create") && !readOnly;
+  const canEdit = can("academics.exams.update") && !readOnly;
+  const canRemove = can("academics.exams.remove") && !readOnly;
 
   /* ?new=1 (the quick-add shortcut) opens the empty drawer */
   const [search, setSearch] = useSearchParams();
@@ -77,7 +81,54 @@ export default function ExamsPage() {
       key: "description",
       header: "Description",
       render: e => <span className="muted">{e.description || "—"}</span>
-    }
+    },
+    ...(canEdit || canRemove
+      ? [
+          {
+            key: "actions",
+            header: "",
+            align: "right" as const,
+            width: 60,
+            render: (e: Exam) => (
+              <div className="row-actions" onClick={ev => ev.stopPropagation()}>
+                <Menu
+                  trigger={toggle => (
+                    <Button size="sm" variant="ghost" icon={<MoreHorizontal />} onClick={toggle} aria-label={`More actions for ${e.examName}`} title="More" />
+                  )}
+                >
+                  {close => (
+                    <>
+                      {canEdit && (
+                        <MenuItem
+                          icon={<Pencil />}
+                          onClick={() => {
+                            close();
+                            setEditing(e);
+                          }}
+                        >
+                          Edit exam
+                        </MenuItem>
+                      )}
+                      {canRemove && (
+                        <MenuItem
+                          icon={<Trash2 />}
+                          danger
+                          onClick={() => {
+                            close();
+                            void removeExam(e);
+                          }}
+                        >
+                          Remove exam
+                        </MenuItem>
+                      )}
+                    </>
+                  )}
+                </Menu>
+              </div>
+            )
+          }
+        ]
+      : [])
   ];
 
   const actions = canCreate && (
@@ -116,6 +167,7 @@ export default function ExamsPage() {
         />
       </Card>
       <ExamDrawer open={creating || wantsNew} exam={null} onClose={closeCreate} />
+      {editing && <ExamDrawer open exam={editing} onClose={() => setEditing(null)} />}
       {planning && <BulkExamsDialog open onClose={() => setPlanning(false)} yearName={yearName} existing={all.exams.map(e => e.examName)} />}
     </div>
   );
