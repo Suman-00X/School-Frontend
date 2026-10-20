@@ -78,6 +78,7 @@ export function Dialog({
   footer,
   footerStatus,
   wide,
+  full,
   children
 }: {
   open: boolean;
@@ -86,6 +87,8 @@ export function Dialog({
   footer?: ReactNode;
   footerStatus?: ReactNode;
   wide?: boolean;
+  /* Nearly the whole screen: a workspace (e.g. planning a day) rather than a question */
+  full?: boolean;
   children: ReactNode;
 }) {
   useEscape(open, onClose);
@@ -94,7 +97,7 @@ export function Dialog({
   return createPortal(
     <>
       <div className="overlay overlay-dialog" onClick={onClose} />
-      <div className={`dialog${wide ? " dialog-wide" : ""}`} role="dialog" aria-modal="true">
+      <div className={`dialog${wide ? " dialog-wide" : ""}${full ? " dialog-full" : ""}`} role="dialog" aria-modal="true">
         <div className="dialog-header">
           <h2>{title}</h2>
           <Button variant="ghost" size="sm" icon={<X />} onClick={onClose} aria-label="Close" />

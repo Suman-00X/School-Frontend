@@ -15,7 +15,8 @@ export const TYPE_META: Record<NotificationType, { label: string; icon: LucideIc
   REFUND_APPROVED: { label: "Refund approved", icon: RotateCcw },
   REFUND_REJECTED: { label: "Refund rejected", icon: RotateCcw },
   FEE_REMINDER: { label: "Fee reminder", icon: BellRing },
-  IMPORT_COMPLETED: { label: "Import finished", icon: FileUp }
+  IMPORT_COMPLETED: { label: "Import finished", icon: FileUp },
+  SUBSTITUTION: { label: "Lesson to cover", icon: CalendarClock }
 };
 
 const FAMILY: NotificationType[] = [
@@ -28,7 +29,7 @@ const FAMILY: NotificationType[] = [
   "REFUND_PROCESSED",
   "FEE_REMINDER"
 ];
-const TEACHER: NotificationType[] = ["ANNOUNCEMENT", "MESSAGE", "ATTENDANCE_MISSED"];
+const TEACHER: NotificationType[] = ["ANNOUNCEMENT", "MESSAGE", "ATTENDANCE_MISSED", "SUBSTITUTION"];
 const STAFF: NotificationType[] = ["ANNOUNCEMENT", "MESSAGE", "ATTENDANCE_MISSED", "REFUND_REQUESTED", "REFUND_APPROVED", "REFUND_REJECTED", "IMPORT_COMPLETED"];
 
 /* The types a person of this role can receive (for the type filter) */

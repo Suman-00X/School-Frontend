@@ -829,6 +829,13 @@
 .dialog-wide {
   width: min(720px, calc(100vw - 32px));
 }
+.dialog-full {
+  width: min(1120px, calc(100vw - 32px));
+  height: calc(100vh - 48px);
+}
+.dialog-full .dialog-body {
+  flex: 1;
+}
 .dialog + .overlay,
 .overlay.overlay-dialog {
   z-index: 60;

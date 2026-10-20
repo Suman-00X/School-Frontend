@@ -1,0 +1,229 @@
+/* ---------- Home highlight ---------- */
+.cover-highlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-lg);
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+.cover-highlight:hover {
+  box-shadow: var(--shadow-md);
+}
+.cover-highlight:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.cover-highlight-count {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--warning);
+  color: var(--text-inverse);
+  font-size: 22px;
+  font-weight: 700;
+  animation: cover-pulse 2.4s ease-in-out infinite;
+}
+@keyframes cover-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cover-highlight-count {
+    animation: none;
+  }
+}
+.cover-highlight-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.cover-highlight-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cover-highlight-go svg,
+.cover-highlight > svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.cover-highlight.is-quiet {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 16px;
+}
+.cover-highlight.is-quiet > svg,
+.cover-highlight.is-quiet .cover-highlight-go {
+  color: var(--primary);
+}
+.cover-highlight.is-quiet .small {
+  color: var(--text-2);
+}
+
+/* ---------- The day's plan (overlay) ---------- */
+.cover-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.cover-day-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.cover-day-label {
+  min-width: 0;
+  color: var(--text-2);
+}
+.cover-counts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cover-teacher {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.cover-teacher-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.cover-row-wrap {
+  border-top: 1px solid var(--border);
+}
+.cover-row-wrap.is-needed {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+.cover-teacher > .cover-row {
+  border-top: 1px solid var(--border);
+}
+.cover-row {
+  display: grid;
+  grid-template-columns: 120px minmax(120px, 1fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--text);
+}
+.cover-when,
+.cover-lesson {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cover-plan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cover-plan-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 120px;
+}
+.cover-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  background: var(--surface-2);
+  border-top: 1px dashed var(--border);
+}
+.cover-editor-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 12px;
+}
+.cover-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cover-editor-actions .footer-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--danger-text);
+}
+@media (max-width: 760px) {
+  .cover-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cover-plan,
+  .cover-actions {
+    grid-column: 1 / -1;
+  }
+  .cover-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ---------- Teacher home: my duties ---------- */
+.cover-duties {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cover-duties li {
+  display: grid;
+  grid-template-columns: 96px 150px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+}
+.cover-duties li:first-child {
+  border-top: 0;
+}
+@media (max-width: 760px) {
+  .cover-duties li {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* The kinds side by side: the editor stays short under its row */
+.cover-editor .radio-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
