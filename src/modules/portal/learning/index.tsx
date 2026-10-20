@@ -4,6 +4,7 @@ import OverviewPage from "./pages/OverviewPage";
 import TimetablePage from "./pages/TimetablePage";
 import AttendancePage from "./pages/AttendancePage";
 import ResultsPage from "./pages/ResultsPage";
+import AdmitCardsPage from "./pages/AdmitCardsPage";
 import CalendarPage from "./pages/CalendarPage";
 import TeachingSectionsPage from "./pages/TeachingSectionsPage";
 import TeachingTimetablePage from "./pages/TeachingTimetablePage";
@@ -13,7 +14,8 @@ export const childRoutes: RouteObject[] = [
   { index: true, element: <OverviewPage /> },
   { path: "timetable", element: <TimetablePage /> },
   { path: "attendance", element: <AttendancePage /> },
-  { path: "results", element: <ResultsPage /> }
+  { path: "results", element: <ResultsPage /> },
+  { path: "admit-cards", element: <AdmitCardsPage /> }
 ];
 
 /* Everyone's calendar, and teachers' own sections and week */

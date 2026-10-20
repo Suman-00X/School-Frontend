@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Banknote, BellRing, ClipboardX, FileUp, GraduationCap, Megaphone, MessageSquare, Receipt, RotateCcw, UserX } from "lucide-react";
+import { Banknote, BellRing, CalendarClock, ClipboardX, FileBadge, FileUp, GraduationCap, Megaphone, MessageSquare, Receipt, RotateCcw, UserX } from "lucide-react";
 import type { Notification, NotificationType } from "../api/notifications";
 
 export const TYPE_META: Record<NotificationType, { label: string; icon: LucideIcon }> = {
@@ -8,6 +8,7 @@ export const TYPE_META: Record<NotificationType, { label: string; icon: LucideIc
   ATTENDANCE_ABSENT: { label: "Absence", icon: UserX },
   ATTENDANCE_MISSED: { label: "Register not taken", icon: ClipboardX },
   RESULTS_PUBLISHED: { label: "Results published", icon: GraduationCap },
+  ADMIT_CARD_ISSUED: { label: "Admit card issued", icon: FileBadge },
   INVOICE_ISSUED: { label: "Invoice issued", icon: Receipt },
   PAYMENT_RECEIVED: { label: "Payment received", icon: Banknote },
   REFUND_PROCESSED: { label: "Refund paid", icon: RotateCcw },
@@ -24,6 +25,7 @@ const FAMILY: NotificationType[] = [
   "MESSAGE",
   "ATTENDANCE_ABSENT",
   "RESULTS_PUBLISHED",
+  "ADMIT_CARD_ISSUED",
   "INVOICE_ISSUED",
   "PAYMENT_RECEIVED",
   "REFUND_PROCESSED",
@@ -75,6 +77,14 @@ export function notificationTarget(n: Notification, can: (key: string) => boolea
         : portal("attendance");
     case "RESULTS_PUBLISHED":
       return portal("results");
+    case "ADMIT_CARD_ISSUED":
+      return portal("admit-cards");
+    /* The lessons to cover are on the home page */
+    case "SUBSTITUTION":
+      return "/";
+    /* Behaviour remarks come as messages naming the remark */
+    case "MESSAGE":
+      return str(n.data.remarkId) ? portal("behaviour", "portal.behaviour.read") : null;
     default:
       return null;
   }

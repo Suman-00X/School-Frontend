@@ -1,0 +1,5 @@
+/* Admit cards tab: a figure that misses the eligibility rule */
+.ac-short {
+  color: var(--danger-text);
+  font-weight: 500;
+}

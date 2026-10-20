@@ -136,6 +136,21 @@ export const RESULT_LABELS: Record<string, string> = { PASS: "Pass", FAIL: "Fail
 export const downloadReportCard = (studentId: string, r: ReportCard) =>
   api.download(`${reportCardsPath(studentId)}/pdf`, r.kind === "SCHEME" ? { schemeId: r.scheme?.id } : { examId: r.exam?.id }, "report-card.pdf");
 
+/* ---- Admit cards (issued only to students the exam eligibility rules let sit the exam) ---- */
+
+export type PortalAdmitCard = {
+  id: string;
+  examId: string;
+  issuedAt: string;
+  student: { firstName: string | null; lastName: string | null; admissionNumber: string | null; rollNumber: string | null; section: string };
+  exam: { examName: string; startDate: string | null; endDate: string | null };
+  papers: { subjectName: string; component: string | null; displayCode: string; examDate: string | null; startTime: string | null; endTime: string | null; room: string | null }[];
+};
+export const admitCardsPath = (studentId: string) => `${studentPath(studentId)}/admit-cards`;
+
+export const downloadPortalAdmitCard = (studentId: string, card: PortalAdmitCard) =>
+  api.download(`${admitCardsPath(studentId)}/${card.id}/pdf`, undefined, "admit-card.pdf");
+
 /* ---- PO-09 calendar ---- */
 
 export type EventType = "HOLIDAY" | "VACATION" | "EXAM" | "EVENT" | "MEETING" | "OTHER";
