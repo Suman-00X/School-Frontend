@@ -1,0 +1,61 @@
+/* Behaviour log book (AC-18, PO-12): entries with a coloured edge by kind */
+
+.bh-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bh-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.bh-entry.bh-success {
+  border-left-color: var(--success);
+}
+.bh-entry.bh-info {
+  border-left-color: var(--info-text);
+}
+.bh-entry.bh-warning {
+  border-left-color: var(--warning);
+}
+.bh-entry.bh-danger {
+  border-left-color: var(--danger);
+}
+.bh-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+}
+.bh-category {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bh-remark,
+.bh-action {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bh-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.bh-ack {
+  color: var(--success-text);
+}

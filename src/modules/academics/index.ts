@@ -15,6 +15,7 @@ import { setupArea } from "./shared/components/SetupLayout";
 import { routes as timetableRoutes } from "./timetable";
 import { routes as attendanceRoutes } from "./attendance";
 import { routes as homeworkRoutes } from "./homework";
+import { routes as behaviourRoutes } from "./behaviour";
 import { areaRoutes as examAreaRoutes, routes as examRoutes, resultsArea } from "./exams";
 import { areaRoutes as marksAreaRoutes } from "./marks";
 import { areaRoutes as resultsAreaRoutes } from "./report-cards";

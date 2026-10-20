@@ -4,6 +4,7 @@ import { RequirePermission } from "@/common/auth";
 import { PortalLayout, routes as sharedRoutes } from "./shared";
 import { childRoutes as learningChildren, routes as learningRoutes } from "./learning";
 import { childRoutes as homeworkChildren, routes as homeworkRoutes } from "./homework";
+import { childRoutes as behaviourChildren } from "./behaviour";
 import { childRoutes as feesChildren, routes as feesRoutes } from "./fees";
 import { childRoutes as transportHostelChildren } from "./transport-hostel";
 import { routes as libraryRoutes } from "./library";

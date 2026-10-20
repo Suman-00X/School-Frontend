@@ -36,6 +36,7 @@ export default function SubjectsPage() {
             {can("academics.sectionSubjects.read") ? <Link to={SETUP_PATHS.curriculum}>Curriculum</Link> : "Curriculum"}.
           </>
         }
+        actions={addButton}
       />
       <Card flush>
         <div className="filter-bar">
