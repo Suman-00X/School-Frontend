@@ -6,11 +6,12 @@ import { formatDate, todayIso } from "@/common/utils/format";
 import { useMyTeaching } from "../../shared/api/teaching";
 import { useSectionOptions, sectionTitle } from "../../shared/components/SectionSelect";
 import { useSectionSubjects } from "../../timetable/api/timetable";
+import { useBuckets } from "../../assessments";
 import { createHomework, HOMEWORK_PATH, homeworkPath, updateHomework, type Homework, type HomeworkInput } from "../api/homework";
 
-type Values = { sectionId: string; subjectId: string; title: string; description: string; dueDate: string; maxMarks: string; allowLateSubmission: boolean };
+type Values = { sectionId: string; subjectId: string; title: string; description: string; dueDate: string; maxMarks: string; allowLateSubmission: boolean; bucketId: string };
 
-const EMPTY: Values = { sectionId: "", subjectId: "", title: "", description: "", dueDate: "", maxMarks: "", allowLateSubmission: false };
+const EMPTY: Values = { sectionId: "", subjectId: "", title: "", description: "", dueDate: "", maxMarks: "", allowLateSubmission: false, bucketId: "" };
 
 const toValues = (h: Homework): Values => ({
   sectionId: h.sectionId,
@@ -19,7 +20,8 @@ const toValues = (h: Homework): Values => ({
   description: h.description ?? "",
   dueDate: h.dueDate,
   maxMarks: h.maxMarks === null ? "" : String(h.maxMarks),
-  allowLateSubmission: h.allowLateSubmission
+  allowLateSubmission: h.allowLateSubmission,
+  bucketId: h.assessment?.bucketId ?? ""
 });
 
 /* AC-16: set homework (homework = null) or edit one. Section and subject are fixed once set.
@@ -34,7 +36,8 @@ export function HomeworkDrawer({ open, homework, onClose, defaults }: { open: bo
   const { values, errors } = form;
   const subjects = useSectionSubjects(values.sectionId || null);
   const create = useApiMutation(createHomework, { invalidate: [HOMEWORK_PATH] });
-  const update = useApiMutation(updateHomework, { invalidate: [HOMEWORK_PATH] });
+  const update = useApiMutation(updateHomework, { invalidate: [HOMEWORK_PATH, "/academics/assessments"] });
+  const buckets = useBuckets(open);
 
   useEffect(() => {
     if (open) form.reset(homework ? toValues(homework) : { ...EMPTY, sectionId: defaults?.sectionId ?? "", subjectId: defaults?.subjectId ?? "" });
@@ -59,6 +62,7 @@ export function HomeworkDrawer({ open, homework, onClose, defaults }: { open: bo
       const n = Number(values.maxMarks);
       if (!(n > 0 && n <= 1000)) e.maxMarks = "More than 0, at most 1000";
     } else if (homework?.maxMarks) e.maxMarks = "Marked homework keeps its marks; change the number instead";
+    if (values.bucketId && !values.maxMarks) e.bucketId = "Only homework marked out of marks can count; set the marks first";
     form.setErrors(e);
     return !Object.keys(e).length;
   };
@@ -73,6 +77,7 @@ export function HomeworkDrawer({ open, homework, onClose, defaults }: { open: bo
       const body: HomeworkInput = { sectionId: values.sectionId, subjectId: values.subjectId, title, dueDate: values.dueDate, allowLateSubmission: values.allowLateSubmission };
       if (description) body.description = description;
       if (values.maxMarks) body.maxMarks = Number(values.maxMarks);
+      if (values.bucketId) body.bucketId = values.bucketId;
       return create.mutate(body, {
         onSuccess: res => {
           toast.success(res.message);
@@ -88,6 +93,7 @@ export function HomeworkDrawer({ open, homework, onClose, defaults }: { open: bo
     if (values.dueDate !== homework.dueDate) patch.dueDate = values.dueDate;
     if (values.maxMarks && Number(values.maxMarks) !== homework.maxMarks) patch.maxMarks = Number(values.maxMarks);
     if (values.allowLateSubmission !== homework.allowLateSubmission) patch.allowLateSubmission = values.allowLateSubmission;
+    if (values.bucketId !== (homework.assessment?.bucketId ?? "")) patch.bucketId = values.bucketId || null;
     if (Object.keys(patch).length === 1) return onClose();
     update.mutate(patch, {
       onSuccess: res => {
@@ -165,6 +171,20 @@ export function HomeworkDrawer({ open, homework, onClose, defaults }: { open: bo
           />
         </div>
         <Switch label="Accept late submissions" checked={values.allowLateSubmission} onChange={v => form.set("allowLateSubmission", v)} />
+        {(buckets.options.length > 0 || values.bucketId) && (
+          <Select
+            label="Counts toward"
+            {...form.text("bucketId")}
+            options={buckets.options}
+            disabled={!values.maxMarks && !values.bucketId}
+            placeholder="Doesn't count toward a result"
+            hint={
+              values.maxMarks
+                ? "Graded marks are averaged with the subject's other teacher assessments in this bucket"
+                : "Set the marks it is out of to count it toward a result"
+            }
+          />
+        )}
       </form>
     </Drawer>
   );

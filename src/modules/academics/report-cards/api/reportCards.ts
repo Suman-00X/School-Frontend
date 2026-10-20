@@ -124,7 +124,7 @@ export type ResultSheet = {
     endDate: string | null;
     resultsPublishedAt: string | null;
   };
-  scheme?: { id: string; name: string; resultsPublishedAt: string | null; exams: { examId: string; examName: string; weight: number }[] };
+  scheme?: { id: string; name: string; resultsPublishedAt: string | null; exams: { examId: string; examName: string; weight: number; kind?: "BUCKET" }[] };
   section: { id: string; name: string; classId: string };
   policy: SheetPolicy;
   gradeScale: { id: string; name: string } | null;
@@ -139,7 +139,7 @@ export type ResultSheet = {
 export type StudentReport = Figures & {
   kind: "EXAM" | "SCHEME";
   exam?: { id: string; examName: string; examType?: string | null; startDate?: string | null; endDate?: string | null };
-  scheme?: { id: string; name: string; exams?: { examId: string; examName: string; weight: number }[] };
+  scheme?: { id: string; name: string; exams?: { examId: string; examName: string; weight: number; kind?: "BUCKET" }[] };
   policy: SheetPolicy | null;
   gradeScale: { id: string; name: string } | null;
   display: Display;

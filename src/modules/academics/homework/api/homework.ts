@@ -23,6 +23,8 @@ export type Homework = {
   submissions?: { submitted: number; graded: number };
   /* Detail only */
   attachments?: StoredFile[];
+  /* Detail only: the teacher-assessment bucket it counts toward (null: none) */
+  assessment?: { id: string; bucketId: string; counts: boolean; bucket: { id: string; name: string; weight: number; scheme: { name: string } } | null } | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -37,6 +39,8 @@ export type HomeworkInput = {
   dueDate: string;
   maxMarks?: number;
   allowLateSubmission: boolean;
+  /* Counts toward a scheme bucket (needs maxMarks) */
+  bucketId?: string;
 };
 
 export type SubmissionStatus = "NOT_SUBMITTED" | "SUBMITTED" | "LATE" | "GRADED" | "RETURNED";
@@ -63,7 +67,8 @@ export const HOMEWORK_PATH = "/academics/homework";
 export const homeworkPath = (id: string) => `${HOMEWORK_PATH}/${id}`;
 
 export const createHomework = (body: HomeworkInput) => api.post<Homework>(HOMEWORK_PATH, body);
-export const updateHomework = ({ id, ...body }: Partial<Omit<HomeworkInput, "sectionId" | "subjectId">> & { id: string }) => api.patch<Homework>(homeworkPath(id), body);
+/* bucketId null takes the homework out of its bucket */
+export const updateHomework = ({ id, ...body }: Partial<Omit<HomeworkInput, "sectionId" | "subjectId" | "bucketId">> & { id: string; bucketId?: string | null }) => api.patch<Homework>(homeworkPath(id), body);
 export const deleteHomework = (id: string) => api.delete<null>(homeworkPath(id));
 
 export const uploadAttachment = ({ id, file }: { id: string; file: File }) => {

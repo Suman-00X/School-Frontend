@@ -257,7 +257,11 @@ function SchemesTab({ onOpen, onCreate }: { onOpen: (s: AssessmentScheme) => voi
               </div>
             )
           },
-          { key: "exams", header: "Exams", render: s => s.exams.map(e => `${e.exam?.examName ?? "Exam"} ${e.weight}%`).join(" + ") },
+          {
+            key: "exams",
+            header: "Weights",
+            render: s => [...s.exams.map(e => `${e.exam?.examName ?? "Exam"} ${e.weight}%`), ...(s.buckets ?? []).map(b => `${b.name} ${b.weight}%`)].join(" + ")
+          },
           { key: "policy", header: "Policy", render: s => s.policy?.name ?? <span className="muted">Class or school default</span> },
           { key: "published", header: "Results", render: s => (s.resultsPublishedAt ? <Badge tone="success">Published {formatDate(s.resultsPublishedAt)}</Badge> : <span className="muted">Not published</span>) }
         ]}

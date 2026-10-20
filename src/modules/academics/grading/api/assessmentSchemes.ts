@@ -14,6 +14,9 @@ export type SchemeExam = {
   exam?: { id: string; examName: string; examType: string; startDate: string; endDate: string };
 };
 
+/* A share filled by teachers' own tests, assignments, projects and homework (Teacher assessments 20%) */
+export type SchemeBucket = { id: string; name: string; weight: number; sortOrder: number };
+
 export type AssessmentScheme = {
   id: string;
   academicYearId: string;
@@ -23,6 +26,7 @@ export type AssessmentScheme = {
   policyId: string | null;
   resultsPublishedAt: string | null;
   exams: SchemeExam[];
+  buckets: SchemeBucket[];
   policy: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -33,6 +37,8 @@ export type SchemeInput = {
   description?: string;
   policyId?: string | null;
   exams?: { examId: string; weight: number }[];
+  /* id keeps an existing bucket (and the items teachers put in it) */
+  buckets?: { id?: string; name: string; weight: number }[];
 };
 
 export const SCHEMES_PATH = "/academics/assessment-schemes";

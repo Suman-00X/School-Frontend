@@ -14,6 +14,7 @@ import { routes as homeworkRoutes } from "./homework";
 import { areaRoutes as examAreaRoutes, routes as examRoutes, resultsArea } from "./exams";
 import { areaRoutes as marksAreaRoutes } from "./marks";
 import { areaRoutes as resultsAreaRoutes } from "./report-cards";
+import { areaRoutes as assessmentAreaRoutes, routes as assessmentRoutes } from "./assessments";
 import { routes as activityRoutes } from "./activity";
 
 /* Setup pages share the Setup side list (setupArea); the other areas are header tabs of their own */

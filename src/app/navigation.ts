@@ -122,11 +122,12 @@ export const MODULES: NavModule[] = [
       {
         label: "Exams & results",
         to: "/academics/exams",
-        permissions: ["academics.exams.read", "academics.marks.record", "academics.reportCards.read", "academics.assessmentSchemes.read"],
-        match: ["/academics/marks", "/academics/results"],
+        permissions: ["academics.exams.read", "academics.marks.record", "academics.assessments.read", "academics.reportCards.read", "academics.assessmentSchemes.read"],
+        match: ["/academics/marks", "/academics/assessments", "/academics/results"],
         opens: [
           { to: "/academics/exams", permission: "academics.exams.read" },
           { to: "/academics/marks", permission: "academics.marks.record" },
+          { to: "/academics/assessments", permission: "academics.assessments.read" },
           { to: "/academics/results", permission: "academics.reportCards.read" },
           { to: "/academics/results", permission: "academics.assessmentSchemes.read" }
         ]
